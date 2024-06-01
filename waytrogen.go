@@ -4,18 +4,21 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/base64"
-	"errors"
-	"github.com/disintegration/imaging"
-	_ "github.com/mattn/go-sqlite3"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
+
+	"github.com/disintegration/imaging"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type dbImage struct {
-	mimeType  string
-	base64Rep string
+	path          string
+	mimeType      string
+	base64Rep     string
+	date_modified string
 }
 
 func main() {
@@ -30,7 +33,7 @@ func main() {
 	if err != nil {
 		return
 	}
-	stmt, err := tx.Prepare("INSERT INTO image(path, image_type, base64, date_modified) VALUES(?,?,?,?)")
+	insertStmt, err := tx.Prepare("INSERT INTO image(path, image_type, base64, date_modified) VALUES(?,?,?,?)")
 	if err != nil {
 		return
 	}
@@ -40,6 +43,7 @@ func main() {
 		return
 	}
 	images := getImages(files)
+	uncached_images := []file{}
 	for _, file := range images {
 		selectStmt, err := db.Prepare("select path from image where path = ?;")
 		if err != nil {
@@ -49,23 +53,39 @@ func main() {
 		var path string
 		row := selectStmt.QueryRow(file.absPath)
 		err = row.Scan(&path)
-		if err != nil {
+		if err == nil {
 			continue
 		}
 
 		if path != "" {
 			continue
 		}
-
-		image, err := getImage(file)
-		if err != nil {
-			continue
+		uncached_images = append(uncached_images, file)
+	}
+	proccesed_images := []dbImage{}
+	channel := make(chan dbImage)
+	for i := 0; i < len(uncached_images); i+=runtime.NumCPU() {
+		
+		if len(uncached_images) - i < runtime.NumCPU() {
+			for j := i; j < len(uncached_images); j++ {
+				go getImage(uncached_images[i], channel)
+			}
+			for j := i; j < len(uncached_images); j++ {
+				image := <-channel
+				proccesed_images = append(proccesed_images, image)
+			}
+		} else {
+			for j := i; j < i + runtime.NumCPU(); j++ {
+				go getImage(uncached_images[i], channel)
+			}
+			for j := i; j < i + runtime.NumCPU(); j++ {
+				image := <-channel
+				proccesed_images = append(proccesed_images, image)
+			}
 		}
-		info, err := file.dirEntry.Info()
-		if err != nil {
-			continue
-		}
-		stmt.Exec(file.absPath, image.mimeType, image.base64Rep, info.ModTime())
+	}
+	for _, image := range proccesed_images {
+		insertStmt.Exec(image.path, image.mimeType, image.base64Rep, image.date_modified)
 	}
 	err = tx.Commit()
 	if err != nil {
@@ -92,23 +112,23 @@ func getImages(files []file) []file {
 	return images
 }
 
-func getImage(file file) (dbImage, error) {
+func getImage(file file, channel chan dbImage) {
 	f, err := os.Open(file.absPath)
 	if err != nil {
-		return dbImage{"", ""}, err
+		return
 	}
 	defer f.Close()
 	fileTypeBuff := make([]byte, 512)
 	if _, err := f.Read(fileTypeBuff); err != nil {
-		return dbImage{"", ""}, err
+		return
 	}
 	fileType := http.DetectContentType(fileTypeBuff)
 	if !validImage(fileType) {
-		return dbImage{"", ""}, errors.New("File is not an image.")
+		return
 	}
 	image, err := imaging.Open(file.absPath)
 	if err != nil {
-		return dbImage{"", ""}, err
+		return
 	}
 	thumbnail := imaging.Thumbnail(image, 300, 300, imaging.Box)
 	var imageBuff bytes.Buffer
@@ -118,7 +138,11 @@ func getImage(file file) (dbImage, error) {
 	case "image/jpeg":
 		imaging.Encode(&imageBuff, thumbnail, imaging.JPEG)
 	}
-	return dbImage{fileType, base64.StdEncoding.EncodeToString(imageBuff.Bytes())}, nil
+	info, err := file.dirEntry.Info()
+	if err != nil {
+		return
+	}
+	channel <- dbImage{file.absPath, fileType, base64.StdEncoding.EncodeToString(imageBuff.Bytes()), info.ModTime().GoString()}
 }
 
 func maxImageSize(files []*os.File) (int64, error) {
