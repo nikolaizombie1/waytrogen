@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"github.com/disintegration/imaging"
 	_ "github.com/mattn/go-sqlite3"
 	"io/fs"
@@ -36,13 +35,28 @@ func main() {
 		return
 	}
 
-	files, err := readFiles("/home/uwu/Downloads/Wallpapers/2024")
+	files, err := readFiles("/home/uwu/Downloads/Wallpapers/")
 	if err != nil {
 		return
 	}
 	images := getImages(files)
 	for _, file := range images {
-		fmt.Println(file.absPath)
+		selectStmt, err := db.Prepare("select path from image where path = ?;")
+		if err != nil {
+			continue
+		}
+		defer selectStmt.Close()
+		var path string
+		row := selectStmt.QueryRow(file.absPath)
+		err = row.Scan(&path)
+		if err != nil {
+			continue
+		}
+
+		if path != "" {
+			continue
+		}
+
 		image, err := getImage(file)
 		if err != nil {
 			continue
