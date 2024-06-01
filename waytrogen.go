@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-
+	"strings"
 	"github.com/disintegration/imaging"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -68,7 +68,7 @@ func main() {
 		
 		if len(uncached_images) - i < runtime.NumCPU() {
 			for j := i; j < len(uncached_images); j++ {
-				go getImage(uncached_images[i], channel)
+				go getImage(uncached_images[j], channel)
 			}
 			for j := i; j < len(uncached_images); j++ {
 				image := <-channel
@@ -76,7 +76,7 @@ func main() {
 			}
 		} else {
 			for j := i; j < i + runtime.NumCPU(); j++ {
-				go getImage(uncached_images[i], channel)
+				go getImage(uncached_images[j], channel)
 			}
 			for j := i; j < i + runtime.NumCPU(); j++ {
 				image := <-channel
@@ -104,6 +104,9 @@ func getImages(files []file) []file {
 		}
 		fileType := http.DetectContentType(fileTypeBuff)
 		if !validImage(fileType) {
+			continue
+		}
+		if strings.HasSuffix(file.Name(), ".crdownload") {
 			continue
 		}
 		images = append(images, f)
