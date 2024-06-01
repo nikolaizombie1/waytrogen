@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/base64"
+	"github.com/disintegration/imaging"
+	_ "github.com/mattn/go-sqlite3"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"github.com/disintegration/imaging"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type dbImage struct {
@@ -64,9 +64,9 @@ func main() {
 	}
 	proccesed_images := []dbImage{}
 	channel := make(chan dbImage)
-	for i := 0; i < len(uncached_images); i+=runtime.NumCPU() {
-		
-		if len(uncached_images) - i < runtime.NumCPU() {
+	for i := 0; i < len(uncached_images); i += runtime.NumCPU() {
+
+		if len(uncached_images)-i < runtime.NumCPU() {
 			for j := i; j < len(uncached_images); j++ {
 				go getImage(uncached_images[j], channel)
 			}
@@ -75,10 +75,10 @@ func main() {
 				proccesed_images = append(proccesed_images, image)
 			}
 		} else {
-			for j := i; j < i + runtime.NumCPU(); j++ {
+			for j := i; j < i+runtime.NumCPU(); j++ {
 				go getImage(uncached_images[j], channel)
 			}
-			for j := i; j < i + runtime.NumCPU(); j++ {
+			for j := i; j < i+runtime.NumCPU(); j++ {
 				image := <-channel
 				proccesed_images = append(proccesed_images, image)
 			}
@@ -135,12 +135,7 @@ func getImage(file file, channel chan dbImage) {
 	}
 	thumbnail := imaging.Thumbnail(image, 300, 300, imaging.Box)
 	var imageBuff bytes.Buffer
-	switch fileType {
-	case "image/png":
-		imaging.Encode(&imageBuff, thumbnail, imaging.PNG)
-	case "image/jpeg":
-		imaging.Encode(&imageBuff, thumbnail, imaging.JPEG)
-	}
+	imaging.Encode(&imageBuff, thumbnail, imaging.JPEG)
 	info, err := file.dirEntry.Info()
 	if err != nil {
 		return
