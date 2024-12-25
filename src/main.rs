@@ -1,7 +1,9 @@
-use std::fmt::Error;
+use glib::clone;
+use gtk::{prelude::*, subclass::text_view};
+use std::cell::Cell;
+use std::rc::Rc;
 
-use gtk::prelude::*;
-use gtk::{glib, Application, ApplicationWindow, Button};
+use gtk::{glib, Application, ApplicationWindow};
 
 const APP_ID: &str = "org.gtk_rs.HelloWorld1";
 
@@ -16,16 +18,48 @@ fn main() -> glib::ExitCode {
 }
 
 fn build_ui(app: &Application) {
-    let file_filter = gtk::FileFilter::new();
-    file_filter.add_mime_type("inode/directory");
-    let button = gtk::FileDialog::builder().default_filter(&file_filter).build();
+    let ui_src = include_str!("waypaper.ui");
+    let builder = gtk::Builder::from_string(&ui_src);
+    let window = builder
+        .object::<gtk::ApplicationWindow>("window")
+        .expect("Couldn't get window");
+    window.set_application(Some(app));
+    let text_view = builder
+        .object::<gtk::TextView>("text_view")
+        .expect("Couldn't get text_view");
+    let text_view_copy = text_view.clone();
 
+    let dialog = gtk::FileDialog::new();
 
-    let window = ApplicationWindow::builder().application(app).title("My GTK App").build();
-    let cancel = gtk::gio::Cancellable::new();
-    let mut x: Result<gtk::gio::File, gtk::glib::Error> = Err(gtk::glib::Error::new(gtk::FileChooserError::__Unknown(-1), "UwU"));
-    button.select_folder(    Some(&window), Some(&cancel),  move |o|  {
-        x = o.clone();
-    });
+    dialog.select_folder(
+        Some(&window),
+        gtk::gio::Cancellable::NONE,
+        move |o| match o {
+            Ok(f) => {
+                text_view.buffer().set_text(
+                    &String::from_utf8(
+                        f.path()
+                            .unwrap()
+                            .canonicalize()
+                            .unwrap()
+                            .as_os_str()
+                            .as_encoded_bytes()
+                            .to_vec(),
+                    )
+                    .unwrap(),
+                );
+            }
+            Err(_) => todo!(),
+        },
+    );
+
+    let y = text_view_copy
+        .buffer()
+        .text(
+            &text_view_copy.buffer().start_iter(),
+            &text_view_copy.buffer().end_iter(),
+            false,
+        );
+    println!("{}", y.as_str());
     window.present();
 }
