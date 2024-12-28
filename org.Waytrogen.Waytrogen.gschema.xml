@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist>
+    <schema id="org.Waytrogen.Waytrogen" path="/org/Waytrogen/Waytrogen/">
+        <key name="wallpaper-folder" type="s">
+            <default>"/home"</default>
+            <summary>Wallpaper Directory</summary>
+        </key>
+    </schema>
+</schemalist>
