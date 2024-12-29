@@ -24,7 +24,7 @@ impl GtkImageFile {
     fn get_metadata(path: &Path) -> anyhow::Result<(String, String, u64)> {
         let path = path.to_path_buf();
         let name = path.file_name().unwrap().to_str().unwrap().to_owned();
-        let date = std::fs::File::open(path.clone())?.metadata()?.created()?;
+        let date = std::fs::File::open(path.clone())?.metadata()?.modified()?;
         let date = date.duration_since(UNIX_EPOCH)?.as_secs();
         Ok((path.to_str().unwrap().to_string(), name, date))
     }

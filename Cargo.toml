@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-async-channel = "2.3.1"
 walkdir = "2"
 gtk = { version = "0.9.5", package = "gtk4", features = ["v4_16"] }
 anyhow = "1.0.95"
@@ -13,3 +12,4 @@ xdg = "2.5.2"
 stderrlog = "0.6.0"
 log = "0.4.22"
 image = "0.25.5"
+sysinfo = "0.33.1"

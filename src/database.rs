@@ -1,12 +1,11 @@
 use crate::common::GtkImageFile;
-use anyhow::Ok;
 use gtk::{
     gdk::Texture,
     glib::Bytes,
     prelude::{Cast, TextureExt},
     Picture,
 };
-use log::trace;
+use log::{debug, trace, warn};
 use sqlite::{Connection, Value};
 use std::path::Path;
 
@@ -15,8 +14,7 @@ pub struct DatabaseConnection {
 }
 
 impl DatabaseConnection {
-    pub fn new() -> anyhow::Result<DatabaseConnection> {
-
+    fn new() -> anyhow::Result<DatabaseConnection> {
         let xdg_dirs = xdg::BaseDirectories::with_prefix("waytrogen")?;
         let cache_path = xdg_dirs.place_cache_file("cache.db")?;
         let conn = sqlite::open(cache_path.to_str().unwrap())?;
@@ -76,5 +74,34 @@ impl DatabaseConnection {
         trace!("Statement Bound Correctly.");
         statement.next()?;
         Ok(())
+    }
+
+    pub fn check_cache(path: &Path) -> Result<GtkImageFile, anyhow::Error> {
+        let conn = DatabaseConnection::new()?;
+        match conn.select_image_file(path) {
+            Ok(f) => {
+                trace!("Cache Hit: {}", f.path);
+                Ok(f)
+            }
+            Err(e) => {
+                trace!("Cache Miss: {} {}", path.to_str().unwrap(), e);
+                match GtkImageFile::from_file(path) {
+                    Ok(g) => {
+                        trace!("GTK Picture created succesfully. {}", g.path);
+                        conn.insert_image_file(&g)?;
+                        debug!("Picture inserted into database. {}", &g.path);
+                        Ok(g)
+                    }
+                    Err(e) => {
+                        warn!(
+                            "File could not be converted to a GTK Picture: {} {}",
+                            path.to_str().unwrap(),
+                            e
+                        );
+                        Err(e)
+                    }
+                }
+            }
+        }
     }
 }
