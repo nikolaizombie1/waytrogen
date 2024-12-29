@@ -34,10 +34,6 @@ fn build_ui(app: &Application) {
 
     window.present();
 
-
-    let xdg_dirs = xdg::BaseDirectories::with_prefix("waytrogen").unwrap();
-    let cache_path = xdg_dirs.place_cache_file("cache.db").unwrap();
-
     let settings = Settings::new(APP_ID);
 
     let image_list_store = ListStore::new::<BoxedAnyObject>();
@@ -131,7 +127,7 @@ fn build_ui(app: &Application) {
             .into_iter()
             .filter_map(|f| f.ok())
             .filter(|f| f.file_type().is_file())
-            .filter_map(|f| check_cache(f.path(), &cache_path).ok())
+            .filter_map(|f| check_cache(f.path()).ok())
             .collect::<Vec<_>>();
         files.into_iter().for_each(|g| image_list_store.append(&BoxedAnyObject::new(g)));
     }));
@@ -144,8 +140,8 @@ fn build_ui(app: &Application) {
     window.set_child(Some(&application_box));
 }
 
-fn check_cache(path: &Path, cache_path: &Path) -> Result<GtkImageFile, anyhow::Error> {
-    let conn = DatabaseConnection::new(cache_path)?;
+fn check_cache(path: &Path) -> Result<GtkImageFile, anyhow::Error> {
+    let conn = DatabaseConnection::new()?;
     match conn.select_image_file(path) {
         Ok(f) => {
             trace!("Cache Hit: {}", f.path);

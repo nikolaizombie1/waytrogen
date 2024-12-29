@@ -1,13 +1,10 @@
 use anyhow::Ok;
-use gtk::{gdk::Texture, gio::File, glib::Bytes, prelude::TextureExt, Picture};
-use log::error;
-use std::{path::Path, time::UNIX_EPOCH, io::Cursor};
+use gtk::{gdk::Texture, glib::Bytes, Picture};
 use image::ImageReader;
+use std::{io::Cursor, path::Path, time::UNIX_EPOCH};
 
 pub const THUMBNAIL_HEIGHT: i32 = 200;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
-
-
 
 #[derive(Clone)]
 pub struct GtkImageFile {
@@ -16,7 +13,6 @@ pub struct GtkImageFile {
     pub date: u64,
     pub path: String,
 }
-
 
 impl GtkImageFile {
     pub fn from_file(path: &Path) -> anyhow::Result<GtkImageFile> {
@@ -45,7 +41,11 @@ impl GtkImageFile {
     }
 
     fn generate_thumbnail(path: &Path) -> anyhow::Result<Picture> {
-        let thumbnail = ImageReader::open(path)?.with_guessed_format()?.decode()?.thumbnail(THUMBNAIL_WIDTH as u32, THUMBNAIL_HEIGHT as u32).to_rgb8();
+        let thumbnail = ImageReader::open(path)?
+            .with_guessed_format()?
+            .decode()?
+            .thumbnail(THUMBNAIL_WIDTH as u32, THUMBNAIL_HEIGHT as u32)
+            .to_rgb8();
         let mut buff: Vec<u8> = vec![];
         thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;
         let picture = Picture::for_paintable(&Texture::from_bytes(&Bytes::from(&buff))?);
