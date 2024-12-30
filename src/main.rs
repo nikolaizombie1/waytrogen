@@ -1,7 +1,15 @@
-use std::{cell::Ref, cmp::Ordering, path::Path};
+use std::{cell::Ref, path::Path};
 
+use async_channel::{Receiver, Sender};
 use gtk::{
-    self, gio::{Cancellable, ListStore, Settings}, glib::{self, clone, BoxedAnyObject}, prelude::*, Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, Label, ListItem, ListScrollFlags, Orientation, ScrollInfo, ScrolledWindow, SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer
+    self,
+    gdk::{Display, Texture},
+    gio::{spawn_blocking, Cancellable, ListStore, Settings},
+    glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
+    prelude::*,
+    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
+    ListScrollFlags, Orientation, Picture, ScrolledWindow, SignalListItemFactory, SingleSelection,
+    StringObject, Switch, Text, TextBuffer,
 };
 
 use log::{debug, error};
@@ -58,9 +66,19 @@ fn build_ui(app: &Application) {
     settings
         .bind("wallpaper-folder", &folder_path_buffer, "text")
         .build();
-    log::trace!("Wallpaper Folder: {}",folder_path_buffer.text(&folder_path_buffer.start_iter(), &folder_path_buffer.end_iter(), false));
+    let path = folder_path_buffer
+        .text(
+            &folder_path_buffer.start_iter(),
+            &folder_path_buffer.end_iter(),
+            false,
+        )
+        .to_string();
+    log::trace!("Wallpaper Folder: {}", path);
 
-    insert_images_to_list_store(&folder_path_buffer.text(&folder_path_buffer.start_iter(), &folder_path_buffer.end_iter(), false).to_string(), &image_list_store);
+    let (sender, receiver): (Sender<Vec<GtkImageFile>>, Receiver<Vec<GtkImageFile>>) =
+        async_channel::bounded(1);
+    generate_image_files(path.clone(), sender.clone());
+
     let image_grid = GridView::builder()
         .model(&selection)
         .factory(&image_signal_list_item_factory)
@@ -106,7 +124,7 @@ fn build_ui(app: &Application) {
         }
     ));
 
-    let monitors = gtk::gdk::Display::default().unwrap().monitors();
+    let monitors = Display::default().unwrap().monitors();
     let monitors = monitors
         .into_iter()
         .filter_map(|o| o.ok())
@@ -144,13 +162,26 @@ fn build_ui(app: &Application) {
                     Err(e) => error!("Could not change wallpaper {} {}", &path, e),
                 }
             });
-            button.set_child(Some(&image.image));
+            let picture =
+                Picture::for_paintable(&Texture::from_bytes(&Bytes::from(&image.image)).unwrap());
+            button.set_child(Some(&picture));
         }
     ));
 
     let sort_dropdown = DropDown::from_strings(&["Name", "Date"]);
-    let invert_sort_switch = Switch::builder().margin_top(12).margin_bottom(12).margin_start(12).margin_end(12).build();
-    let invert_sort_switch_label = Text::builder().text("Invert Sort").margin_start(3).margin_top(12).margin_bottom(12).margin_end(12).build();
+    let invert_sort_switch = Switch::builder()
+        .margin_top(12)
+        .margin_bottom(12)
+        .margin_start(12)
+        .margin_end(12)
+        .build();
+    let invert_sort_switch_label = Text::builder()
+        .text("Invert Sort")
+        .margin_start(3)
+        .margin_top(12)
+        .margin_bottom(12)
+        .margin_end(12)
+        .build();
 
     sort_dropdown.connect_selected_notify(clone!(
         #[weak]
@@ -160,7 +191,7 @@ fn build_ui(app: &Application) {
         #[weak]
         image_grid,
         move |d| {
-            sort_images(&d, &invert_sort_switch, &image_list_store, &image_grid);
+            sort_images(d, &invert_sort_switch, &image_list_store, &image_grid);
         }
     ));
 
@@ -172,7 +203,7 @@ fn build_ui(app: &Application) {
         #[weak]
         image_grid,
         move |s| {
-            sort_images(&sort_dropdown, &s, &image_list_store, &image_grid);
+            sort_images(&sort_dropdown, s, &image_list_store, &image_grid);
         }
     ));
 
@@ -203,68 +234,85 @@ fn build_ui(app: &Application) {
     application_box.append(&scrolled_winow);
     application_box.append(&changer_options_box);
 
-    folder_path_buffer.connect_changed(clone!(
-        #[weak]
-        image_list_store,
-        move |f| {
-            let path = f.text(&f.start_iter(), &f.end_iter(), false).to_string();
-            insert_images_to_list_store(&path, &image_list_store);
+    folder_path_buffer.connect_changed(clone!(move |f| {
+        let sender = sender.clone();
+        let path = f.text(&f.start_iter(), &f.end_iter(), false).to_string();
+        spawn_blocking(move || {
+            generate_image_files(path.clone(), sender);
+        });
     }));
 
+    spawn_future_local(clone!(
+        #[weak]
+        image_list_store,
+        async move {
+            while let Ok(images) = receiver.recv().await {
+                for image in images {
+                    image_list_store.append(&BoxedAnyObject::new(image));
+                }
+            }
+        }
+    ));
 
     window.set_child(Some(&application_box));
 }
 
-fn sort_images(sort_dropdown: &DropDown, invert_sort_switch: &Switch, image_list_store: &ListStore, image_grid: &GridView) {
-            match &sort_dropdown
-                .selected_item()
-                .unwrap()
-                .downcast::<StringObject>()
-                .unwrap()
-                .string()
-                .to_string()[..]
-            {
-                "Name" => {
-                    image_list_store.sort(|img1, img2| {
-                        let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
-                        let image1: Ref<GtkImageFile> = image1.borrow();
-                        let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
-                        let image2: Ref<GtkImageFile> = image2.borrow();
-                        if invert_sort_switch.state() {
-                            image1.name.partial_cmp(&image2.name).unwrap()
-                        } else {
-                            image2.name.partial_cmp(&image1.name).unwrap()
-                        }
-                    });
+fn sort_images(
+    sort_dropdown: &DropDown,
+    invert_sort_switch: &Switch,
+    image_list_store: &ListStore,
+    image_grid: &GridView,
+) {
+    match &sort_dropdown
+        .selected_item()
+        .unwrap()
+        .downcast::<StringObject>()
+        .unwrap()
+        .string()
+        .to_string()[..]
+    {
+        "Name" => {
+            image_list_store.sort(|img1, img2| {
+                let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
+                let image1: Ref<GtkImageFile> = image1.borrow();
+                let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
+                let image2: Ref<GtkImageFile> = image2.borrow();
+                if invert_sort_switch.state() {
+                    image1.name.partial_cmp(&image2.name).unwrap()
+                } else {
+                    image2.name.partial_cmp(&image1.name).unwrap()
                 }
-                "Date" => {
-                    image_list_store.sort(|img1, img2| {
-                        let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
-                        let image1: Ref<GtkImageFile> = image1.borrow();
-                        let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
-                        let image2: Ref<GtkImageFile> = image2.borrow();
-                        if invert_sort_switch.state() {
-                            image1.date.partial_cmp(&image2.date).unwrap()
-                        } else {
-                            image2.date.partial_cmp(&image1.date).unwrap()
-                        }
-                    });
+            });
+        }
+        "Date" => {
+            image_list_store.sort(|img1, img2| {
+                let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
+                let image1: Ref<GtkImageFile> = image1.borrow();
+                let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
+                let image2: Ref<GtkImageFile> = image2.borrow();
+                if invert_sort_switch.state() {
+                    image1.date.partial_cmp(&image2.date).unwrap()
+                } else {
+                    image2.date.partial_cmp(&image1.date).unwrap()
                 }
-                _ => {}
-            }
-            image_grid.scroll_to(0, ListScrollFlags::FOCUS, None);
+            });
+        }
+        _ => {}
+    }
+    image_grid.scroll_to(0, ListScrollFlags::FOCUS, None);
 }
 
-fn insert_images_to_list_store(path: &str, image_list_store: &ListStore) {
-
-        image_list_store.remove_all();
-        let files = walkdir::WalkDir::new(path)
-            .into_iter()
-            .filter_map(|f| f.ok())
-            .filter(|f| f.file_type().is_file())
-            .filter_map(|f| DatabaseConnection::check_cache(f.path()).ok())
-            .collect::<Vec<_>>();
-        files
-            .into_iter()
-            .for_each(|g| image_list_store.append(&BoxedAnyObject::new(g)));
+fn generate_image_files(path: String, sender: Sender<Vec<GtkImageFile>>) {
+    spawn_blocking(move || {
+        sender
+            .send_blocking(
+                walkdir::WalkDir::new(path)
+                    .into_iter()
+                    .filter_map(|f| f.ok())
+                    .filter(|f| f.file_type().is_file())
+                    .filter_map(|f| DatabaseConnection::check_cache(f.path()).ok())
+                    .collect::<Vec<_>>(),
+            )
+            .expect("The channel must be open");
+    });
 }

@@ -1,10 +1,4 @@
 use crate::common::GtkImageFile;
-use gtk::{
-    gdk::Texture,
-    glib::Bytes,
-    prelude::{Cast, TextureExt},
-    Picture,
-};
 use log::{debug, trace, warn};
 use sqlite::{Connection, Value};
 use std::path::Path;
@@ -38,9 +32,7 @@ impl DatabaseConnection {
         statement.bind((1, path.to_str().unwrap()))?;
         statement.next()?;
         let pix_buf_bytes = GtkImageFile {
-            image: Picture::for_paintable(&Texture::from_bytes(&Bytes::from(
-                &statement.read::<Vec<u8>, _>("image")?,
-            ))?),
+            image: statement.read::<Vec<u8>, _>("image")?,
             name: statement.read::<String, _>("name")?,
             date: statement.read::<i64, _>("date")? as u64,
             path: statement.read::<String, _>("path")?,
@@ -54,19 +46,7 @@ impl DatabaseConnection {
         let mut statement = self.connetion.prepare(query)?;
 
         statement.bind::<&[(_, Value)]>(&[
-            (
-                ":image",
-                image_file
-                    .image
-                    .paintable()
-                    .unwrap()
-                    .downcast::<Texture>()
-                    .unwrap()
-                    .save_to_png_bytes()
-                    .to_vec()
-                    .as_slice()
-                    .into(),
-            ),
+            (":image", image_file.image.clone().into()),
             (":name", image_file.name[..].into()),
             (":date", (image_file.date as i64).into()),
             (":path", image_file.path[..].into()),
