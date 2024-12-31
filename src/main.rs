@@ -164,6 +164,10 @@ fn build_ui(app: &Application) {
             .as_slice(),
     );
 
+    settings
+        .bind("changer", &wallpaper_changers_dropdown, "selected")
+        .build();
+
     wallpaper_changers_dropdown.connect_selected_notify(clone!(
         #[weak]
         image_list_store,
@@ -172,8 +176,13 @@ fn build_ui(app: &Application) {
         #[weak]
         monitors_dropdown,
         move |_| {
-        change_image_button_handlers(image_list_store, wallpaper_changers_dropdown, monitors_dropdown);
-    }));
+            change_image_button_handlers(
+                image_list_store,
+                wallpaper_changers_dropdown,
+                monitors_dropdown,
+            );
+        }
+    ));
 
     image_signal_list_item_factory.connect_bind(clone!(
         #[weak]
@@ -274,6 +283,8 @@ fn build_ui(app: &Application) {
         invert_sort_switch.state(),
     );
 
+    let changer_spefic_options_box = Box::builder().halign(Align::Fill).orientation(Orientation::Horizontal).build();
+
     let changer_options_box = Box::builder()
         .margin_top(12)
         .margin_start(12)
@@ -289,6 +300,8 @@ fn build_ui(app: &Application) {
     changer_options_box.append(&invert_sort_switch);
     changer_options_box.append(&invert_sort_switch_label);
     changer_options_box.append(&wallpaper_changers_dropdown);
+    changer_options_box.append(&changer_options_box);
+    changer_options_box.append(&changer_spefic_options_box);
 
     let application_box = Box::builder()
         .margin_top(12)
@@ -391,38 +404,44 @@ fn generate_image_files(
             .filter(|f| f.file_type().is_file())
             .collect::<Vec<_>>();
 
-        if sort_dropdown == "Name" {
-            files.sort_by(|f1, f2| {
-                if invert_sort_switch_state {
-                    f2.file_name().partial_cmp(f1.file_name()).unwrap()
-                } else {
-                    f1.file_name().partial_cmp(f2.file_name()).unwrap()
-                }
-            });
-        } else if sort_dropdown == "Date" {
-            files.sort_by(|f1, f2| {
-                if invert_sort_switch_state {
-                    f2.metadata()
-                        .unwrap()
-                        .created()
-                        .unwrap()
-                        .partial_cmp(&f1.metadata().unwrap().created().unwrap())
-                        .unwrap()
-                } else {
-                    f1.metadata()
-                        .unwrap()
-                        .created()
-                        .unwrap()
-                        .partial_cmp(&f2.metadata().unwrap().created().unwrap())
-                        .unwrap()
-                }
-            });
+        match &sort_dropdown.to_lowercase()[..] {
+            "name" => {
+                files.sort_by(|f1, f2| {
+                    if invert_sort_switch_state {
+                        f2.file_name().partial_cmp(f1.file_name()).unwrap()
+                    } else {
+                        f1.file_name().partial_cmp(f2.file_name()).unwrap()
+                    }
+                });
+            }
+            "date" => {
+                files.sort_by(|f1, f2| {
+                    if invert_sort_switch_state {
+                        f2.metadata()
+                            .unwrap()
+                            .created()
+                            .unwrap()
+                            .partial_cmp(&f1.metadata().unwrap().created().unwrap())
+                            .unwrap()
+                    } else {
+                        f1.metadata()
+                            .unwrap()
+                            .created()
+                            .unwrap()
+                            .partial_cmp(&f2.metadata().unwrap().created().unwrap())
+                            .unwrap()
+                    }
+                });
+            }
+            _ => {}
         }
+
         for file in files {
             match DatabaseConnection::check_cache(file.path()) {
                 Ok(i) => sender.send_blocking(i).expect("The channel must be open"),
                 Err(_) => {}
             }
+
         }
     });
 }
@@ -431,7 +450,7 @@ fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
     let mut available_changers = vec![];
     for changer in WallpaperChangers::iter() {
         if let Ok(_) = which(changer.to_string().to_lowercase()) {
-            available_changers.push(WallpaperChangers::Hyprpaper);
+            available_changers.push(changer);
         }
     }
     available_changers
@@ -472,4 +491,19 @@ fn change_image_button_handlers(
                 }
             }
         });
+}
+
+fn generate_changer_bar(changer_specific_options_box: Box, selected_changer: WallpaperChangers, setting: Settings) {
+    while changer_specific_options_box.first_child().is_some() {
+        changer_specific_options_box.remove(&changer_specific_options_box.first_child().unwrap());
+    }
+    match selected_changer {
+        WallpaperChangers::Hyprpaper => {},
+        WallpaperChangers::Swaybg => {
+            let dropdown = DropDown::from_strings(&["stretch", "fit", "fill", "center", "tile", "solid_color"]);
+            dropdown.set_halign(Align::End);
+            dropdown.set_valign(Align::Center);
+            changer_specific_options_box.append(&dropdown);
+        },
+    }
 }

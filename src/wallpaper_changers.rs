@@ -1,15 +1,15 @@
-use image::ImageFormat;
 use std::{ffi::OsStr, fmt::Display, path::Path, process::Command, str::FromStr};
 use strum_macros::EnumIter;
 
 pub trait WallpaperChanger {
     fn change(&self, image: &Path, monitor: &str) -> anyhow::Result<()>;
-    fn accepted_formats(&self) -> Vec<ImageFormat>;
+    fn accepted_formats(&self) -> Vec<String>;
 }
 
 #[derive(EnumIter)]
 pub enum WallpaperChangers {
     Hyprpaper,
+    Swaybg
 }
 
 impl WallpaperChanger for WallpaperChangers {
@@ -45,14 +45,29 @@ impl WallpaperChanger for WallpaperChangers {
                     .wait()?;
                 Ok(())
             }
+            WallpaperChangers::Swaybg => Ok(()),
         }
     }
 
-    fn accepted_formats(&self) -> Vec<ImageFormat> {
+    fn accepted_formats(&self) -> Vec<String> {
         match self {
             WallpaperChangers::Hyprpaper => {
-                vec![ImageFormat::Png, ImageFormat::Jpeg, ImageFormat::WebP]
+                vec![
+                    "png".to_owned(),
+                    "jpg".to_owned(),
+                    "jpeg".to_owned(),
+                    "webp".to_owned(),
+                    "jxl".to_owned(),
+                ]
             }
+            WallpaperChangers::Swaybg => vec![
+                    "png".to_owned(),
+                    "jpg".to_owned(),
+                    "jpeg".to_owned(),
+                    "tiff".to_owned(),
+                    "tga".to_owned(),
+                    "gif".to_owned(),
+            ],
         }
     }
 }
@@ -63,6 +78,7 @@ impl FromStr for WallpaperChangers {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match &s.to_lowercase()[..] {
             "hyprpaper" => Ok(WallpaperChangers::Hyprpaper),
+            "swaybg" => Ok(WallpaperChangers::Swaybg),
             _ => Err(format!("{} is not a valid wallpaper setter.", s)),
         }
     }
@@ -72,6 +88,7 @@ impl Display for WallpaperChangers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             WallpaperChangers::Hyprpaper => write!(f, "Hyprpaper"),
+            WallpaperChangers::Swaybg => write!(f, "swaybg"),
         }
     }
 }
