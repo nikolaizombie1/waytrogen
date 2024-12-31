@@ -7,9 +7,9 @@ use gtk::{
     gio::{spawn_blocking, Cancellable, ListStore, Settings},
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
-    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
-    ListScrollFlags, Orientation, Picture, ScrolledWindow, SignalListItemFactory, SingleSelection,
-    StringObject, Switch, Text, TextBuffer,
+    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, Label,
+    ListItem, ListScrollFlags, Orientation, Picture, ScrolledWindow, SignalListItemFactory,
+    SingleSelection, Spinner, StringObject, Switch, Text, TextBuffer,
 };
 
 use log::{debug, error};
@@ -75,9 +75,8 @@ fn build_ui(app: &Application) {
         .to_string();
     log::trace!("Wallpaper Folder: {}", path);
 
-    let (sender, receiver): (Sender<Vec<GtkImageFile>>, Receiver<Vec<GtkImageFile>>) =
+    let (sender, receiver): (Sender<GtkImageFile>, Receiver<GtkImageFile>) =
         async_channel::bounded(1);
-    generate_image_files(path.clone(), sender.clone());
 
     let image_grid = GridView::builder()
         .model(&selection)
@@ -162,9 +161,10 @@ fn build_ui(app: &Application) {
                     Err(e) => error!("Could not change wallpaper {} {}", &path, e),
                 }
             });
-            let picture =
-                Picture::for_paintable(&Texture::from_bytes(&Bytes::from(&image.image)).unwrap());
-            button.set_child(Some(&picture));
+
+            button.set_child(Some(&Picture::for_paintable(
+                &Texture::from_bytes(&Bytes::from(&image.image)).unwrap(),
+            )));
         }
     ));
 
@@ -207,6 +207,16 @@ fn build_ui(app: &Application) {
         }
     ));
 
+let selected_item =sort_dropdown
+        .selected_item()
+        .unwrap()
+        .downcast::<StringObject>()
+        .unwrap()
+        .string()
+        .to_string();
+
+    generate_image_files(path.clone(), sender.clone(), selected_item.clone(), invert_sort_switch.state());
+
     let changer_options_box = Box::builder()
         .margin_top(12)
         .margin_start(12)
@@ -234,22 +244,38 @@ fn build_ui(app: &Application) {
     application_box.append(&scrolled_winow);
     application_box.append(&changer_options_box);
 
-    folder_path_buffer.connect_changed(clone!(move |f| {
-        let sender = sender.clone();
-        let path = f.text(&f.start_iter(), &f.end_iter(), false).to_string();
-        spawn_blocking(move || {
-            generate_image_files(path.clone(), sender);
-        });
-    }));
+    let selected_item = selected_item.clone();
+    folder_path_buffer.connect_changed(clone!(
+        #[weak]
+        image_list_store,
+        #[weak]
+        sort_dropdown,
+        #[weak]
+        invert_sort_switch,
+        move |f| {
+    let selected_item = selected_item.clone();
+            let sender = sender.clone();
+            let path = f.text(&f.start_iter(), &f.end_iter(), false).to_string();
+            image_list_store.remove_all();
+            let state = invert_sort_switch.state();
+            spawn_blocking(move || {
+                generate_image_files(path.clone(), sender, selected_item, state);
+            });
+        }
+    ));
 
     spawn_future_local(clone!(
         #[weak]
         image_list_store,
+        #[weak]
+        sort_dropdown,
+        #[weak]
+        invert_sort_switch,
+        #[weak]
+        image_grid,
         async move {
-            while let Ok(images) = receiver.recv().await {
-                for image in images {
+            while let Ok(image) = receiver.recv().await {
                     image_list_store.append(&BoxedAnyObject::new(image));
-                }
             }
         }
     ));
@@ -302,17 +328,27 @@ fn sort_images(
     image_grid.scroll_to(0, ListScrollFlags::FOCUS, None);
 }
 
-fn generate_image_files(path: String, sender: Sender<Vec<GtkImageFile>>) {
+fn generate_image_files(path: String, sender: Sender<GtkImageFile>, sort_dropdown: String, invert_sort_switch_state: bool) {
+    
     spawn_blocking(move || {
-        sender
-            .send_blocking(
-                walkdir::WalkDir::new(path)
+        let mut files = walkdir::WalkDir::new(path)
                     .into_iter()
                     .filter_map(|f| f.ok())
-                    .filter(|f| f.file_type().is_file())
-                    .filter_map(|f| DatabaseConnection::check_cache(f.path()).ok())
-                    .collect::<Vec<_>>(),
-            )
-            .expect("The channel must be open");
+                    .filter(|f| f.file_type().is_file()).collect::<Vec<_>>();
+            
+            if sort_dropdown == "Name" {
+                files.sort_by(|f1, f2| if invert_sort_switch_state {f2.file_name().partial_cmp(f1.file_name()).unwrap()} else {f1.file_name().partial_cmp(f2.file_name()).unwrap()});
+            }
+            else if sort_dropdown == "Date" {
+                files.sort_by(|f1, f2| if invert_sort_switch_state {f2.metadata().unwrap().created().unwrap().partial_cmp(&f1.metadata().unwrap().created().unwrap()).unwrap()} else {f1.metadata().unwrap().created().unwrap().partial_cmp(&f2.metadata().unwrap().created().unwrap()).unwrap()});
+            }
+        for file in files {
+
+                        match DatabaseConnection::check_cache(file.path()) {
+                            Ok(i) => sender.send_blocking(i).expect("The channel must be open"),
+                            Err(_) => {},
+                        }
+
+             }
     });
 }
