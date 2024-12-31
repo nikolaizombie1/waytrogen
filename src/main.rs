@@ -2,21 +2,14 @@ use std::{cell::Ref, path::Path};
 
 use async_channel::{Receiver, Sender};
 use gtk::{
-    self,
-    gdk::{Display, Texture},
-    gio::{spawn_blocking, Cancellable, ListStore, Settings},
-    glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
-    prelude::*,
-    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
-    ListScrollFlags, Orientation, Picture, ScrolledWindow, SignalListItemFactory, SingleSelection,
-    StringObject, Switch, Text, TextBuffer,
+    self, gdk::{Display, Texture}, gio::{spawn_blocking, Cancellable, ListStore, Settings}, glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes}, prelude::*, Align, Application, ApplicationWindow, Box, Button, ColorDialogButton, DropDown, FileDialog, GridView, ListItem, ListScrollFlags, Orientation, Picture, ScrolledWindow, SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer
 };
 use log::{debug, error};
 use strum::IntoEnumIterator;
 use waytrogen::{
     common::{GtkImageFile, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
     database::DatabaseConnection,
-    wallpaper_changers::{WallpaperChanger, WallpaperChangers},
+    wallpaper_changers::{WallpaperChanger, WallpaperChangers, SwaybgModes},
 };
 use which::which;
 
@@ -164,9 +157,6 @@ fn build_ui(app: &Application) {
             .as_slice(),
     );
 
-    settings
-        .bind("changer", &wallpaper_changers_dropdown, "selected")
-        .build();
 
     wallpaper_changers_dropdown.connect_selected_notify(clone!(
         #[weak]
@@ -283,7 +273,22 @@ fn build_ui(app: &Application) {
         invert_sort_switch.state(),
     );
 
-    let changer_spefic_options_box = Box::builder().halign(Align::Fill).orientation(Orientation::Horizontal).build();
+    let changer_specific_options_box = Box::builder().halign(Align::Fill).orientation(Orientation::Horizontal).build();
+
+    wallpaper_changers_dropdown.connect_selected_notify(clone!(
+        #[weak]
+        changer_specific_options_box,
+        #[weak]
+        wallpaper_changers_dropdown,
+        #[weak]
+        settings,
+        move |_| {
+        generate_changer_bar(changer_specific_options_box, get_selected_changer(&wallpaper_changers_dropdown, &settings), settings);
+    }));
+
+    settings
+        .bind("changer", &wallpaper_changers_dropdown, "selected")
+        .build();
 
     let changer_options_box = Box::builder()
         .margin_top(12)
@@ -300,8 +305,7 @@ fn build_ui(app: &Application) {
     changer_options_box.append(&invert_sort_switch);
     changer_options_box.append(&invert_sort_switch_label);
     changer_options_box.append(&wallpaper_changers_dropdown);
-    changer_options_box.append(&changer_options_box);
-    changer_options_box.append(&changer_spefic_options_box);
+    changer_options_box.append(&changer_specific_options_box);
 
     let application_box = Box::builder()
         .margin_top(12)
@@ -343,6 +347,9 @@ fn build_ui(app: &Application) {
         }
     ));
 
+
+
+    generate_changer_bar(changer_specific_options_box.clone(), get_selected_changer(&wallpaper_changers_dropdown, &settings), settings);
     window.set_child(Some(&application_box));
 }
 
@@ -493,17 +500,37 @@ fn change_image_button_handlers(
         });
 }
 
-fn generate_changer_bar(changer_specific_options_box: Box, selected_changer: WallpaperChangers, setting: Settings) {
+static  SWAY_BG_MODES: &'static[&str] = &["stretch", "fit", "fill", "center", "tile", "solid_color"];
+
+fn generate_changer_bar(changer_specific_options_box: Box, selected_changer: WallpaperChangers, settings: Settings) {
     while changer_specific_options_box.first_child().is_some() {
         changer_specific_options_box.remove(&changer_specific_options_box.first_child().unwrap());
     }
     match selected_changer {
         WallpaperChangers::Hyprpaper => {},
-        WallpaperChangers::Swaybg => {
+        WallpaperChangers::Swaybg(_,_) => {
             let dropdown = DropDown::from_strings(&["stretch", "fit", "fill", "center", "tile", "solid_color"]);
             dropdown.set_halign(Align::End);
             dropdown.set_valign(Align::Center);
             changer_specific_options_box.append(&dropdown);
+            let color_picker = ColorDialogButton::builder().halign(Align::End).valign(Align::Center).build();
+            changer_specific_options_box.append(&dropdown);
+            changer_specific_options_box.append(&color_picker);
+            settings.bind("swaybg-mode", &dropdown, "selected").build();
+            settings.bind("swaybg-color", &color_picker, "selected").build();
         },
     }
+}
+
+fn get_selected_changer(wallpaper_changers_dropdown: &DropDown, settings: &Settings, ) -> WallpaperChangers {
+   let selected_item = wallpaper_changers_dropdown.selected_item().unwrap().downcast::<StringObject>() .unwrap().string().to_string().to_lowercase();
+   match &selected_item[..] {
+        "hyprpaper" => WallpaperChangers::Hyprpaper,
+        "swaybg" => {
+            let mode =  SWAY_BG_MODES[settings.int("swaybg-mode") as usize].parse::<SwaybgModes>().unwrap();
+            let rgb = settings.string("swaybg-color").to_string();
+            WallpaperChangers::Swaybg(mode, rgb)
+        },
+        _ => WallpaperChangers::Hyprpaper,
+   }
 }

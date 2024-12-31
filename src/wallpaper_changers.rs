@@ -1,3 +1,5 @@
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::{ffi::OsStr, fmt::Display, path::Path, process::Command, str::FromStr};
 use strum_macros::EnumIter;
 
@@ -6,10 +8,61 @@ pub trait WallpaperChanger {
     fn accepted_formats(&self) -> Vec<String>;
 }
 
-#[derive(EnumIter)]
+#[derive(EnumIter, Clone)]
 pub enum WallpaperChangers {
     Hyprpaper,
-    Swaybg
+    Swaybg(SwaybgModes, String),
+}
+
+impl Default for WallpaperChangers {
+    fn default() -> Self {
+        WallpaperChangers::Hyprpaper
+    }
+}
+
+#[derive(Clone)]
+pub enum SwaybgModes {
+    Stretch,
+    Fit,
+    Fill,
+    Center,
+    Tile,
+    SolidColor,
+}
+
+impl Default for SwaybgModes {
+    fn default() -> Self {
+        SwaybgModes::Fill
+    }
+}
+
+impl FromStr for SwaybgModes {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match &s.to_ascii_lowercase()[..] {
+            "stretch" => Ok(SwaybgModes::Stretch),
+            "fit" => Ok(SwaybgModes::Fit),
+            "fill" => Ok(SwaybgModes::Fill),
+            "center" => Ok(SwaybgModes::Center),
+            "tile" => Ok(SwaybgModes::Tile),
+            "solid_color" => Ok(SwaybgModes::SolidColor),
+            _ => Err(format!("Unknown swaybg mode: {}", s)),
+        }
+    }
+}
+
+impl Display for SwaybgModes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SwaybgModes::Stretch => write!(f, "stretch"),
+            SwaybgModes::Fit => write!(f, "fit"),
+            SwaybgModes::Fill => write!(f, "fill"),
+            SwaybgModes::Center => write!(f, "center"),
+            SwaybgModes::Tile => write!(f, "tile"),
+            SwaybgModes::SolidColor => write!(f, "solid_color"),
+        }
+    }
 }
 
 impl WallpaperChanger for WallpaperChangers {
@@ -45,7 +98,7 @@ impl WallpaperChanger for WallpaperChangers {
                     .wait()?;
                 Ok(())
             }
-            WallpaperChangers::Swaybg => Ok(()),
+            WallpaperChangers::Swaybg(mode, rgb) => Ok(()),
         }
     }
 
@@ -60,16 +113,21 @@ impl WallpaperChanger for WallpaperChangers {
                     "jxl".to_owned(),
                 ]
             }
-            WallpaperChangers::Swaybg => vec![
-                    "png".to_owned(),
-                    "jpg".to_owned(),
-                    "jpeg".to_owned(),
-                    "tiff".to_owned(),
-                    "tga".to_owned(),
-                    "gif".to_owned(),
+            WallpaperChangers::Swaybg(_, _) => vec![
+                "png".to_owned(),
+                "jpg".to_owned(),
+                "jpeg".to_owned(),
+                "tiff".to_owned(),
+                "tga".to_owned(),
+                "gif".to_owned(),
             ],
         }
     }
+}
+
+lazy_static! {
+    static ref swaybg_regex: Regex =
+        Regex::new(r"swaybg (stretch|fit|fill||center|tile|solid_color) [0-9a-f]{6}").unwrap();
 }
 
 impl FromStr for WallpaperChangers {
@@ -77,9 +135,18 @@ impl FromStr for WallpaperChangers {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match &s.to_lowercase()[..] {
-            "hyprpaper" => Ok(WallpaperChangers::Hyprpaper),
-            "swaybg" => Ok(WallpaperChangers::Swaybg),
-            _ => Err(format!("{} is not a valid wallpaper setter.", s)),
+            "hyprland" => Ok(WallpaperChangers::Hyprpaper),
+            _ if swaybg_regex.is_match(s) => {
+                let args = s
+                    .to_owned()
+                    .split(" ")
+                    .map(|s| s.to_owned())
+                    .collect::<Vec<_>>();
+                let mode = args[1].parse::<SwaybgModes>().unwrap();
+                let rgb = args[2].clone();
+                Ok(WallpaperChangers::Swaybg(mode, rgb))
+            }
+            _ => Err(format!("Unkown wallpaper changer: {}", s)),
         }
     }
 }
@@ -88,7 +155,7 @@ impl Display for WallpaperChangers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             WallpaperChangers::Hyprpaper => write!(f, "Hyprpaper"),
-            WallpaperChangers::Swaybg => write!(f, "swaybg"),
+            WallpaperChangers::Swaybg(_, _) => write!(f, "swaybg"),
         }
     }
 }
