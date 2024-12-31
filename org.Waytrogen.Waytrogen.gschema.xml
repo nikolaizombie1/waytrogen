@@ -2,8 +2,18 @@
 <schemalist>
     <schema id="org.Waytrogen.Waytrogen" path="/org/Waytrogen/Waytrogen/">
         <key name="wallpaper-folder" type="s">
-            <default>"/home"</default>
-            <summary>Wallpaper Directory</summary>
+            <default>""</default>
+            <summary>Wallpaper directory</summary>
+        </key>
+        <key name="monitor" type="t">
+            <default>0</default>
+            <summary>Last set monitor</summary>
+        </key>
+        <key name="sort-by" type="t">
+            <default>0</default>
+            <summary>Last set sort by option</summary>
+        </key>
+        <key name="changer" type="s">
         </key>
     </schema>
 </schemalist>

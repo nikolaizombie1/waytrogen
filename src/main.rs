@@ -7,17 +7,18 @@ use gtk::{
     gio::{spawn_blocking, Cancellable, ListStore, Settings},
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
-    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, Label,
-    ListItem, ListScrollFlags, Orientation, Picture, ScrolledWindow, SignalListItemFactory,
-    SingleSelection, Spinner, StringObject, Switch, Text, TextBuffer,
+    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
+    ListScrollFlags, Orientation, Picture, ScrolledWindow, SignalListItemFactory, SingleSelection,
+    StringObject, Switch, Text, TextBuffer,
 };
-
 use log::{debug, error};
+use strum::IntoEnumIterator;
 use waytrogen::{
     common::{GtkImageFile, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
     database::DatabaseConnection,
-    wallpaper_changers::{Hyprpaper, WallpaperChanger},
+    wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
+use which::which;
 
 const APP_ID: &str = "org.Waytrogen.Waytrogen";
 
@@ -58,6 +59,7 @@ fn build_ui(app: &Application) {
             .vexpand(true)
             .hexpand(true)
             .can_shrink(true)
+            .has_tooltip(true)
             .build();
         item.set_child(Some(&button));
     }));
@@ -73,6 +75,14 @@ fn build_ui(app: &Application) {
             false,
         )
         .to_string();
+    if path == "" {
+        settings
+            .set_string(
+                "wallpaper-folder",
+                &format!("{}", glib::home_dir().to_str().unwrap()),
+            )
+            .unwrap();
+    }
     log::trace!("Wallpaper Folder: {}", path);
 
     let (sender, receiver): (Sender<GtkImageFile>, Receiver<GtkImageFile>) =
@@ -137,10 +147,39 @@ fn build_ui(app: &Application) {
         DropDown::from_strings(&monitors.iter().map(|s| s.as_str()).collect::<Vec<_>>());
     monitors_dropdown.set_halign(Align::Start);
     monitors_dropdown.set_valign(Align::Center);
+    settings
+        .bind("monitor", &monitors_dropdown, "selected")
+        .build();
+
+    let wallpaper_changers_dropdown = get_available_wallpaper_changers()
+        .into_iter()
+        .map(|c| c.to_string())
+        .collect::<Vec<_>>();
+
+    let wallpaper_changers_dropdown = DropDown::from_strings(
+        wallpaper_changers_dropdown
+            .iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<_>>()
+            .as_slice(),
+    );
+
+    wallpaper_changers_dropdown.connect_selected_notify(clone!(
+        #[weak]
+        image_list_store,
+        #[weak]
+        wallpaper_changers_dropdown,
+        #[weak]
+        monitors_dropdown,
+        move |_| {
+        change_image_button_handlers(image_list_store, wallpaper_changers_dropdown, monitors_dropdown);
+    }));
 
     image_signal_list_item_factory.connect_bind(clone!(
         #[weak]
         monitors_dropdown,
+        #[weak]
+        wallpaper_changers_dropdown,
         move |_factory, item| {
             let item = item.downcast_ref::<ListItem>().unwrap();
             let button = item.child().and_downcast::<Button>().unwrap();
@@ -149,26 +188,37 @@ fn build_ui(app: &Application) {
             let path = image.clone().path;
             button.set_size_request(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
             button.connect_clicked(move |_| {
-                let selected_item = monitors_dropdown
+                let selected_monitor = monitors_dropdown
                     .selected_item()
                     .unwrap()
                     .downcast::<StringObject>()
                     .unwrap()
                     .string()
                     .to_string();
-                match Hyprpaper::change(Path::new(&path), &selected_item) {
+                let selected_changer = wallpaper_changers_dropdown
+                    .selected_item()
+                    .unwrap()
+                    .downcast::<StringObject>()
+                    .unwrap()
+                    .string()
+                    .to_string()
+                    .parse::<WallpaperChangers>()
+                    .unwrap();
+                match selected_changer.change(&Path::new(&path), &selected_monitor) {
                     Ok(_) => {}
-                    Err(e) => error!("Could not change wallpaper {} {}", &path, e),
+                    Err(e) => {
+                        error!("Failed to change wallpaper: {}", e)
+                    }
                 }
             });
-
+            button.set_tooltip_text(Some(&image.name));
             button.set_child(Some(&Picture::for_paintable(
                 &Texture::from_bytes(&Bytes::from(&image.image)).unwrap(),
             )));
         }
     ));
 
-    let sort_dropdown = DropDown::from_strings(&["Name", "Date"]);
+    let sort_dropdown = DropDown::from_strings(&["Date", "Name"]);
     let invert_sort_switch = Switch::builder()
         .margin_top(12)
         .margin_bottom(12)
@@ -207,7 +257,7 @@ fn build_ui(app: &Application) {
         }
     ));
 
-let selected_item =sort_dropdown
+    let selected_item = sort_dropdown
         .selected_item()
         .unwrap()
         .downcast::<StringObject>()
@@ -215,7 +265,14 @@ let selected_item =sort_dropdown
         .string()
         .to_string();
 
-    generate_image_files(path.clone(), sender.clone(), selected_item.clone(), invert_sort_switch.state());
+    settings.bind("sort-by", &sort_dropdown, "selected").build();
+
+    generate_image_files(
+        path.clone(),
+        sender.clone(),
+        selected_item.clone(),
+        invert_sort_switch.state(),
+    );
 
     let changer_options_box = Box::builder()
         .margin_top(12)
@@ -231,6 +288,7 @@ let selected_item =sort_dropdown
     changer_options_box.append(&sort_dropdown);
     changer_options_box.append(&invert_sort_switch);
     changer_options_box.append(&invert_sort_switch_label);
+    changer_options_box.append(&wallpaper_changers_dropdown);
 
     let application_box = Box::builder()
         .margin_top(12)
@@ -249,11 +307,9 @@ let selected_item =sort_dropdown
         #[weak]
         image_list_store,
         #[weak]
-        sort_dropdown,
-        #[weak]
         invert_sort_switch,
         move |f| {
-    let selected_item = selected_item.clone();
+            let selected_item = selected_item.clone();
             let sender = sender.clone();
             let path = f.text(&f.start_iter(), &f.end_iter(), false).to_string();
             image_list_store.remove_all();
@@ -267,15 +323,9 @@ let selected_item =sort_dropdown
     spawn_future_local(clone!(
         #[weak]
         image_list_store,
-        #[weak]
-        sort_dropdown,
-        #[weak]
-        invert_sort_switch,
-        #[weak]
-        image_grid,
         async move {
             while let Ok(image) = receiver.recv().await {
-                    image_list_store.append(&BoxedAnyObject::new(image));
+                image_list_store.append(&BoxedAnyObject::new(image));
             }
         }
     ));
@@ -328,27 +378,98 @@ fn sort_images(
     image_grid.scroll_to(0, ListScrollFlags::FOCUS, None);
 }
 
-fn generate_image_files(path: String, sender: Sender<GtkImageFile>, sort_dropdown: String, invert_sort_switch_state: bool) {
-    
+fn generate_image_files(
+    path: String,
+    sender: Sender<GtkImageFile>,
+    sort_dropdown: String,
+    invert_sort_switch_state: bool,
+) {
     spawn_blocking(move || {
         let mut files = walkdir::WalkDir::new(path)
-                    .into_iter()
-                    .filter_map(|f| f.ok())
-                    .filter(|f| f.file_type().is_file()).collect::<Vec<_>>();
-            
-            if sort_dropdown == "Name" {
-                files.sort_by(|f1, f2| if invert_sort_switch_state {f2.file_name().partial_cmp(f1.file_name()).unwrap()} else {f1.file_name().partial_cmp(f2.file_name()).unwrap()});
-            }
-            else if sort_dropdown == "Date" {
-                files.sort_by(|f1, f2| if invert_sort_switch_state {f2.metadata().unwrap().created().unwrap().partial_cmp(&f1.metadata().unwrap().created().unwrap()).unwrap()} else {f1.metadata().unwrap().created().unwrap().partial_cmp(&f2.metadata().unwrap().created().unwrap()).unwrap()});
-            }
+            .into_iter()
+            .filter_map(|f| f.ok())
+            .filter(|f| f.file_type().is_file())
+            .collect::<Vec<_>>();
+
+        if sort_dropdown == "Name" {
+            files.sort_by(|f1, f2| {
+                if invert_sort_switch_state {
+                    f2.file_name().partial_cmp(f1.file_name()).unwrap()
+                } else {
+                    f1.file_name().partial_cmp(f2.file_name()).unwrap()
+                }
+            });
+        } else if sort_dropdown == "Date" {
+            files.sort_by(|f1, f2| {
+                if invert_sort_switch_state {
+                    f2.metadata()
+                        .unwrap()
+                        .created()
+                        .unwrap()
+                        .partial_cmp(&f1.metadata().unwrap().created().unwrap())
+                        .unwrap()
+                } else {
+                    f1.metadata()
+                        .unwrap()
+                        .created()
+                        .unwrap()
+                        .partial_cmp(&f2.metadata().unwrap().created().unwrap())
+                        .unwrap()
+                }
+            });
+        }
         for file in files {
-
-                        match DatabaseConnection::check_cache(file.path()) {
-                            Ok(i) => sender.send_blocking(i).expect("The channel must be open"),
-                            Err(_) => {},
-                        }
-
-             }
+            match DatabaseConnection::check_cache(file.path()) {
+                Ok(i) => sender.send_blocking(i).expect("The channel must be open"),
+                Err(_) => {}
+            }
+        }
     });
+}
+
+fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
+    let mut available_changers = vec![];
+    for changer in WallpaperChangers::iter() {
+        if let Ok(_) = which(changer.to_string().to_lowercase()) {
+            available_changers.push(WallpaperChangers::Hyprpaper);
+        }
+    }
+    available_changers
+}
+
+fn change_image_button_handlers(
+    image_list_store: ListStore,
+    wallpaper_changers_dropdown: DropDown,
+    selected_monitor_dropdown: DropDown,
+) {
+    image_list_store
+        .into_iter()
+        .filter_map(|o| o.ok())
+        .filter_map(|o| o.downcast::<ListItem>().ok())
+        .for_each(|li| {
+            let entry = li.item().and_downcast::<BoxedAnyObject>().unwrap();
+            let image: Ref<GtkImageFile> = entry.borrow();
+            let selected_monitor = selected_monitor_dropdown
+                .selected_item()
+                .unwrap()
+                .downcast::<StringObject>()
+                .unwrap()
+                .string()
+                .to_string();
+            let selected_changer = wallpaper_changers_dropdown
+                .selected_item()
+                .unwrap()
+                .downcast::<StringObject>()
+                .unwrap()
+                .string()
+                .to_string()
+                .parse::<WallpaperChangers>()
+                .unwrap();
+            match selected_changer.change(Path::new(&image.path), &selected_monitor) {
+                Ok(_) => {}
+                Err(e) => {
+                    error!("Failed to change wallpaper: {}", e)
+                }
+            }
+        });
 }
