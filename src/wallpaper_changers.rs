@@ -1,30 +1,50 @@
 use lazy_static::lazy_static;
+use log::debug;
 use regex::Regex;
-use std::{ffi::OsStr, fmt::Display, path::Path, process::Command, str::FromStr};
-use strum::VariantArray;
+use std::{
+    ffi::OsStr,
+    fmt::Display,
+    path::PathBuf,
+    process::Command,
+    str::FromStr,
+    thread, time::Duration,
+};
+use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr, VariantArray};
 
 pub trait WallpaperChanger {
-    fn change(&self, image: &Path, monitor: &str) -> anyhow::Result<()>;
+    fn change(self, image: PathBuf, monitor: String);
     fn accepted_formats(&self) -> Vec<String>;
 }
 
 #[derive(EnumIter, Clone)]
+#[derive(Default)]
 pub enum WallpaperChangers {
+    #[default]
     Hyprpaper,
     Swaybg(SwaybgModes, String),
 }
 
-impl Default for WallpaperChangers {
-    fn default() -> Self {
-        WallpaperChangers::Hyprpaper
+impl WallpaperChangers {
+    pub fn killall_changers() {
+        thread::spawn(|| {
+            for changer in WallpaperChangers::iter() {
+                Command::new("pkill")
+                    .arg(changer.to_string())
+                    .spawn()
+                    .unwrap().wait().unwrap();
+            }
+        });
     }
 }
 
+
 #[derive(Clone, IntoStaticStr, VariantArray)]
+#[derive(Default)]
 pub enum SwaybgModes {
     Stretch,
     Fit,
+    #[default]
     Fill,
     Center,
     Tile,
@@ -46,11 +66,6 @@ impl SwaybgModes {
     }
 }
 
-impl Default for SwaybgModes {
-    fn default() -> Self {
-        SwaybgModes::Fill
-    }
-}
 
 impl FromStr for SwaybgModes {
     type Err = String;
@@ -82,8 +97,8 @@ impl Display for SwaybgModes {
 }
 
 impl WallpaperChanger for WallpaperChangers {
-    fn change(&self, image: &Path, monitor: &str) -> anyhow::Result<()> {
-        match self {
+    fn change(self, image: PathBuf, monitor: String) {
+        thread::spawn(move || match self {
             WallpaperChangers::Hyprpaper => {
                 let mut system = sysinfo::System::new();
                 system.refresh_all();
@@ -92,30 +107,50 @@ impl WallpaperChanger for WallpaperChangers {
                     .collect::<Vec<_>>()
                     .is_empty()
                 {
-                    Command::new("hyprpaper").spawn()?;
+                    debug!("Starting hyprpaper");
+                    Command::new("hyprpaper").spawn().unwrap().wait().unwrap();
                 }
                 Command::new("hyprctl")
                     .arg("hyprpaper")
                     .arg("unload")
                     .arg("all")
-                    .spawn()?
-                    .wait()?;
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap();
+                thread::sleep(Duration::from_millis(200));
                 Command::new("hyprctl")
                     .arg("hyprpaper")
                     .arg("preload")
                     .arg(image.as_os_str())
-                    .spawn()?
-                    .wait()?;
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap();
+                thread::sleep(Duration::from_millis(200));
                 Command::new("hyprctl")
                     .arg("hyprpaper")
                     .arg("wallpaper")
                     .arg(format!("{},{}", monitor, image.to_str().unwrap()))
-                    .spawn()?
-                    .wait()?;
-                Ok(())
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap();
             }
-            WallpaperChangers::Swaybg(mode, rgb) => Ok(()),
-        }
+            WallpaperChangers::Swaybg(mode, rgb) => {
+                Command::new("swaybg")
+                    .arg("-c")
+                    .arg(rgb)
+                    .arg("-i")
+                    .arg(image.to_str().unwrap())
+                    .arg("-m")
+                    .arg(mode.to_string())
+                    .arg("-o")
+                    .arg(monitor)
+                    .spawn()
+                    .unwrap().wait().unwrap();
+            }
+        });
     }
 
     fn accepted_formats(&self) -> Vec<String> {
@@ -154,7 +189,6 @@ impl FromStr for WallpaperChangers {
             "hyprpaper" => Ok(WallpaperChangers::Hyprpaper),
             _ if swaybg_regex.is_match(s) => {
                 let args = s
-                    .to_owned()
                     .split(" ")
                     .map(|s| s.to_owned())
                     .collect::<Vec<_>>();

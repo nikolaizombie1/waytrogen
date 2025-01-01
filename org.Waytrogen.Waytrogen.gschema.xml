@@ -22,7 +22,7 @@
             <summary>Last set swaybg mode</summary>
         </key>
         <key name="swaybg-color" type="s">
-            <default>"rgb(255,255,255)"</default>
+            <default>"FFFFFF"</default>
             <summary>Last set swaybg solid color</summary>
         </key>
     </schema>
