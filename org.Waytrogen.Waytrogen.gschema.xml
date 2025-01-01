@@ -17,12 +17,12 @@
             <default>0</default>
             <summary>Last set wallpaper changer</summary>
         </key>
-        <key name="swaybg-mode" type="t">
+        <key name="swaybg-mode" type="u">
             <default>0</default>
             <summary>Last set swaybg mode</summary>
         </key>
         <key name="swaybg-color" type="s">
-            <default>"000000"</default>
+            <default>"rgb(255,255,255)"</default>
             <summary>Last set swaybg solid color</summary>
         </key>
     </schema>

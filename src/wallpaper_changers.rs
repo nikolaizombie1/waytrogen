@@ -1,7 +1,8 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{ffi::OsStr, fmt::Display, path::Path, process::Command, str::FromStr};
-use strum_macros::EnumIter;
+use strum::VariantArray;
+use strum_macros::{EnumIter, IntoStaticStr, VariantArray};
 
 pub trait WallpaperChanger {
     fn change(&self, image: &Path, monitor: &str) -> anyhow::Result<()>;
@@ -20,7 +21,7 @@ impl Default for WallpaperChangers {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, IntoStaticStr, VariantArray)]
 pub enum SwaybgModes {
     Stretch,
     Fit,
@@ -28,6 +29,21 @@ pub enum SwaybgModes {
     Center,
     Tile,
     SolidColor,
+}
+
+impl SwaybgModes {
+    pub fn from_u32(i: u32) -> SwaybgModes {
+        let i = (i as usize) % SwaybgModes::VARIANTS.len();
+        match i {
+            0 => SwaybgModes::Stretch,
+            1 => SwaybgModes::Fit,
+            2 => SwaybgModes::Fill,
+            3 => SwaybgModes::Center,
+            4 => SwaybgModes::Tile,
+            5 => SwaybgModes::SolidColor,
+            _ => SwaybgModes::Stretch,
+        }
+    }
 }
 
 impl Default for SwaybgModes {
@@ -135,7 +151,7 @@ impl FromStr for WallpaperChangers {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match &s.to_lowercase()[..] {
-            "hyprland" => Ok(WallpaperChangers::Hyprpaper),
+            "hyprpaper" => Ok(WallpaperChangers::Hyprpaper),
             _ if swaybg_regex.is_match(s) => {
                 let args = s
                     .to_owned()
@@ -146,7 +162,7 @@ impl FromStr for WallpaperChangers {
                 let rgb = args[2].clone();
                 Ok(WallpaperChangers::Swaybg(mode, rgb))
             }
-            _ => Err(format!("Unkown wallpaper changer: {}", s)),
+            _ => Err(format!("Unknown wallpaper changer: {}", s)),
         }
     }
 }

@@ -2,14 +2,21 @@ use std::{cell::Ref, path::Path};
 
 use async_channel::{Receiver, Sender};
 use gtk::{
-    self, gdk::{Display, Texture}, gio::{spawn_blocking, Cancellable, ListStore, Settings}, glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes}, prelude::*, Align, Application, ApplicationWindow, Box, Button, ColorDialogButton, DropDown, FileDialog, GridView, ListItem, ListScrollFlags, Orientation, Picture, ScrolledWindow, SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer
+    self,
+    gdk::{Display, Texture},
+    gio::{spawn_blocking, Cancellable, ListStore, Settings},
+    glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
+    prelude::*,
+    Align, Application, ApplicationWindow, Box, Button, ColorDialogButton, DropDown, FileDialog,
+    GridView, ListItem, ListScrollFlags, Orientation, Picture, ScrolledWindow,
+    SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer,
 };
-use log::{debug, error};
+use log::{debug, error, trace};
 use strum::IntoEnumIterator;
 use waytrogen::{
-    common::{GtkImageFile, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
+    common::{CacheImageFile, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH, GtkPictureFile},
     database::DatabaseConnection,
-    wallpaper_changers::{WallpaperChanger, WallpaperChangers, SwaybgModes},
+    wallpaper_changers::{SwaybgModes, WallpaperChanger, WallpaperChangers},
 };
 use which::which;
 
@@ -78,7 +85,7 @@ fn build_ui(app: &Application) {
     }
     log::trace!("Wallpaper Folder: {}", path);
 
-    let (sender, receiver): (Sender<GtkImageFile>, Receiver<GtkImageFile>) =
+    let (sender, receiver): (Sender<CacheImageFile>, Receiver<CacheImageFile>) =
         async_channel::bounded(1);
 
     let image_grid = GridView::builder()
@@ -157,7 +164,6 @@ fn build_ui(app: &Application) {
             .as_slice(),
     );
 
-
     wallpaper_changers_dropdown.connect_selected_notify(clone!(
         #[weak]
         image_list_store,
@@ -165,11 +171,14 @@ fn build_ui(app: &Application) {
         wallpaper_changers_dropdown,
         #[weak]
         monitors_dropdown,
+        #[weak]
+        settings,
         move |_| {
             change_image_button_handlers(
                 image_list_store,
                 wallpaper_changers_dropdown,
                 monitors_dropdown,
+                &settings
             );
         }
     ));
@@ -179,12 +188,14 @@ fn build_ui(app: &Application) {
         monitors_dropdown,
         #[weak]
         wallpaper_changers_dropdown,
+        #[weak]
+        settings,
         move |_factory, item| {
             let item = item.downcast_ref::<ListItem>().unwrap();
             let button = item.child().and_downcast::<Button>().unwrap();
             let entry = item.item().and_downcast::<BoxedAnyObject>().unwrap();
-            let image: Ref<GtkImageFile> = entry.borrow();
-            let path = image.clone().path;
+            let image: Ref<GtkPictureFile> = entry.borrow();
+            let path = image.clone().chache_image_file.path;
             button.set_size_request(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
             button.connect_clicked(move |_| {
                 let selected_monitor = monitors_dropdown
@@ -194,15 +205,7 @@ fn build_ui(app: &Application) {
                     .unwrap()
                     .string()
                     .to_string();
-                let selected_changer = wallpaper_changers_dropdown
-                    .selected_item()
-                    .unwrap()
-                    .downcast::<StringObject>()
-                    .unwrap()
-                    .string()
-                    .to_string()
-                    .parse::<WallpaperChangers>()
-                    .unwrap();
+            let selected_changer = get_selected_changer(&wallpaper_changers_dropdown, &settings);
                 match selected_changer.change(&Path::new(&path), &selected_monitor) {
                     Ok(_) => {}
                     Err(e) => {
@@ -210,10 +213,8 @@ fn build_ui(app: &Application) {
                     }
                 }
             });
-            button.set_tooltip_text(Some(&image.name));
-            button.set_child(Some(&Picture::for_paintable(
-                &Texture::from_bytes(&Bytes::from(&image.image)).unwrap(),
-            )));
+            button.set_tooltip_text(Some(&image.chache_image_file.name));
+            button.set_child(Some(&image.picture));
         }
     ));
 
@@ -273,7 +274,10 @@ fn build_ui(app: &Application) {
         invert_sort_switch.state(),
     );
 
-    let changer_specific_options_box = Box::builder().halign(Align::Fill).orientation(Orientation::Horizontal).build();
+    let changer_specific_options_box = Box::builder()
+        .halign(Align::Fill)
+        .orientation(Orientation::Horizontal)
+        .build();
 
     wallpaper_changers_dropdown.connect_selected_notify(clone!(
         #[weak]
@@ -283,8 +287,13 @@ fn build_ui(app: &Application) {
         #[weak]
         settings,
         move |_| {
-        generate_changer_bar(changer_specific_options_box, get_selected_changer(&wallpaper_changers_dropdown, &settings), settings);
-    }));
+            generate_changer_bar(
+                changer_specific_options_box,
+                get_selected_changer(&wallpaper_changers_dropdown, &settings),
+                settings,
+            );
+        }
+    ));
 
     settings
         .bind("changer", &wallpaper_changers_dropdown, "selected")
@@ -337,19 +346,22 @@ fn build_ui(app: &Application) {
         }
     ));
 
+    
     spawn_future_local(clone!(
         #[weak]
         image_list_store,
         async move {
             while let Ok(image) = receiver.recv().await {
-                image_list_store.append(&BoxedAnyObject::new(image));
+                image_list_store.append(&BoxedAnyObject::new(GtkPictureFile{ picture: Picture::for_paintable(&Texture::from_bytes(&Bytes::from(&image.image)).unwrap()), chache_image_file: image }));
             }
         }
     ));
 
-
-
-    generate_changer_bar(changer_specific_options_box.clone(), get_selected_changer(&wallpaper_changers_dropdown, &settings), settings);
+    generate_changer_bar(
+        changer_specific_options_box.clone(),
+        get_selected_changer(&wallpaper_changers_dropdown, &settings),
+        settings,
+    );
     window.set_child(Some(&application_box));
 }
 
@@ -370,26 +382,26 @@ fn sort_images(
         "Name" => {
             image_list_store.sort(|img1, img2| {
                 let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
-                let image1: Ref<GtkImageFile> = image1.borrow();
+                let image1: Ref<GtkPictureFile> = image1.borrow();
                 let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
-                let image2: Ref<GtkImageFile> = image2.borrow();
+                let image2: Ref<GtkPictureFile> = image2.borrow();
                 if invert_sort_switch.state() {
-                    image1.name.partial_cmp(&image2.name).unwrap()
+                    image1.chache_image_file.name.partial_cmp(&image2.chache_image_file.name).unwrap()
                 } else {
-                    image2.name.partial_cmp(&image1.name).unwrap()
+                    image2.chache_image_file.name.partial_cmp(&image1.chache_image_file.name).unwrap()
                 }
             });
         }
         "Date" => {
             image_list_store.sort(|img1, img2| {
                 let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
-                let image1: Ref<GtkImageFile> = image1.borrow();
+                let image1: Ref<GtkPictureFile> = image1.borrow();
                 let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
-                let image2: Ref<GtkImageFile> = image2.borrow();
+                let image2: Ref<GtkPictureFile> = image2.borrow();
                 if invert_sort_switch.state() {
-                    image1.date.partial_cmp(&image2.date).unwrap()
+                    image1.chache_image_file.date.partial_cmp(&image2.chache_image_file.date).unwrap()
                 } else {
-                    image2.date.partial_cmp(&image1.date).unwrap()
+                    image2.chache_image_file.date.partial_cmp(&image1.chache_image_file.date).unwrap()
                 }
             });
         }
@@ -400,7 +412,7 @@ fn sort_images(
 
 fn generate_image_files(
     path: String,
-    sender: Sender<GtkImageFile>,
+    sender: Sender<CacheImageFile>,
     sort_dropdown: String,
     invert_sort_switch_state: bool,
 ) {
@@ -448,7 +460,6 @@ fn generate_image_files(
                 Ok(i) => sender.send_blocking(i).expect("The channel must be open"),
                 Err(_) => {}
             }
-
         }
     });
 }
@@ -467,6 +478,7 @@ fn change_image_button_handlers(
     image_list_store: ListStore,
     wallpaper_changers_dropdown: DropDown,
     selected_monitor_dropdown: DropDown,
+    settings: &Settings
 ) {
     image_list_store
         .into_iter()
@@ -474,7 +486,7 @@ fn change_image_button_handlers(
         .filter_map(|o| o.downcast::<ListItem>().ok())
         .for_each(|li| {
             let entry = li.item().and_downcast::<BoxedAnyObject>().unwrap();
-            let image: Ref<GtkImageFile> = entry.borrow();
+            let image: Ref<CacheImageFile> = entry.borrow();
             let selected_monitor = selected_monitor_dropdown
                 .selected_item()
                 .unwrap()
@@ -482,15 +494,7 @@ fn change_image_button_handlers(
                 .unwrap()
                 .string()
                 .to_string();
-            let selected_changer = wallpaper_changers_dropdown
-                .selected_item()
-                .unwrap()
-                .downcast::<StringObject>()
-                .unwrap()
-                .string()
-                .to_string()
-                .parse::<WallpaperChangers>()
-                .unwrap();
+            let selected_changer = get_selected_changer(&wallpaper_changers_dropdown, settings);
             match selected_changer.change(Path::new(&image.path), &selected_monitor) {
                 Ok(_) => {}
                 Err(e) => {
@@ -500,37 +504,62 @@ fn change_image_button_handlers(
         });
 }
 
-static  SWAY_BG_MODES: &'static[&str] = &["stretch", "fit", "fill", "center", "tile", "solid_color"];
-
-fn generate_changer_bar(changer_specific_options_box: Box, selected_changer: WallpaperChangers, settings: Settings) {
+fn generate_changer_bar(
+    changer_specific_options_box: Box,
+    selected_changer: WallpaperChangers,
+    settings: Settings,
+) {
     while changer_specific_options_box.first_child().is_some() {
         changer_specific_options_box.remove(&changer_specific_options_box.first_child().unwrap());
     }
     match selected_changer {
-        WallpaperChangers::Hyprpaper => {},
-        WallpaperChangers::Swaybg(_,_) => {
-            let dropdown = DropDown::from_strings(&["stretch", "fit", "fill", "center", "tile", "solid_color"]);
+        WallpaperChangers::Hyprpaper => {}
+        WallpaperChangers::Swaybg(_, _) => {
+            let dropdown = DropDown::from_strings(&[
+                "stretch",
+                "fit",
+                "fill",
+                "center",
+                "tile",
+                "solid_color",
+            ]);
             dropdown.set_halign(Align::End);
             dropdown.set_valign(Align::Center);
             changer_specific_options_box.append(&dropdown);
-            let color_picker = ColorDialogButton::builder().halign(Align::End).valign(Align::Center).build();
-            changer_specific_options_box.append(&dropdown);
+            let color_picker = ColorDialogButton::builder()
+                .halign(Align::End)
+                .valign(Align::Center)
+                .build();
             changer_specific_options_box.append(&color_picker);
             settings.bind("swaybg-mode", &dropdown, "selected").build();
-            settings.bind("swaybg-color", &color_picker, "selected").build();
-        },
+            trace!("Binding color-picker");
+            trace!("{}",color_picker.rgba().to_string());
+            settings
+                .bind("swaybg-color", &color_picker, "rgba")
+                .build();
+        }
     }
 }
 
-fn get_selected_changer(wallpaper_changers_dropdown: &DropDown, settings: &Settings, ) -> WallpaperChangers {
-   let selected_item = wallpaper_changers_dropdown.selected_item().unwrap().downcast::<StringObject>() .unwrap().string().to_string().to_lowercase();
-   match &selected_item[..] {
+fn get_selected_changer(
+    wallpaper_changers_dropdown: &DropDown,
+    settings: &Settings,
+) -> WallpaperChangers {
+    let selected_item = wallpaper_changers_dropdown
+        .selected_item()
+        .unwrap()
+        .downcast::<StringObject>()
+        .unwrap()
+        .string()
+        .to_string()
+        .to_lowercase();
+    match &selected_item[..] {
         "hyprpaper" => WallpaperChangers::Hyprpaper,
         "swaybg" => {
-            let mode =  SWAY_BG_MODES[settings.int("swaybg-mode") as usize].parse::<SwaybgModes>().unwrap();
+            let mode = SwaybgModes::from_u32(settings.uint("swaybg-mode"));
             let rgb = settings.string("swaybg-color").to_string();
             WallpaperChangers::Swaybg(mode, rgb)
-        },
+        }
         _ => WallpaperChangers::Hyprpaper,
-   }
+    }
 }

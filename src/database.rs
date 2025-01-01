@@ -1,4 +1,4 @@
-use crate::common::GtkImageFile;
+use crate::common::CacheImageFile;
 use log::{debug, trace, warn};
 use sqlite::{Connection, Value};
 use std::path::Path;
@@ -25,13 +25,13 @@ impl DatabaseConnection {
         Ok(DatabaseConnection { connetion: conn })
     }
 
-    pub fn select_image_file(&self, path: &Path) -> anyhow::Result<GtkImageFile> {
+    pub fn select_image_file(&self, path: &Path) -> anyhow::Result<CacheImageFile> {
         let query = "SELECT image, name, date, path FROM GtkImageFile where path = ?;";
         let mut statement = self.connetion.prepare(query)?;
 
         statement.bind((1, path.to_str().unwrap()))?;
         statement.next()?;
-        let pix_buf_bytes = GtkImageFile {
+        let pix_buf_bytes = CacheImageFile {
             image: statement.read::<Vec<u8>, _>("image")?,
             name: statement.read::<String, _>("name")?,
             date: statement.read::<i64, _>("date")? as u64,
@@ -40,7 +40,7 @@ impl DatabaseConnection {
         Ok(pix_buf_bytes)
     }
 
-    pub fn insert_image_file(&self, image_file: &GtkImageFile) -> anyhow::Result<()> {
+    pub fn insert_image_file(&self, image_file: &CacheImageFile) -> anyhow::Result<()> {
         let query =
             "INSERT INTO GtkImageFile(image, name, date, path) VALUES (:image, :name, :date, :path);";
         let mut statement = self.connetion.prepare(query)?;
@@ -56,7 +56,7 @@ impl DatabaseConnection {
         Ok(())
     }
 
-    pub fn check_cache(path: &Path) -> Result<GtkImageFile, anyhow::Error> {
+    pub fn check_cache(path: &Path) -> Result<CacheImageFile, anyhow::Error> {
         let conn = DatabaseConnection::new()?;
         match conn.select_image_file(path) {
             Ok(f) => {
@@ -65,7 +65,7 @@ impl DatabaseConnection {
             }
             Err(e) => {
                 trace!("Cache Miss: {} {}", path.to_str().unwrap(), e);
-                match GtkImageFile::from_file(path) {
+                match CacheImageFile::from_file(path) {
                     Ok(g) => {
                         trace!("GTK Picture created succesfully. {}", g.path);
                         conn.insert_image_file(&g)?;

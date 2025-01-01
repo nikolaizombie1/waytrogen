@@ -1,4 +1,4 @@
-use anyhow::Ok;
+use gtk::Picture;
 use image::ImageReader;
 use std::{io::Cursor, path::Path, time::UNIX_EPOCH};
 
@@ -6,15 +6,21 @@ pub const THUMBNAIL_HEIGHT: i32 = 200;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
 
 #[derive(Clone)]
-pub struct GtkImageFile {
+pub struct GtkPictureFile {
+    pub picture: Picture,
+    pub chache_image_file: CacheImageFile,
+}
+
+#[derive(Clone)]
+pub struct CacheImageFile {
     pub image: Vec<u8>,
     pub name: String,
     pub date: u64,
     pub path: String,
 }
 
-impl GtkImageFile {
-    pub fn from_file(path: &Path) -> anyhow::Result<GtkImageFile> {
+impl CacheImageFile {
+    pub fn from_file(path: &Path) -> anyhow::Result<CacheImageFile> {
         let image = Self::generate_thumbnail(path)?;
         Self::create_gtk_image(path, image)
     }
@@ -27,9 +33,9 @@ impl GtkImageFile {
         Ok((path.to_str().unwrap().to_string(), name, date))
     }
 
-    fn create_gtk_image(path: &Path, image: Vec<u8>) -> anyhow::Result<GtkImageFile> {
+    fn create_gtk_image(path: &Path, image: Vec<u8>) -> anyhow::Result<CacheImageFile> {
         let fields = Self::get_metadata(path)?;
-        let image_file = GtkImageFile {
+        let image_file = CacheImageFile {
             image,
             path: fields.0,
             name: fields.1,
