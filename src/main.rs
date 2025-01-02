@@ -61,6 +61,7 @@ fn build_ui(app: &Application) {
             .vexpand(true)
             .hexpand(true)
             .can_shrink(true)
+            .sensitive(false)
             .has_tooltip(true)
             .build();
         item.set_child(Some(&button));
@@ -150,7 +151,7 @@ fn build_ui(app: &Application) {
 
     let monitors_dropdown =
         DropDown::from_strings(&monitors.iter().map(|s| s.as_str()).collect::<Vec<_>>());
-    monitors_dropdown.set_halign(Align::Start);
+    monitors_dropdown.set_halign(Align::End);
     monitors_dropdown.set_valign(Align::Center);
     settings
         .bind("monitor", &monitors_dropdown, "selected")
@@ -168,6 +169,9 @@ fn build_ui(app: &Application) {
             .collect::<Vec<_>>()
             .as_slice(),
     );
+
+    wallpaper_changers_dropdown.set_halign(Align::End);
+    wallpaper_changers_dropdown.set_halign(Align::Center);
 
     wallpaper_changers_dropdown.connect_selected_notify(clone!(
         #[weak]
@@ -231,11 +235,15 @@ fn build_ui(app: &Application) {
     ));
 
     let sort_dropdown = DropDown::from_strings(&["Date", "Name"]);
+    sort_dropdown.set_halign(Align::End);
+    sort_dropdown.set_valign(Align::Center);
     let invert_sort_switch = Switch::builder()
         .margin_top(12)
         .margin_bottom(12)
         .margin_start(12)
         .margin_end(12)
+        .halign(Align::End)
+        .valign(Align::Center)
         .build();
     let invert_sort_switch_label = Text::builder()
         .text("Invert Sort")
@@ -243,6 +251,8 @@ fn build_ui(app: &Application) {
         .margin_top(12)
         .margin_bottom(12)
         .margin_end(12)
+        .halign(Align::End)
+        .valign(Align::Center)
         .build();
 
     sort_dropdown.connect_selected_notify(clone!(
@@ -288,7 +298,7 @@ fn build_ui(app: &Application) {
     );
 
     let changer_specific_options_box = Box::builder()
-        .halign(Align::Center)
+        .halign(Align::Start)
         .valign(Align::Center)
         .hexpand(true)
         .orientation(Orientation::Horizontal)
@@ -320,8 +330,9 @@ fn build_ui(app: &Application) {
         .margin_bottom(12)
         .margin_end(12)
         .hexpand(true)
-        .halign(Align::Start)
         .valign(Align::Center)
+        .halign(Align::Center)
+        .hexpand(true)
         .sensitive(false)
         .orientation(Orientation::Horizontal)
         .build();

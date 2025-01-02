@@ -129,7 +129,7 @@ pub fn generate_changer_bar(
                 "tile",
                 "solid_color",
             ]);
-            dropdown.set_halign(Align::End);
+            dropdown.set_halign(Align::Start);
             dropdown.set_valign(Align::Center);
             dropdown.set_margin_top(12);
             dropdown.set_margin_start(12);
@@ -138,7 +138,7 @@ pub fn generate_changer_bar(
             changer_specific_options_box.append(&dropdown);
             let color_dialog = ColorDialog::builder().with_alpha(false).build();
             let color_picker = ColorDialogButton::builder()
-                .halign(Align::End)
+                .halign(Align::Start)
                 .valign(Align::Center)
                 .margin_top(12)
                 .margin_start(12)
@@ -287,16 +287,4 @@ pub fn hide_unsupported_files(image_list_store: ListStore, current_changer: Wall
             button.set_sensitive(false);
         }
     });
-    // images.into_iter().for_each(|li| {
-    //     debug!("Entering for each");
-    //     let item = li.item().and_downcast::<BoxedAnyObject>().unwrap();
-    //     let button = li.child().and_downcast::<Button>().unwrap();
-    //     let item: Ref<GtkPictureFile> = item.borrow();
-    //     if !current_changer.accepted_formats().iter().any(|f| f == Path::new(&item.chache_image_file.path).extension().unwrap_or_default().to_str().unwrap_or_default()) {
-    //         button.set_visible(false);
-    //     }
-    //     else {
-    //         button.set_visible(true);
-    //     }
-    // });
 }
