@@ -1,6 +1,10 @@
 use gtk::Picture;
 use image::ImageReader;
-use std::{io::Cursor, path::Path, time::UNIX_EPOCH};
+use serde::{Deserialize, Serialize};
+use std::{fmt::Display, io::Cursor, path::Path, str::FromStr, time::UNIX_EPOCH};
+use lazy_static::lazy_static;
+use regex::Regex;
+use log::debug;
 
 pub const THUMBNAIL_HEIGHT: i32 = 200;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
@@ -53,5 +57,41 @@ impl CacheImageFile {
         let mut buff: Vec<u8> = vec![];
         thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;
         Ok(buff)
+    }
+}
+
+pub struct RGB {
+    pub red: f32,
+    pub green: f32,
+    pub blue: f32,
+}
+impl Display for RGB {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:02x}{:02x}{:02x}", (self.red*255.0) as u8, (self.green*255.0) as u8, (self.blue*255.0) as u8 )
+    }
+}
+
+lazy_static! {
+    static ref rgb_regex: Regex =
+        Regex::new(r"[0-9A-Fa-f]{6}").unwrap();
+}
+
+impl FromStr for RGB {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+       if rgb_regex.is_match(s) {
+            let s = s.to_lowercase().chars().collect::<Vec<_>>();
+            let red = hex::decode(s[0..=1].into_iter().collect::<String>()).unwrap();
+            let red = (red[0] as f32)/255.0;
+            let green = hex::decode(s[2..=3].into_iter().collect::<String>()).unwrap();
+            let green = (green[0] as f32)/255.0;
+            let blue = hex::decode(s[4..=5].into_iter().collect::<String>()).unwrap();
+            let blue = (blue[0] as f32)/255.0;
+            Ok(Self { red, green, blue })
+       }
+       else {
+           Err("Invalid string".to_owned())
+       }
     }
 }

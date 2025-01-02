@@ -2,12 +2,7 @@ use lazy_static::lazy_static;
 use log::debug;
 use regex::Regex;
 use std::{
-    ffi::OsStr,
-    fmt::Display,
-    path::PathBuf,
-    process::Command,
-    str::FromStr,
-    thread, time::Duration,
+    ffi::OsStr, fmt::Display, path::PathBuf, process::Command, str::FromStr, thread, time::Duration,
 };
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr, VariantArray};
@@ -17,8 +12,7 @@ pub trait WallpaperChanger {
     fn accepted_formats(&self) -> Vec<String>;
 }
 
-#[derive(EnumIter, Clone)]
-#[derive(Default)]
+#[derive(EnumIter, Clone, Default)]
 pub enum WallpaperChangers {
     #[default]
     Hyprpaper,
@@ -32,15 +26,15 @@ impl WallpaperChangers {
                 Command::new("pkill")
                     .arg(changer.to_string())
                     .spawn()
-                    .unwrap().wait().unwrap();
+                    .unwrap()
+                    .wait()
+                    .unwrap();
             }
         });
     }
 }
 
-
-#[derive(Clone, IntoStaticStr, VariantArray)]
-#[derive(Default)]
+#[derive(Clone, IntoStaticStr, VariantArray, Default)]
 pub enum SwaybgModes {
     Stretch,
     Fit,
@@ -65,7 +59,6 @@ impl SwaybgModes {
         }
     }
 }
-
 
 impl FromStr for SwaybgModes {
     type Err = String;
@@ -148,7 +141,9 @@ impl WallpaperChanger for WallpaperChangers {
                     .arg("-o")
                     .arg(monitor)
                     .spawn()
-                    .unwrap().wait().unwrap();
+                    .unwrap()
+                    .wait()
+                    .unwrap();
             }
         });
     }
@@ -169,6 +164,7 @@ impl WallpaperChanger for WallpaperChangers {
                 "jpg".to_owned(),
                 "jpeg".to_owned(),
                 "tiff".to_owned(),
+                "tif".to_owned(),
                 "tga".to_owned(),
                 "gif".to_owned(),
             ],
@@ -188,10 +184,7 @@ impl FromStr for WallpaperChangers {
         match &s.to_lowercase()[..] {
             "hyprpaper" => Ok(WallpaperChangers::Hyprpaper),
             _ if swaybg_regex.is_match(s) => {
-                let args = s
-                    .split(" ")
-                    .map(|s| s.to_owned())
-                    .collect::<Vec<_>>();
+                let args = s.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
                 let mode = args[1].parse::<SwaybgModes>().unwrap();
                 let rgb = args[2].clone();
                 Ok(WallpaperChangers::Swaybg(mode, rgb))
