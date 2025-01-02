@@ -5,7 +5,13 @@ use crate::{
 };
 use async_channel::Sender;
 use gtk::{
-    self, gdk::RGBA, gio::{spawn_blocking, ListStore, Settings}, glib::{self, clone, BoxedAnyObject, Object}, prelude::*, Align, Box, Button, ColorDialog, ColorDialogButton, DropDown, GridView, ListItem, ListScrollFlags, StringObject, Switch, TextBuffer
+    self,
+    gdk::RGBA,
+    gio::{spawn_blocking, ListStore, Settings},
+    glib::{self, clone, BoxedAnyObject, Object},
+    prelude::*,
+    Align, Box, Button, ColorDialog, ColorDialogButton, DropDown, GridView, ListItem,
+    ListScrollFlags, StringObject, Switch, TextBuffer,
 };
 use log::debug;
 use std::{cell::Ref, path::Path, path::PathBuf};
@@ -28,6 +34,15 @@ pub fn generate_image_files(
             .filter_map(|f| f.ok())
             .filter(|f| f.file_type().is_file())
             .map(|d| d.path().to_path_buf())
+            .filter(|p| {
+                WallpaperChangers::all_accepted_formats().iter().any(|f| {
+                    f == p
+                        .extension()
+                        .unwrap_or_default()
+                        .to_str()
+                        .unwrap_or_default()
+                })
+            })
             .collect::<Vec<_>>();
 
         match &sort_dropdown.to_lowercase()[..] {
@@ -149,25 +164,36 @@ pub fn generate_changer_bar(
             changer_specific_options_box.append(&color_picker);
             settings.bind("swaybg-mode", &dropdown, "selected").build();
             let rgb_text_buffer = TextBuffer::builder().build();
-            color_picker.connect_rgba_notify(
-                clone!(
+            color_picker.connect_rgba_notify(clone!(
                 #[weak]
                 settings,
                 move |b| {
-                let rgba = b.rgba();
-                let serialize_struct = RGB {
-                    red: rgba.red(),
-                    green: rgba.green(),
-                    blue: rgba.blue(),
-                }.to_string();
-                debug!("Serialized RGB: {}", serialize_struct);
-                rgb_text_buffer.set_text(&serialize_struct);
-                settings
-                    .bind("swaybg-color", &rgb_text_buffer, "text")
-                    .build();
-            }));
-            let rgb = settings.string("swaybg-color").to_string().parse::<RGB>().unwrap();
-            color_picker.set_rgba(&RGBA::builder().red(rgb.red).green(rgb.green).blue(rgb.blue).build());
+                    let rgba = b.rgba();
+                    let serialize_struct = RGB {
+                        red: rgba.red(),
+                        green: rgba.green(),
+                        blue: rgba.blue(),
+                    }
+                    .to_string();
+                    debug!("Serialized RGB: {}", serialize_struct);
+                    rgb_text_buffer.set_text(&serialize_struct);
+                    settings
+                        .bind("swaybg-color", &rgb_text_buffer, "text")
+                        .build();
+                }
+            ));
+            let rgb = settings
+                .string("swaybg-color")
+                .to_string()
+                .parse::<RGB>()
+                .unwrap();
+            color_picker.set_rgba(
+                &RGBA::builder()
+                    .red(rgb.red)
+                    .green(rgb.green)
+                    .blue(rgb.blue)
+                    .build(),
+            );
         }
     }
 }

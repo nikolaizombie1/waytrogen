@@ -32,6 +32,20 @@ impl WallpaperChangers {
             }
         });
     }
+    pub fn all_accepted_formats() -> Vec<String> {
+        let mut accepted_formats = vec![];
+        for changer in WallpaperChangers::iter() {
+            for format in changer.accepted_formats() {
+                if !accepted_formats
+                    .iter()
+                    .any(|f: &String| f.to_owned() == format)
+                {
+                    accepted_formats.push(format);
+                }
+            }
+        }
+        accepted_formats
+    }
 }
 
 #[derive(Clone, IntoStaticStr, VariantArray, Default)]

@@ -7,9 +7,9 @@ use gtk::{
     gio::{spawn_blocking, Cancellable, ListStore, Settings},
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
-    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
-    Orientation, Picture, ScrolledWindow, SignalListItemFactory, SingleSelection, StringObject,
-    Switch, Text, TextBuffer,
+    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, Label,
+    ListItem, Orientation, Picture, ScrolledWindow, SignalListItemFactory, SingleSelection,
+    Spinner, StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
 use waytrogen::{
@@ -404,6 +404,28 @@ fn build_ui(app: &Application) {
         }
     ));
 
+    let images_loading_spinner = Spinner::builder()
+        .spinning(true)
+        .margin_top(12)
+        .margin_start(12)
+        .margin_bottom(12)
+        .margin_end(12)
+        .halign(Align::Center)
+        .valign(Align::Center)
+        .build();
+    let images_loading_spinner_label = Label::builder()
+        .label("Images are loading. Please wait.")
+        .margin_top(12)
+        .margin_start(5)
+        .margin_bottom(12)
+        .margin_end(12)
+        .halign(Align::Center)
+        .valign(Align::Center)
+        .build();
+
+    changer_options_box.append(&images_loading_spinner);
+    changer_options_box.append(&images_loading_spinner_label);
+
     spawn_future_local(clone!(
         #[strong]
         receiver_changer_options_bar,
@@ -415,6 +437,10 @@ fn build_ui(app: &Application) {
         wallpaper_changers_dropdown,
         #[weak]
         settings,
+        #[weak]
+        images_loading_spinner,
+        #[weak]
+        images_loading_spinner_label,
         async move {
             while let Ok(b) = receiver_changer_options_bar.recv().await {
                 debug!("Finished loading images");
@@ -425,6 +451,11 @@ fn build_ui(app: &Application) {
                         image_list_store.clone(),
                         get_selected_changer(&wallpaper_changers_dropdown, &settings),
                     );
+                    images_loading_spinner.set_visible(false);
+                    images_loading_spinner_label.set_visible(false);
+                } else {
+                    images_loading_spinner.set_visible(true);
+                    images_loading_spinner_label.set_visible(true);
                 }
             }
         }
