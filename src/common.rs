@@ -11,7 +11,7 @@ pub struct GtkPictureFile {
     pub chache_image_file: CacheImageFile,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default, PartialEq)]
 pub struct CacheImageFile {
     pub image: Vec<u8>,
     pub name: String,

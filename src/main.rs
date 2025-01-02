@@ -88,8 +88,9 @@ fn build_ui(app: &Application) {
     }
     log::trace!("Wallpaper Folder: {}", path);
 
-    let (sender, receiver): (Sender<CacheImageFile>, Receiver<CacheImageFile>) =
+    let (sender_cache_images, receiver_cache_images): (Sender<CacheImageFile>, Receiver<CacheImageFile>) =
         async_channel::bounded(1);
+    let (sender_enable_changer_options_bar, receiver_changer_options_bar): (Sender<bool>, Receiver<bool>) = async_channel::bounded(1);
 
     let image_grid = GridView::builder()
         .model(&selection)
@@ -275,14 +276,16 @@ fn build_ui(app: &Application) {
 
     generate_image_files(
         path.clone(),
-        sender.clone(),
+        sender_cache_images.clone(),
         selected_item.clone(),
         invert_sort_switch.state(),
+	sender_enable_changer_options_bar.clone()
     );
 
     let changer_specific_options_box = Box::builder()
-        .halign(Align::End)
+        .halign(Align::Center)
         .valign(Align::Center)
+        .hexpand(true)
         .orientation(Orientation::Horizontal)
         .build();
 
@@ -312,7 +315,9 @@ fn build_ui(app: &Application) {
         .margin_bottom(12)
         .margin_end(12)
         .hexpand(true)
-        .halign(Align::Fill)
+        .halign(Align::Start)
+        .valign(Align::Center)
+        .sensitive(false)
         .orientation(Orientation::Horizontal)
         .build();
     changer_options_box.append(&monitors_dropdown);
@@ -341,15 +346,23 @@ fn build_ui(app: &Application) {
         image_list_store,
         #[weak]
         invert_sort_switch,
+	#[weak]
+	changer_options_box,
+	#[strong]
+	sender_enable_changer_options_bar,
         move |f| {
             let selected_item = selected_item.clone();
-            let sender = sender.clone();
+            let sender = sender_cache_images.clone();
             let path = f.text(&f.start_iter(), &f.end_iter(), false).to_string();
             image_list_store.remove_all();
             let state = invert_sort_switch.state();
-            spawn_blocking(move || {
-                generate_image_files(path.clone(), sender, selected_item, state);
-            });
+	    changer_options_box.set_sensitive(false);
+            spawn_blocking(clone!(
+		#[strong]
+		sender_enable_changer_options_bar,
+		move || {
+                generate_image_files(path.clone(), sender, selected_item, state, sender_enable_changer_options_bar);
+            }));
         }
     ));
 
@@ -357,7 +370,7 @@ fn build_ui(app: &Application) {
         #[weak]
         image_list_store,
         async move {
-            while let Ok(image) = receiver.recv().await {
+            while let Ok(image) = receiver_cache_images.recv().await {
                 image_list_store.append(&BoxedAnyObject::new(GtkPictureFile {
                     picture: Picture::for_paintable(
                         &Texture::from_bytes(&Bytes::from(&image.image)).unwrap(),
@@ -366,6 +379,18 @@ fn build_ui(app: &Application) {
                 }));
             }
         }
+    ));
+
+    spawn_future_local(clone!(
+	#[strong]
+	receiver_changer_options_bar,
+	#[weak]
+	changer_options_box,
+	async move {
+	   while let Ok(b) = receiver_changer_options_bar.recv().await {
+	      changer_options_box.set_sensitive(b); 
+	   } 
+	}
     ));
 
     generate_changer_bar(
@@ -439,11 +464,13 @@ fn sort_images(
 
 fn generate_image_files(
     path: String,
-    sender: Sender<CacheImageFile>,
+    sender_cache_images: Sender<CacheImageFile>,
     sort_dropdown: String,
     invert_sort_switch_state: bool,
+    sender_changer_options: Sender<bool>
 ) {
     spawn_blocking(move || {
+	sender_changer_options.send_blocking(false).expect("The channel must be open");
         let mut files = walkdir::WalkDir::new(path)
             .into_iter()
             .filter_map(|f| f.ok())
@@ -484,9 +511,11 @@ fn generate_image_files(
         }
 
         for file in files {
-            if let Ok(i) = DatabaseConnection::check_cache(&file) { sender.send_blocking(i).expect("The channel must be open") }
+            if let Ok(i) = DatabaseConnection::check_cache(&file) { sender_cache_images.send_blocking(i).expect("The channel must be open") }
         }
+	    sender_changer_options.send_blocking(true).expect("The channel must be open");
     });
+
 }
 
 fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
@@ -545,11 +574,19 @@ fn generate_changer_bar(
             ]);
             dropdown.set_halign(Align::End);
             dropdown.set_valign(Align::Center);
+	    dropdown.set_margin_top(12);
+	    dropdown.set_margin_start(12);
+	    dropdown.set_margin_bottom(12);
+	    dropdown.set_margin_end(12);
             changer_specific_options_box.append(&dropdown);
             let color_dialog = ColorDialog::builder().with_alpha(false).build();
             let color_picker = ColorDialogButton::builder()
                 .halign(Align::End)
                 .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
                 .dialog(&color_dialog)
                 .build();
             changer_specific_options_box.append(&color_picker);
