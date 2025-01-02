@@ -448,33 +448,34 @@ fn generate_image_files(
             .into_iter()
             .filter_map(|f| f.ok())
             .filter(|f| f.file_type().is_file())
+            .map(|d| d.path().to_path_buf())
             .collect::<Vec<_>>();
 
         match &sort_dropdown.to_lowercase()[..] {
             "name" => {
                 files.sort_by(|f1, f2| {
                     if invert_sort_switch_state {
-                        f2.file_name().partial_cmp(f1.file_name()).unwrap()
+                        f1.file_name().partial_cmp(&f2.file_name()).unwrap()
                     } else {
-                        f1.file_name().partial_cmp(f2.file_name()).unwrap()
+                        f2.file_name().partial_cmp(&f1.file_name()).unwrap()
                     }
                 });
             }
             "date" => {
                 files.sort_by(|f1, f2| {
                     if invert_sort_switch_state {
-                        f2.metadata()
-                            .unwrap()
-                            .created()
-                            .unwrap()
-                            .partial_cmp(&f1.metadata().unwrap().created().unwrap())
-                            .unwrap()
-                    } else {
                         f1.metadata()
                             .unwrap()
                             .created()
                             .unwrap()
                             .partial_cmp(&f2.metadata().unwrap().created().unwrap())
+                            .unwrap()
+                    } else {
+                        f2.metadata()
+                            .unwrap()
+                            .created()
+                            .unwrap()
+                            .partial_cmp(&f1.metadata().unwrap().created().unwrap())
                             .unwrap()
                     }
                 });
@@ -483,7 +484,7 @@ fn generate_image_files(
         }
 
         for file in files {
-            if let Ok(i) = DatabaseConnection::check_cache(file.path()) { sender.send_blocking(i).expect("The channel must be open") }
+            if let Ok(i) = DatabaseConnection::check_cache(&file) { sender.send_blocking(i).expect("The channel must be open") }
         }
     });
 }
