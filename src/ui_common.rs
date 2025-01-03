@@ -1,5 +1,5 @@
 use crate::{
-    common::{CacheImageFile, GtkPictureFile, Wallpaper, RGB},
+    common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     wallpaper_changers::{SwaybgModes, WallpaperChanger, WallpaperChangers},
 };

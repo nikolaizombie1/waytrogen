@@ -1,7 +1,7 @@
+use clap::Parser;
 use gtk::Picture;
 use image::ImageReader;
 use lazy_static::lazy_static;
-use log::debug;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, io::Cursor, path::Path, str::FromStr, time::UNIX_EPOCH};
@@ -89,11 +89,11 @@ impl FromStr for RGB {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if rgb_regex.is_match(s) {
             let s = s.to_lowercase().chars().collect::<Vec<_>>();
-            let red = hex::decode(s[0..=1].into_iter().collect::<String>()).unwrap();
+            let red = hex::decode(s[0..=1].iter().collect::<String>()).unwrap();
             let red = (red[0] as f32) / 255.0;
-            let green = hex::decode(s[2..=3].into_iter().collect::<String>()).unwrap();
+            let green = hex::decode(s[2..=3].iter().collect::<String>()).unwrap();
             let green = (green[0] as f32) / 255.0;
-            let blue = hex::decode(s[4..=5].into_iter().collect::<String>()).unwrap();
+            let blue = hex::decode(s[4..=5].iter().collect::<String>()).unwrap();
             let blue = (blue[0] as f32) / 255.0;
             Ok(Self { red, green, blue })
         } else {
@@ -107,4 +107,15 @@ pub struct Wallpaper {
     pub monitor: String,
     pub path: String,
     pub changer: WallpaperChangers,
+}
+
+
+#[derive(Parser)]
+pub struct Cli {
+    #[arg(short, long)]
+    /// Restore previously set wallpapers
+    pub restore: bool,
+    #[arg(short, long, default_value_t=0)]
+    /// How many error, warning, info, debug or trace logs will be shown. 0 for error, 1 for warning, 2 for info, 3 for debug, 4 or heigher for trace.
+    pub verbosity: usize
 }

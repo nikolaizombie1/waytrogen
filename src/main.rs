@@ -1,6 +1,7 @@
 use std::{cell::Ref, path::PathBuf};
 
 use async_channel::{Receiver, Sender};
+use clap::Parser;
 use gtk::{
     self,
     gdk::{Display, Texture},
@@ -13,7 +14,7 @@ use gtk::{
 };
 use log::debug;
 use waytrogen::{
-    common::{CacheImageFile, GtkPictureFile, Wallpaper, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
+    common::{CacheImageFile, Cli, GtkPictureFile, Wallpaper, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
     ui_common::{
         change_image_button_handlers, generate_changer_bar, generate_image_files,
         get_available_wallpaper_changers, get_selected_changer, gschema_string_to_string,
@@ -25,19 +26,34 @@ use waytrogen::{
 const APP_ID: &str = "org.Waytrogen.Waytrogen";
 
 fn main() -> glib::ExitCode {
+    let args = Cli::parse();
+        stderrlog::new()
+            .module(module_path!())
+            .verbosity(args.verbosity)
+            .init()
+            .unwrap();
     // Create a new application
-    let app = Application::builder().application_id(APP_ID).build();
 
-    stderrlog::new()
-        .module(module_path!())
-        .verbosity(5)
-        .init()
+    if args.restore {
+        let settings = Settings::new(APP_ID);
+        let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
+            &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
+        )
         .unwrap();
+        for wallpaper in previous_wallpapers {
+            debug!("Restoring: {:?}", wallpaper);
+            wallpaper.changer.change(PathBuf::from(wallpaper.path), wallpaper.monitor);
+        }
+        glib::ExitCode::SUCCESS
+    } else {
+        let app = Application::builder().application_id(APP_ID).build();
 
-    app.connect_activate(build_ui);
 
-    // Run the application
-    app.run()
+        app.connect_activate(build_ui);
+
+        // Run the application
+        app.run()
+    }
 }
 
 fn build_ui(app: &Application) {
@@ -239,29 +255,41 @@ fn build_ui(app: &Application) {
                         }
                     }
                     let mut previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
-                        &gschema_string_to_string(&settings.string("saved-wallpapers").to_string()),
+                        &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
                     )
                     .unwrap();
-                    debug!("Previous wallpapers: {:#?}", previous_wallpapers);
-                    match previous_wallpapers
-                        .clone()
-                        .into_iter()
-                        .find(|w| w.monitor == selected_monitor)
+                    let mut new_monitor_wallpapers: Vec<Wallpaper> = vec![];
+                    if !previous_wallpapers
+                        .iter()
+                        .any(|w| w.monitor == selected_monitor.clone())
                     {
-                        Some(mut w) => {
-                            w.changer = selected_changer.clone();
-                            w.path = path.clone();
-                        }
-                        None => previous_wallpapers.push(Wallpaper {
+                        new_monitor_wallpapers.push(Wallpaper {
                             monitor: selected_monitor.clone(),
                             path: path.clone(),
                             changer: selected_changer.clone(),
-                        }),
+                        })
                     }
-                    let saved_wallpapers = string_to_gschema_string(&serde_json::to_string::<Vec<Wallpaper>>(&previous_wallpapers).unwrap());
-                    previous_wallpapers_text_buffer.set_text(
-                        &saved_wallpapers,
+                    for wallpaper in &mut previous_wallpapers {
+                        if wallpaper.monitor == selected_monitor {
+                            wallpaper.path = path.clone();
+                            wallpaper.changer = selected_changer.clone();
+                        }
+                    }
+                    previous_wallpapers.append(&mut new_monitor_wallpapers);
+                    let previous_wallpapers = previous_wallpapers
+                        .clone()
+                        .into_iter()
+                        .map(|w| Wallpaper {
+                            monitor: w.monitor,
+                            path: w.path,
+                            changer: selected_changer.clone(),
+                        })
+                        .collect::<Vec<_>>();
+                    debug!("Saved wallpapers: {:#?}", previous_wallpapers);
+                    let saved_wallpapers = string_to_gschema_string(
+                        &serde_json::to_string::<Vec<Wallpaper>>(&previous_wallpapers).unwrap(),
                     );
+                    previous_wallpapers_text_buffer.set_text(&saved_wallpapers);
                     debug!("Stored Text: {}", saved_wallpapers);
                     selected_changer
                         .clone()
