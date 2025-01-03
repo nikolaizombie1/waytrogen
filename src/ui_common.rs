@@ -1,5 +1,5 @@
 use crate::{
-    common::{CacheImageFile, GtkPictureFile, RGB},
+    common::{CacheImageFile, GtkPictureFile, RGB, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
     database::DatabaseConnection,
     wallpaper_changers::{SwaybgModes, WallpaperChanger, WallpaperChangers},
 };
@@ -14,7 +14,11 @@ use gtk::{
     ListScrollFlags, StringObject, Switch, TextBuffer,
 };
 use log::debug;
-use std::{cell::Ref, path::Path, path::PathBuf};
+use std::{
+    cell::Ref,
+    cmp::Ordering,
+    path::{Path, PathBuf},
+};
 use strum::IntoEnumIterator;
 use which::which;
 
@@ -44,7 +48,6 @@ pub fn generate_image_files(
                 })
             })
             .collect::<Vec<_>>();
-
         match &sort_dropdown.to_lowercase()[..] {
             "name" => {
                 files.sort_by(|f1, f2| {
@@ -227,58 +230,10 @@ pub fn sort_images(
     image_list_store: &ListStore,
     image_grid: &GridView,
 ) {
-    match &sort_dropdown
-        .selected_item()
-        .unwrap()
-        .downcast::<StringObject>()
-        .unwrap()
-        .string()
-        .to_string()[..]
-    {
-        "Name" => {
-            image_list_store.sort(|img1, img2| {
-                let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
-                let image1: Ref<GtkPictureFile> = image1.borrow();
-                let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
-                let image2: Ref<GtkPictureFile> = image2.borrow();
-                if invert_sort_switch.state() {
-                    image1
-                        .chache_image_file
-                        .name
-                        .partial_cmp(&image2.chache_image_file.name)
-                        .unwrap()
-                } else {
-                    image2
-                        .chache_image_file
-                        .name
-                        .partial_cmp(&image1.chache_image_file.name)
-                        .unwrap()
-                }
-            });
-        }
-        "Date" => {
-            image_list_store.sort(|img1, img2| {
-                let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
-                let image1: Ref<GtkPictureFile> = image1.borrow();
-                let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
-                let image2: Ref<GtkPictureFile> = image2.borrow();
-                if invert_sort_switch.state() {
-                    image1
-                        .chache_image_file
-                        .date
-                        .partial_cmp(&image2.chache_image_file.date)
-                        .unwrap()
-                } else {
-                    image2
-                        .chache_image_file
-                        .date
-                        .partial_cmp(&image1.chache_image_file.date)
-                        .unwrap()
-                }
-            });
-        }
-        _ => {}
-    }
+    image_list_store.sort(compare_image_list_items_by_sort_selection_comparitor(
+        sort_dropdown.clone(),
+        invert_sort_switch.clone(),
+    ));
     image_grid.scroll_to(0, ListScrollFlags::FOCUS, None);
 }
 
@@ -306,6 +261,7 @@ pub fn hide_unsupported_files(image_list_store: ListStore, current_changer: Wall
                 .unwrap_or_default()
         }) {
             button.set_sensitive(true);
+            button.set_visible(true);
         } else {
             button.set_sensitive(false);
         }
@@ -322,4 +278,75 @@ pub fn string_to_gschema_string(s: &str) -> String {
     s.replace("\"", "\\\"")
         .replace("{", "\\{")
         .replace("}", "\\}")
+}
+
+pub fn compare_image_list_items_by_sort_selection_comparitor(
+    sort_dropdown: DropDown,
+    invert_sort_switch: Switch,
+) -> impl Fn(&Object, &Object) -> Ordering {
+    move |img1, img2| {
+        let invert_sort_switch_state = invert_sort_switch.state();
+        match &sort_dropdown
+            .selected_item()
+            .unwrap()
+            .downcast::<StringObject>()
+            .unwrap()
+            .string()
+            .to_lowercase()
+            .to_string()[..]
+        {
+            "name" => {
+                compare_image_list_items_by_name_comparitor(invert_sort_switch_state)(img1, img2)
+            }
+            _ => compare_image_list_items_by_date_comparitor(invert_sort_switch_state)(img1, img2),
+        }
+    }
+}
+
+pub fn compare_image_list_items_by_name_comparitor(
+    invert_sort_switch_state: bool,
+) -> impl Fn(&Object, &Object) -> Ordering {
+    move |img1, img2| {
+        let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
+        let image1: Ref<GtkPictureFile> = image1.borrow();
+        let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
+        let image2: Ref<GtkPictureFile> = image2.borrow();
+        if invert_sort_switch_state {
+            image1
+                .chache_image_file
+                .name
+                .partial_cmp(&image2.chache_image_file.name)
+                .unwrap()
+        } else {
+            image2
+                .chache_image_file
+                .name
+                .partial_cmp(&image1.chache_image_file.name)
+                .unwrap()
+        }
+    }
+}
+
+pub fn compare_image_list_items_by_date_comparitor(
+    invert_sort_switch_state: bool,
+) -> impl Fn(&Object, &Object) -> Ordering {
+    move |img1, img2| {
+        let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
+        let image1: Ref<GtkPictureFile> = image1.borrow();
+        let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
+        let image2: Ref<GtkPictureFile> = image2.borrow();
+        if invert_sort_switch_state {
+            image1
+                .chache_image_file
+                .date
+                .partial_cmp(&image2.chache_image_file.date)
+                .unwrap()
+        } else {
+            image2
+                .chache_image_file
+                .date
+                .partial_cmp(&image1.chache_image_file.date)
+                .unwrap()
+        }
+    }
 }

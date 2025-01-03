@@ -27,11 +27,11 @@ const APP_ID: &str = "org.Waytrogen.Waytrogen";
 
 fn main() -> glib::ExitCode {
     let args = Cli::parse();
-        stderrlog::new()
-            .module(module_path!())
-            .verbosity(args.verbosity)
-            .init()
-            .unwrap();
+    stderrlog::new()
+        .module(module_path!())
+        .verbosity(args.verbosity)
+        .init()
+        .unwrap();
     // Create a new application
 
     if args.restore {
@@ -42,12 +42,13 @@ fn main() -> glib::ExitCode {
         .unwrap();
         for wallpaper in previous_wallpapers {
             debug!("Restoring: {:?}", wallpaper);
-            wallpaper.changer.change(PathBuf::from(wallpaper.path), wallpaper.monitor);
+            wallpaper
+                .changer
+                .change(PathBuf::from(wallpaper.path), wallpaper.monitor);
         }
         glib::ExitCode::SUCCESS
     } else {
         let app = Application::builder().application_id(APP_ID).build();
-
 
         app.connect_activate(build_ui);
 
@@ -67,9 +68,9 @@ fn build_ui(app: &Application) {
     let settings = Settings::new(APP_ID);
 
     let image_list_store = ListStore::new::<BoxedAnyObject>();
+    let removed_images_list_store = ListStore::new::<BoxedAnyObject>();
 
-    let selection = SingleSelection::new(Some(image_list_store.clone()));
-    selection.set_autoselect(false);
+    let selection = SingleSelection::builder().model(&image_list_store.clone()).autoselect(false).build();
     let image_signal_list_item_factory = SignalListItemFactory::new();
     image_signal_list_item_factory.connect_setup(clone!(move |_factory, item| {
         let item = item.downcast_ref::<ListItem>().unwrap();
