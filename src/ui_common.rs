@@ -1,5 +1,5 @@
 use crate::{
-    common::{CacheImageFile, GtkPictureFile, RGB},
+    common::{CacheImageFile, GtkPictureFile, Wallpaper, RGB},
     database::DatabaseConnection,
     wallpaper_changers::{SwaybgModes, WallpaperChanger, WallpaperChangers},
 };
@@ -295,12 +295,9 @@ pub fn hide_unsupported_files(image_list_store: ListStore, current_changer: Wall
     debug!("Num of ListItems in list store: {}", images.len());
     images.into_iter().for_each(|b| {
         let image_file: Ref<GtkPictureFile> = b.borrow();
-        let button = image_file
-            .picture
-            .parent()
-            .and_upcast::<Object>()
-            .and_downcast::<Button>()
-            .unwrap();
+        let button = image_file.picture.parent().unwrap();
+        let button = button.upcast::<Object>();
+        let button = button.downcast::<Button>().unwrap();
         if current_changer.accepted_formats().into_iter().any(|f| {
             f == Path::new(&image_file.chache_image_file.path)
                 .extension()
@@ -313,4 +310,16 @@ pub fn hide_unsupported_files(image_list_store: ListStore, current_changer: Wall
             button.set_sensitive(false);
         }
     });
+}
+
+pub fn gschema_string_to_string(s: &str) -> String {
+    s.replace("\\\"", "\"")
+        .replace("\\{", "{")
+        .replace("\\}", "}")
+}
+
+pub fn string_to_gschema_string(s: &str) -> String {
+    s.replace("\"", "\\\"")
+        .replace("{", "\\{")
+        .replace("}", "\\}")
 }

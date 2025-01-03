@@ -13,11 +13,11 @@ use gtk::{
 };
 use log::debug;
 use waytrogen::{
-    common::{CacheImageFile, GtkPictureFile, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
+    common::{CacheImageFile, GtkPictureFile, Wallpaper, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
     ui_common::{
         change_image_button_handlers, generate_changer_bar, generate_image_files,
-        get_available_wallpaper_changers, get_selected_changer, hide_unsupported_files,
-        sort_images,
+        get_available_wallpaper_changers, get_selected_changer, gschema_string_to_string,
+        hide_unsupported_files, sort_images, string_to_gschema_string,
     },
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
@@ -197,6 +197,12 @@ fn build_ui(app: &Application) {
         }
     ));
 
+    let previous_wallpapers_text_buffer = TextBuffer::builder().build();
+    settings
+        .bind("saved-wallpapers", &previous_wallpapers_text_buffer, "text")
+        .build();
+
+    let previous_wallpapers_text_buffer = previous_wallpapers_text_buffer.clone();
     image_signal_list_item_factory.connect_bind(clone!(
         #[weak]
         monitors_dropdown,
@@ -211,24 +217,57 @@ fn build_ui(app: &Application) {
             let image: Ref<GtkPictureFile> = entry.borrow();
             let path = image.clone().chache_image_file.path;
             button.set_size_request(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-            button.connect_clicked(move |_| {
-                let selected_monitor = monitors_dropdown
-                    .selected_item()
-                    .unwrap()
-                    .downcast::<StringObject>()
-                    .unwrap()
-                    .string()
-                    .to_string();
-                let selected_changer =
-                    get_selected_changer(&wallpaper_changers_dropdown, &settings);
-                match &selected_changer {
-                    WallpaperChangers::Hyprpaper => {}
-                    WallpaperChangers::Swaybg(mode, color) => {
-                        debug!("{mode} {color}")
+            let previous_wallpapers_text_buffer = previous_wallpapers_text_buffer.clone();
+            button.connect_clicked(clone!(
+                #[strong]
+                path,
+                move |_| {
+                    let path = path.clone();
+                    let selected_monitor = monitors_dropdown
+                        .selected_item()
+                        .unwrap()
+                        .downcast::<StringObject>()
+                        .unwrap()
+                        .string()
+                        .to_string();
+                    let selected_changer =
+                        get_selected_changer(&wallpaper_changers_dropdown, &settings);
+                    match &selected_changer {
+                        WallpaperChangers::Hyprpaper => {}
+                        WallpaperChangers::Swaybg(mode, color) => {
+                            debug!("{mode} {color}")
+                        }
                     }
+                    let mut previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
+                        &gschema_string_to_string(&settings.string("saved-wallpapers").to_string()),
+                    )
+                    .unwrap();
+                    debug!("Previous wallpapers: {:#?}", previous_wallpapers);
+                    match previous_wallpapers
+                        .clone()
+                        .into_iter()
+                        .find(|w| w.monitor == selected_monitor)
+                    {
+                        Some(mut w) => {
+                            w.changer = selected_changer.clone();
+                            w.path = path.clone();
+                        }
+                        None => previous_wallpapers.push(Wallpaper {
+                            monitor: selected_monitor.clone(),
+                            path: path.clone(),
+                            changer: selected_changer.clone(),
+                        }),
+                    }
+                    let saved_wallpapers = string_to_gschema_string(&serde_json::to_string::<Vec<Wallpaper>>(&previous_wallpapers).unwrap());
+                    previous_wallpapers_text_buffer.set_text(
+                        &saved_wallpapers,
+                    );
+                    debug!("Stored Text: {}", saved_wallpapers);
+                    selected_changer
+                        .clone()
+                        .change(PathBuf::from(&path.clone()), selected_monitor.clone())
                 }
-                selected_changer.change(PathBuf::from(&path), selected_monitor)
-            });
+            ));
             button.set_tooltip_text(Some(&image.chache_image_file.name));
             button.set_child(Some(&image.picture));
         }

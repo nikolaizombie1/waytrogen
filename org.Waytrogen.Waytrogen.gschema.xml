@@ -5,6 +5,9 @@
             <default>""</default>
             <summary>Wallpaper directory</summary>
         </key>
+        <key name="saved-wallpapers" type="s">
+        <default>"[]"</default>
+        </key>
         <key name="monitor" type="t">
             <default>0</default>
             <summary>Last set monitor</summary>

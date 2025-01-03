@@ -1,6 +1,7 @@
 use lazy_static::lazy_static;
 use log::debug;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::{
     ffi::OsStr, fmt::Display, path::PathBuf, process::Command, str::FromStr, thread, time::Duration,
 };
@@ -12,7 +13,7 @@ pub trait WallpaperChanger {
     fn accepted_formats(&self) -> Vec<String>;
 }
 
-#[derive(EnumIter, Clone, Default)]
+#[derive(Debug, EnumIter, Clone, Default, Serialize, Deserialize)]
 pub enum WallpaperChangers {
     #[default]
     Hyprpaper,
@@ -48,7 +49,7 @@ impl WallpaperChangers {
     }
 }
 
-#[derive(Clone, IntoStaticStr, VariantArray, Default)]
+#[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize)]
 pub enum SwaybgModes {
     Stretch,
     Fit,

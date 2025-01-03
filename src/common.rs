@@ -6,6 +6,8 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, io::Cursor, path::Path, str::FromStr, time::UNIX_EPOCH};
 
+use crate::wallpaper_changers::WallpaperChangers;
+
 pub const THUMBNAIL_HEIGHT: i32 = 200;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
 
@@ -98,4 +100,11 @@ impl FromStr for RGB {
             Err("Invalid string".to_owned())
         }
     }
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct Wallpaper {
+    pub monitor: String,
+    pub path: String,
+    pub changer: WallpaperChangers,
 }
