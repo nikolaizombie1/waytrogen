@@ -238,33 +238,18 @@ pub fn sort_images(
 }
 
 pub fn hide_unsupported_files(image_list_store: ListStore, current_changer: WallpaperChangers) {
-    let images = image_list_store
-        .into_iter()
-        .filter_map(|o| o.ok())
-        .collect::<Vec<_>>();
-    debug!("Num of objects in list store: {}", images.len());
-    let images = images
-        .into_iter()
-        .filter_map(|o| o.downcast::<BoxedAnyObject>().ok())
-        .collect::<Vec<_>>();
-    debug!("Num of ListItems in list store: {}", images.len());
-    images.into_iter().for_each(|b| {
-        let image_file: Ref<GtkPictureFile> = b.borrow();
-        let button = image_file.picture.parent().unwrap();
-        let button = button.upcast::<Object>();
-        let button = button.downcast::<Button>().unwrap();
-        if current_changer.accepted_formats().into_iter().any(|f| {
+    image_list_store.into_iter().filter_map(|o| o.ok()).for_each(|o| {
+	let item = o.clone().downcast::<BoxedAnyObject>().unwrap();
+        let image_file: Ref<GtkPictureFile> = item.borrow();
+        if !current_changer.accepted_formats().into_iter().any(|f| {
             f == Path::new(&image_file.chache_image_file.path)
                 .extension()
                 .unwrap_or_default()
                 .to_str()
                 .unwrap_or_default()
         }) {
-            button.set_sensitive(true);
-            button.set_visible(true);
-        } else {
-            button.set_sensitive(false);
-        }
+	    image_list_store.remove(image_list_store.find(&o).unwrap());
+        } 
     });
 }
 
