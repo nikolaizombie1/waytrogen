@@ -190,29 +190,6 @@ fn build_ui(app: &Application) {
     wallpaper_changers_dropdown.set_halign(Align::End);
     wallpaper_changers_dropdown.set_halign(Align::Center);
 
-    wallpaper_changers_dropdown.connect_selected_notify(clone!(
-        #[weak]
-        image_list_store,
-        #[weak]
-        wallpaper_changers_dropdown,
-        #[weak]
-        monitors_dropdown,
-        #[weak]
-        settings,
-        move |_| {
-            WallpaperChangers::killall_changers();
-            change_image_button_handlers(
-                image_list_store.clone(),
-                wallpaper_changers_dropdown.clone(),
-                monitors_dropdown,
-                &settings,
-            );
-            hide_unsupported_files(
-                image_list_store,
-                get_selected_changer(&wallpaper_changers_dropdown, &settings),
-            );
-        }
-    ));
 
     let previous_wallpapers_text_buffer = TextBuffer::builder().build();
     settings
@@ -344,6 +321,38 @@ fn build_ui(app: &Application) {
         image_grid,
         move |s| {
             sort_images(&sort_dropdown, s, &image_list_store, &image_grid);
+        }
+    ));
+
+    let removed_images_list_store_copy = removed_images_list_store.clone();
+    wallpaper_changers_dropdown.connect_selected_notify(clone!(
+        #[weak]
+        image_list_store,
+        #[weak]
+        wallpaper_changers_dropdown,
+        #[weak]
+        monitors_dropdown,
+        #[weak]
+        settings,
+	#[weak]
+	sort_dropdown,
+	#[weak]
+	invert_sort_switch,
+        move |_| {
+            WallpaperChangers::killall_changers();
+            change_image_button_handlers(
+                image_list_store.clone(),
+                wallpaper_changers_dropdown.clone(),
+                monitors_dropdown,
+                &settings,
+            );
+            hide_unsupported_files(
+                image_list_store,
+                get_selected_changer(&wallpaper_changers_dropdown, &settings),
+		&removed_images_list_store_copy,
+		&sort_dropdown,
+		&invert_sort_switch
+            );
         }
     ));
 
@@ -494,6 +503,7 @@ fn build_ui(app: &Application) {
     changer_options_box.append(&images_loading_spinner);
     changer_options_box.append(&images_loading_spinner_label);
 
+    let removed_images_list_store = removed_images_list_store.clone();
     spawn_future_local(clone!(
         #[strong]
         receiver_changer_options_bar,
@@ -509,6 +519,10 @@ fn build_ui(app: &Application) {
         images_loading_spinner,
         #[weak]
         images_loading_spinner_label,
+	#[weak]
+	sort_dropdown,
+	#[weak]
+	invert_sort_switch,
         async move {
             while let Ok(b) = receiver_changer_options_bar.recv().await {
                 debug!("Finished loading images");
@@ -518,6 +532,9 @@ fn build_ui(app: &Application) {
                     hide_unsupported_files(
                         image_list_store.clone(),
                         get_selected_changer(&wallpaper_changers_dropdown, &settings),
+			&removed_images_list_store,
+			&sort_dropdown,
+			&invert_sort_switch
                     );
                     images_loading_spinner.set_visible(false);
                     images_loading_spinner_label.set_visible(false);
