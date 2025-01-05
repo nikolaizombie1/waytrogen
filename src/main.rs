@@ -9,8 +9,8 @@ use gtk::{
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, Label,
-    ListItem, Orientation, Picture, ScrolledWindow, SignalListItemFactory, SingleSelection,
-    Spinner, StringObject, Switch, Text, TextBuffer,
+    ListItem, Orientation, Picture, ProgressBar, ScrolledWindow, SignalListItemFactory,
+    SingleSelection, Spinner, StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
 use waytrogen::{
@@ -70,7 +70,10 @@ fn build_ui(app: &Application) {
     let image_list_store = ListStore::new::<BoxedAnyObject>();
     let removed_images_list_store = ListStore::new::<BoxedAnyObject>();
 
-    let selection = SingleSelection::builder().model(&image_list_store.clone()).autoselect(false).build();
+    let selection = SingleSelection::builder()
+        .model(&image_list_store.clone())
+        .autoselect(false)
+        .build();
     let image_signal_list_item_factory = SignalListItemFactory::new();
     image_signal_list_item_factory.connect_setup(clone!(move |_factory, item| {
         let item = item.downcast_ref::<ListItem>().unwrap();
@@ -78,7 +81,6 @@ fn build_ui(app: &Application) {
             .vexpand(true)
             .hexpand(true)
             .can_shrink(true)
-            .sensitive(false)
             .has_tooltip(true)
             .build();
         item.set_child(Some(&button));
@@ -109,6 +111,10 @@ fn build_ui(app: &Application) {
     let (sender_enable_changer_options_bar, receiver_changer_options_bar): (
         Sender<bool>,
         Receiver<bool>,
+    ) = async_channel::bounded(1);
+    let (sender_images_loading_progress_bar, receiver_images_loading_progress_bar): (
+        Sender<f64>,
+        Receiver<f64>,
     ) = async_channel::bounded(1);
 
     let image_grid = GridView::builder()
@@ -189,7 +195,6 @@ fn build_ui(app: &Application) {
 
     wallpaper_changers_dropdown.set_halign(Align::End);
     wallpaper_changers_dropdown.set_halign(Align::Center);
-
 
     let previous_wallpapers_text_buffer = TextBuffer::builder().build();
     settings
@@ -334,10 +339,10 @@ fn build_ui(app: &Application) {
         monitors_dropdown,
         #[weak]
         settings,
-	#[weak]
-	sort_dropdown,
-	#[weak]
-	invert_sort_switch,
+        #[weak]
+        sort_dropdown,
+        #[weak]
+        invert_sort_switch,
         move |_| {
             WallpaperChangers::killall_changers();
             change_image_button_handlers(
@@ -349,9 +354,9 @@ fn build_ui(app: &Application) {
             hide_unsupported_files(
                 image_list_store,
                 get_selected_changer(&wallpaper_changers_dropdown, &settings),
-		&removed_images_list_store_copy,
-		&sort_dropdown,
-		&invert_sort_switch
+                &removed_images_list_store_copy,
+                &sort_dropdown,
+                &invert_sort_switch,
             );
         }
     ));
@@ -372,6 +377,7 @@ fn build_ui(app: &Application) {
         selected_item.clone(),
         invert_sort_switch.state(),
         sender_enable_changer_options_bar.clone(),
+        sender_images_loading_progress_bar.clone(),
     );
 
     let changer_specific_options_box = Box::builder()
@@ -410,7 +416,6 @@ fn build_ui(app: &Application) {
         .valign(Align::Center)
         .halign(Align::Center)
         .hexpand(true)
-        .sensitive(false)
         .orientation(Orientation::Horizontal)
         .build();
     changer_options_box.append(&monitors_dropdown);
@@ -434,6 +439,8 @@ fn build_ui(app: &Application) {
     application_box.append(&changer_options_box);
 
     let selected_item = selected_item.clone();
+
+    let sender_images_loading_progress_bar_copy = sender_images_loading_progress_bar.clone();
     folder_path_buffer.connect_changed(clone!(
         #[weak]
         image_list_store,
@@ -450,6 +457,7 @@ fn build_ui(app: &Application) {
             image_list_store.remove_all();
             let state = invert_sort_switch.state();
             changer_options_box.set_sensitive(false);
+let sender_images_loading_progress_bar_copy = sender_images_loading_progress_bar_copy.clone();
             spawn_blocking(clone!(
                 #[strong]
                 sender_enable_changer_options_bar,
@@ -460,6 +468,7 @@ fn build_ui(app: &Application) {
                         selected_item,
                         state,
                         sender_enable_changer_options_bar,
+                        sender_images_loading_progress_bar_copy,
                     );
                 }
             ));
@@ -481,27 +490,21 @@ fn build_ui(app: &Application) {
         }
     ));
 
-    let images_loading_spinner = Spinner::builder()
-        .spinning(true)
+    let images_loading_progress_bar = ProgressBar::builder()
+        .opacity(1.0)
         .margin_top(12)
         .margin_start(12)
         .margin_bottom(12)
         .margin_end(12)
         .halign(Align::Center)
         .valign(Align::Center)
-        .build();
-    let images_loading_spinner_label = Label::builder()
-        .label("Images are loading. Please wait.")
-        .margin_top(12)
-        .margin_start(5)
-        .margin_bottom(12)
-        .margin_end(12)
-        .halign(Align::Center)
-        .valign(Align::Center)
+        .text("Images are loading, please wait")
+        .show_text(true)
+        .visible(true)
+        .sensitive(true)
         .build();
 
-    changer_options_box.append(&images_loading_spinner);
-    changer_options_box.append(&images_loading_spinner_label);
+    changer_options_box.append(&images_loading_progress_bar);
 
     let removed_images_list_store = removed_images_list_store.clone();
     spawn_future_local(clone!(
@@ -516,32 +519,38 @@ fn build_ui(app: &Application) {
         #[weak]
         settings,
         #[weak]
-        images_loading_spinner,
+        sort_dropdown,
         #[weak]
-        images_loading_spinner_label,
+        invert_sort_switch,
 	#[weak]
-	sort_dropdown,
+	images_loading_progress_bar,
 	#[weak]
-	invert_sort_switch,
+	image_grid,
         async move {
             while let Ok(b) = receiver_changer_options_bar.recv().await {
                 debug!("Finished loading images");
                 changer_options_box.set_sensitive(b);
+		images_loading_progress_bar.set_visible(!b);
+		image_grid.set_sensitive(b);
                 if b {
                     debug!("Hiding unsupported images");
                     hide_unsupported_files(
                         image_list_store.clone(),
                         get_selected_changer(&wallpaper_changers_dropdown, &settings),
-			&removed_images_list_store,
-			&sort_dropdown,
-			&invert_sort_switch
+                        &removed_images_list_store,
+                        &sort_dropdown,
+                        &invert_sort_switch,
                     );
-                    images_loading_spinner.set_visible(false);
-                    images_loading_spinner_label.set_visible(false);
                 } else {
-                    images_loading_spinner.set_visible(true);
-                    images_loading_spinner_label.set_visible(true);
                 }
+            }
+        }
+    ));
+
+    spawn_future_local(clone!(
+        async move {
+            while let Ok(f) = receiver_images_loading_progress_bar.recv().await {
+                images_loading_progress_bar.set_fraction(f);
             }
         }
     ));
