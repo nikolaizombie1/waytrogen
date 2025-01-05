@@ -29,7 +29,7 @@ fn main() -> glib::ExitCode {
     let args = Cli::parse();
     stderrlog::new()
         .module(module_path!())
-        .verbosity(args.verbosity)
+        .verbosity(3)
         .init()
         .unwrap();
     // Create a new application
@@ -170,6 +170,7 @@ fn build_ui(app: &Application) {
         .filter_map(|m| m.connector())
         .map(|s| s.to_string())
         .collect::<Vec<_>>();
+    let selected_monitor_text_buffer = TextBuffer::builder().build();
     debug!("{:?}", monitors);
 
     let monitors_dropdown =
@@ -179,6 +180,17 @@ fn build_ui(app: &Application) {
     settings
         .bind("monitor", &monitors_dropdown, "selected")
         .build();
+    monitors_dropdown.connect_selected_notify(clone!(
+	#[weak]
+	settings,
+	#[weak]
+	selected_monitor_text_buffer,
+	move |i| {
+	    let selected_monitor = i.selected_item().and_downcast::<StringObject>().unwrap().string().to_string();
+	    selected_monitor_text_buffer.set_text(&selected_monitor);
+	    settings.bind("selected-monitor-item", &selected_monitor_text_buffer, "text").build();
+	}
+    ));
 
     let wallpaper_changers_dropdown = get_available_wallpaper_changers()
         .into_iter()
@@ -231,12 +243,6 @@ fn build_ui(app: &Application) {
                         .to_string();
                     let selected_changer =
                         get_selected_changer(&wallpaper_changers_dropdown, &settings);
-                    match &selected_changer {
-                        WallpaperChangers::Hyprpaper => {}
-                        WallpaperChangers::Swaybg(mode, color) => {
-                            debug!("{mode} {color}")
-                        }
-                    }
                     let mut previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
                         &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
                     )
@@ -457,7 +463,8 @@ fn build_ui(app: &Application) {
             image_list_store.remove_all();
             let state = invert_sort_switch.state();
             changer_options_box.set_sensitive(false);
-let sender_images_loading_progress_bar_copy = sender_images_loading_progress_bar_copy.clone();
+            let sender_images_loading_progress_bar_copy =
+                sender_images_loading_progress_bar_copy.clone();
             spawn_blocking(clone!(
                 #[strong]
                 sender_enable_changer_options_bar,
@@ -522,16 +529,16 @@ let sender_images_loading_progress_bar_copy = sender_images_loading_progress_bar
         sort_dropdown,
         #[weak]
         invert_sort_switch,
-	#[weak]
-	images_loading_progress_bar,
-	#[weak]
-	image_grid,
+        #[weak]
+        images_loading_progress_bar,
+        #[weak]
+        image_grid,
         async move {
             while let Ok(b) = receiver_changer_options_bar.recv().await {
                 debug!("Finished loading images");
                 changer_options_box.set_sensitive(b);
-		images_loading_progress_bar.set_visible(!b);
-		image_grid.set_sensitive(b);
+                images_loading_progress_bar.set_visible(!b);
+                image_grid.set_sensitive(b);
                 if b {
                     debug!("Hiding unsupported images");
                     hide_unsupported_files(
@@ -547,13 +554,11 @@ let sender_images_loading_progress_bar_copy = sender_images_loading_progress_bar
         }
     ));
 
-    spawn_future_local(clone!(
-        async move {
-            while let Ok(f) = receiver_images_loading_progress_bar.recv().await {
-                images_loading_progress_bar.set_fraction(f);
-            }
+    spawn_future_local(clone!(async move {
+        while let Ok(f) = receiver_images_loading_progress_bar.recv().await {
+            images_loading_progress_bar.set_fraction(f);
         }
-    ));
+    }));
 
     generate_changer_bar(
         changer_specific_options_box.clone(),

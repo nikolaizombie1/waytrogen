@@ -6,7 +6,7 @@
             <summary>Wallpaper directory</summary>
         </key>
         <key name="saved-wallpapers" type="s">
-        <default>"[]"</default>
+            <default>"[]"</default>
         </key>
         <key name="monitor" type="t">
             <default>0</default>
@@ -27,6 +27,26 @@
         <key name="swaybg-color" type="s">
             <default>"000000"</default>
             <summary>Last set swaybg solid color</summary>
+        </key>
+        <key name="mpvpaper-pause-option" type="u">
+            <default>0</default>
+            <summary>Last set mpvpaper pause option</summary>
+        </key>
+        <key name="mpvpaper-slideshow-enable" type="b">
+            <default>false</default>
+            <summary>Last set switch swtting for mpvpaper slideshow</summary>
+        </key>
+        <key name="mpvpaper-slideshow-interval" type="d">
+            <default>1.0</default>
+            <summary>Last set mpv slideshow interval</summary>
+        </key>
+        <key name="mpvpaper-additional-options" type="s">
+            <default>""</default>
+            <summary>Last set custom options for mpv in mpv paper.</summary>
+        </key>
+        <key name="selected-monitor-item" type="s">
+        <default>""</default>
+        <summary>Last set monitor string</summary>
         </key>
     </schema>
 </schemalist>

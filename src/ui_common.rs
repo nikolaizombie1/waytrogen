@@ -1,7 +1,10 @@
 use crate::{
     common::{CacheImageFile, GtkPictureFile, RGB, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
     database::DatabaseConnection,
-    wallpaper_changers::{SwaybgModes, WallpaperChanger, WallpaperChangers},
+    wallpaper_changers::{
+        MpvPaperPauseModes, MpvPaperSlideshowSettings, SwaybgModes, WallpaperChanger,
+        WallpaperChangers,
+    },
 };
 use async_channel::Sender;
 use gtk::{
@@ -10,8 +13,8 @@ use gtk::{
     gio::{spawn_blocking, ListStore, Settings},
     glib::{self, clone, BoxedAnyObject, Object},
     prelude::*,
-    Align, Box, Button, ColorDialog, ColorDialogButton, DropDown, GridView, ListItem,
-    ListScrollFlags, StringObject, Switch, TextBuffer,
+    Adjustment, Align, Box, Button, ColorDialog, ColorDialogButton, DropDown, Entry, GridView,
+    ListItem, ListScrollFlags, SpinButton, StringObject, Switch, TextBuffer,
 };
 use log::debug;
 use std::{
@@ -19,7 +22,7 @@ use std::{
     cmp::Ordering,
     path::{Path, PathBuf},
 };
-use strum::IntoEnumIterator;
+use strum::{IntoEnumIterator, VariantArray};
 use which::which;
 
 pub fn generate_image_files(
@@ -82,7 +85,9 @@ pub fn generate_image_files(
         }
 
         for (index, file) in files.iter().enumerate() {
-	    sender_images_loading_progress_bar.send_blocking((index as f64)/(files.len() as f64)).expect("The channel must be open");
+            sender_images_loading_progress_bar
+                .send_blocking((index as f64) / (files.len() as f64))
+                .expect("The channel must be open");
             if let Ok(i) = DatabaseConnection::check_cache(&file) {
                 sender_cache_images
                     .send_blocking(i)
@@ -200,6 +205,114 @@ pub fn generate_changer_bar(
                     .build(),
             );
         }
+        WallpaperChangers::MpvPaper(_, _, _) => {
+            let pause_options_dropdown =
+                DropDown::from_strings(&["none", "auto-pause", "auto-stop"]);
+            pause_options_dropdown.set_margin_top(12);
+            pause_options_dropdown.set_margin_start(12);
+            pause_options_dropdown.set_margin_bottom(12);
+            pause_options_dropdown.set_margin_end(12);
+            pause_options_dropdown.set_halign(Align::Start);
+            pause_options_dropdown.set_valign(Align::Center);
+            settings
+                .bind("mpvpaper-pause-option", &pause_options_dropdown, "selected")
+                .build();
+            changer_specific_options_box.append(&pause_options_dropdown);
+            let slideshow_enable_switch = Switch::builder()
+                .tooltip_text("Enable slideshow for the current folder.")
+                .has_tooltip(true)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Start)
+                .valign(Align::Center)
+                .build();
+            let adjustment = Adjustment::new(5.0, 1.0, f64::MAX, 1.0, 0.0, 0.0);
+            let spin_button = SpinButton::builder()
+                .adjustment(&adjustment)
+                .numeric(true)
+                .has_tooltip(true)
+                .tooltip_text("Slideshow change interval")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Start)
+                .valign(Align::Center)
+                .build();
+            changer_specific_options_box.append(&slideshow_enable_switch);
+            changer_specific_options_box.append(&spin_button);
+            settings
+                .bind(
+                    "mpvpaper-slideshow-enable",
+                    &slideshow_enable_switch,
+                    "active",
+                )
+                .build();
+            settings
+                .bind("mpvpaper-slideshow-interval", &spin_button, "value")
+                .build();
+            let mpv_options = Entry::builder()
+                .has_frame(true)
+                .placeholder_text("Additional mpv options")
+                .has_tooltip(true)
+                .tooltip_text("Additional command line options to be sent to mpv.")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .hexpand(true)
+                .halign(Align::Start)
+                .valign(Align::Center)
+                .build();
+	    let mpv_options_text_buffer = TextBuffer::builder().build();
+	    settings.bind("mpvpaper-additional-options", &mpv_options_text_buffer, "text").build();
+	    changer_specific_options_box.append(&mpv_options);
+	    mpv_options.connect_changed(clone!(
+		#[weak]
+		mpv_options_text_buffer,
+		move |e| {
+		    let text = &e.text().to_string()[..];
+		    log::debug!("Options: {}", text);
+		    mpv_options_text_buffer.set_text(text);
+		    
+		}
+	    ));
+            slideshow_enable_switch.connect_activate(clone!(
+                #[weak]
+                spin_button,
+                #[weak]
+                mpv_options,
+                #[weak]
+                pause_options_dropdown,
+                #[weak]
+                settings,
+                move |s| {
+                    if s.state() {
+                        let pause_mode = pause_options_dropdown
+                            .selected_item()
+                            .and_downcast::<StringObject>()
+                            .unwrap()
+                            .string()
+                            .to_string()
+                            .parse::<MpvPaperPauseModes>()
+                            .unwrap();
+                        let interval = spin_button.value() as u32;
+                        let options = mpv_options.text().to_string();
+                        let slideshow_settings = MpvPaperSlideshowSettings {
+                            enable: s.state(),
+                            seconds: interval,
+                        };
+                        let varient =
+                            WallpaperChangers::MpvPaper(pause_mode, slideshow_settings, options);
+                        let path = settings.string("wallpaper-folder").to_string();
+                        let monitor = settings.string("selected-monitor-item").to_string();
+                        varient.change(Path::new(&path).to_path_buf(), monitor);
+                    }
+                }
+            ));
+        }
     }
 }
 
@@ -221,6 +334,21 @@ pub fn get_selected_changer(
             let mode = SwaybgModes::from_u32(settings.uint("swaybg-mode"));
             let rgb = settings.string("swaybg-color").to_string();
             WallpaperChangers::Swaybg(mode, rgb)
+        }
+        "mpvpaper" => {
+	    log::debug!("Before possible error");
+            let pause_mode = MpvPaperPauseModes::from_u32(settings.uint("mpvpaper-pause-option"));
+            let slideshow_enable = settings.boolean("mpvpaper-slideshow-enable");
+            let slideshow_interval = settings.double("mpvpaper-slideshow-interval") as u32;
+            let options = settings.string("mpvpaper-additional-options").to_string();
+            WallpaperChangers::MpvPaper(
+                pause_mode,
+                MpvPaperSlideshowSettings {
+                    enable: slideshow_enable,
+                    seconds: slideshow_interval,
+                },
+                options,
+            )
         }
         _ => WallpaperChangers::Hyprpaper,
     }
