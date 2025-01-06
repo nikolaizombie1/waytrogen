@@ -181,15 +181,26 @@ fn build_ui(app: &Application) {
         .bind("monitor", &monitors_dropdown, "selected")
         .build();
     monitors_dropdown.connect_selected_notify(clone!(
-	#[weak]
-	settings,
-	#[weak]
-	selected_monitor_text_buffer,
-	move |i| {
-	    let selected_monitor = i.selected_item().and_downcast::<StringObject>().unwrap().string().to_string();
-	    selected_monitor_text_buffer.set_text(&selected_monitor);
-	    settings.bind("selected-monitor-item", &selected_monitor_text_buffer, "text").build();
-	}
+        #[weak]
+        settings,
+        #[weak]
+        selected_monitor_text_buffer,
+        move |i| {
+            let selected_monitor = i
+                .selected_item()
+                .and_downcast::<StringObject>()
+                .unwrap()
+                .string()
+                .to_string();
+            selected_monitor_text_buffer.set_text(&selected_monitor);
+            settings
+                .bind(
+                    "selected-monitor-item",
+                    &selected_monitor_text_buffer,
+                    "text",
+                )
+                .build();
+        }
     ));
 
     let wallpaper_changers_dropdown = get_available_wallpaper_changers()

@@ -254,7 +254,6 @@ pub fn generate_changer_bar(
                 .bind("mpvpaper-slideshow-interval", &spin_button, "value")
                 .build();
             let mpv_options = Entry::builder()
-                .has_frame(true)
                 .placeholder_text("Additional mpv options")
                 .has_tooltip(true)
                 .tooltip_text("Additional command line options to be sent to mpv.")
@@ -266,52 +265,60 @@ pub fn generate_changer_bar(
                 .halign(Align::Start)
                 .valign(Align::Center)
                 .build();
-	    let mpv_options_text_buffer = TextBuffer::builder().build();
-	    settings.bind("mpvpaper-additional-options", &mpv_options_text_buffer, "text").build();
-	    changer_specific_options_box.append(&mpv_options);
-	    mpv_options.connect_changed(clone!(
-		#[weak]
-		mpv_options_text_buffer,
-		move |e| {
-		    let text = &e.text().to_string()[..];
-		    log::debug!("Options: {}", text);
-		    mpv_options_text_buffer.set_text(text);
-		    
-		}
-	    ));
-            slideshow_enable_switch.connect_activate(clone!(
-                #[weak]
-                spin_button,
-                #[weak]
-                mpv_options,
-                #[weak]
-                pause_options_dropdown,
-                #[weak]
-                settings,
-                move |s| {
-                    if s.state() {
-                        let pause_mode = pause_options_dropdown
-                            .selected_item()
-                            .and_downcast::<StringObject>()
-                            .unwrap()
-                            .string()
-                            .to_string()
-                            .parse::<MpvPaperPauseModes>()
-                            .unwrap();
-                        let interval = spin_button.value() as u32;
-                        let options = mpv_options.text().to_string();
-                        let slideshow_settings = MpvPaperSlideshowSettings {
-                            enable: s.state(),
-                            seconds: interval,
-                        };
-                        let varient =
-                            WallpaperChangers::MpvPaper(pause_mode, slideshow_settings, options);
-                        let path = settings.string("wallpaper-folder").to_string();
-                        let monitor = settings.string("selected-monitor-item").to_string();
-                        varient.change(Path::new(&path).to_path_buf(), monitor);
-                    }
+            let mpv_options_text_buffer = TextBuffer::builder().build();
+            settings
+                .bind(
+                    "mpvpaper-additional-options",
+                    &mpv_options_text_buffer,
+                    "text",
+                )
+                .build();
+            changer_specific_options_box.append(&mpv_options);
+            let mpv_options_text_buffer_copy = mpv_options_text_buffer.clone();
+            mpv_options.connect_changed(clone!(move |e| {
+                let text = &e.text().to_string()[..];
+                log::debug!("Options: {}", text);
+                mpv_options_text_buffer_copy.set_text(text);
+            }));
+            mpv_options.set_text(
+                mpv_options_text_buffer
+                    .text(
+                        &mpv_options_text_buffer.start_iter(),
+                        &mpv_options_text_buffer.end_iter(),
+                        false,
+                    )
+                    .as_str(),
+            );
+            slideshow_enable_switch.connect_state_set(clone!(move |_, state| {
+                if state {
+                    let pause_mode = pause_options_dropdown
+                        .selected_item()
+                        .and_downcast::<StringObject>()
+                        .unwrap()
+                        .string()
+                        .to_string()
+                        .parse::<MpvPaperPauseModes>()
+                        .unwrap();
+                    let interval = spin_button.value() as u32;
+                    let options = mpv_options.text().to_string();
+                    let slideshow_settings = MpvPaperSlideshowSettings {
+                        enable: state,
+                        seconds: interval,
+                    };
+                    let varient =
+                        WallpaperChangers::MpvPaper(pause_mode, slideshow_settings, options);
+                    let path = settings.string("wallpaper-folder").to_string();
+                    let monitor = settings.string("selected-monitor-item").to_string();
+                    log::debug!(
+                        "Entered switch callback: {:#?} {} {}",
+                        varient,
+                        path,
+                        monitor
+                    );
+                    varient.change(Path::new(&path).to_path_buf(), monitor);
                 }
-            ));
+                false.into()
+            }));
         }
     }
 }
@@ -336,19 +343,20 @@ pub fn get_selected_changer(
             WallpaperChangers::Swaybg(mode, rgb)
         }
         "mpvpaper" => {
-	    log::debug!("Before possible error");
             let pause_mode = MpvPaperPauseModes::from_u32(settings.uint("mpvpaper-pause-option"));
             let slideshow_enable = settings.boolean("mpvpaper-slideshow-enable");
             let slideshow_interval = settings.double("mpvpaper-slideshow-interval") as u32;
             let options = settings.string("mpvpaper-additional-options").to_string();
-            WallpaperChangers::MpvPaper(
+            let changer = WallpaperChangers::MpvPaper(
                 pause_mode,
                 MpvPaperSlideshowSettings {
                     enable: slideshow_enable,
                     seconds: slideshow_interval,
                 },
-                options,
-            )
+                options.clone(),
+            );
+            log::debug!("Selected changer: {} {} {} {}", changer, slideshow_enable, slideshow_interval, options);
+            changer
         }
         _ => WallpaperChangers::Hyprpaper,
     }

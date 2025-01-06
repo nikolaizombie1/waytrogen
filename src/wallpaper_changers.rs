@@ -208,30 +208,28 @@ impl WallpaperChanger for WallpaperChangers {
                     .unwrap();
             }
             Self::MpvPaper(pause_mode, slideshow, mpv_options) => {
-                if slideshow.enable {
-                    Command::new("mpvpaper")
-                        .arg("-o")
-                        .arg(mpv_options)
-                        .arg("-n")
-                        .arg(slideshow.seconds.to_string())
-                        .arg("-f")
-                        .arg(image)
-                        .spawn()
-                        .unwrap()
-                        .wait()
-                        .unwrap();
-                } else {
-                    Command::new("mpvpaper")
-                        .arg("-o")
-                        .arg(mpv_options)
-                        .arg("-f")
-                        .arg(monitor)
-                        .arg(image)
-                        .spawn()
-                        .unwrap()
-                        .wait()
-                        .unwrap();
+                let mut command = Command::new("mpvpaper");
+                command.arg("-o").arg(format!("\"{}\"",mpv_options));
+                match pause_mode {
+                    MpvPaperPauseModes::None => {}
+                    MpvPaperPauseModes::AutoPause => {
+                        command.arg("--auto-pause");
+                    }
+                    MpvPaperPauseModes::AutoStop => {
+                        command.arg("--auto-stop");
+                    }
                 }
+                if slideshow.enable {
+                    command.arg("-n").arg(slideshow.seconds.to_string());
+                }
+                command
+                    .arg("-f")
+                    .arg(monitor)
+                    .arg(image)
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap();
             }
         });
     }
