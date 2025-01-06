@@ -4,7 +4,8 @@ use image::ImageReader;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, io::Cursor, path::Path, str::FromStr, time::UNIX_EPOCH};
+use std::{fmt::Display, io::Cursor, path::{Path, PathBuf}, process::Command, str::FromStr, time::UNIX_EPOCH};
+use mktemp::Temp;
 
 use crate::wallpaper_changers::WallpaperChangers;
 
@@ -51,6 +52,27 @@ impl CacheImageFile {
     }
 
     fn generate_thumbnail(path: &Path) -> anyhow::Result<Vec<u8>> {
+        if let Ok(i) = Self::try_create_thumbnail_with_image(path) {
+            return Ok(i);
+        }
+        if let Ok(i) = Self::try_create_thumbnail_with_ffmpeg(path) {
+            return Ok(i);
+        }
+        Err(anyhow::anyhow!("Failed to create thumbnail for: {}", path.as_os_str().to_str().unwrap_or_default()))
+    }
+    fn try_create_thumbnail_with_ffmpeg(path: &Path) -> anyhow::Result<Vec<u8>> {
+        let temp_dir = Temp::new_dir()?;
+        let output_path = PathBuf::from(temp_dir.as_os_str()).join("temp.png");
+        let code = Command::new("ffmpeg").arg("-i").arg(path).arg("-y").arg("-ss").arg("00:00:00").arg("-frames:v").arg("1").arg(output_path.clone()).spawn()?.wait()?.code().unwrap_or_else(|| {255});
+        match code {
+            0 => {
+                Self::try_create_thumbnail_with_image(&output_path)
+            }
+            _ => Err(anyhow::anyhow!("Thumbnail could not be generated using ffmpg."))
+        }
+    }
+
+    fn try_create_thumbnail_with_image(path: &Path) -> anyhow::Result<Vec<u8>> {
         let thumbnail = ImageReader::open(path)?
             .with_guessed_format()?
             .decode()?
@@ -59,6 +81,7 @@ impl CacheImageFile {
         let mut buff: Vec<u8> = vec![];
         thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;
         Ok(buff)
+
     }
 }
 
