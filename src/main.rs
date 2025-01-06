@@ -8,9 +8,9 @@ use gtk::{
     gio::{spawn_blocking, Cancellable, ListStore, Settings},
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
-    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, Label,
-    ListItem, Orientation, Picture, ProgressBar, ScrolledWindow, SignalListItemFactory,
-    SingleSelection, Spinner, StringObject, Switch, Text, TextBuffer,
+    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
+    Orientation, Picture, ProgressBar, ScrolledWindow, SignalListItemFactory, SingleSelection,
+    StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
 use waytrogen::{
@@ -559,7 +559,6 @@ fn build_ui(app: &Application) {
                         &sort_dropdown,
                         &invert_sort_switch,
                     );
-                } else {
                 }
             }
         }

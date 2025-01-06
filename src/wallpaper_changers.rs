@@ -1,3 +1,4 @@
+use crate::common::RGB;
 use lazy_static::lazy_static;
 use log::debug;
 use regex::Regex;
@@ -19,6 +20,20 @@ pub enum WallpaperChangers {
     Hyprpaper,
     Swaybg(SwaybgModes, String),
     MpvPaper(MpvPaperPauseModes, MpvPaperSlideshowSettings, String),
+    Swww(
+        SWWWResizeMode,
+        RGB,
+        SWWWScallingFilter,
+        SWWWTransitionType,
+        u8,
+        u32,
+        u32,
+        u16,
+        SWWWTransitionPosition,
+        bool,
+        SWWWTransitionBezier,
+        SWWWTransitionWave,
+    ),
 }
 
 impl WallpaperChangers {
@@ -70,6 +85,91 @@ pub enum MpvPaperPauseModes {
 pub struct MpvPaperSlideshowSettings {
     pub enable: bool,
     pub seconds: u32,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub enum SWWWResizeMode {
+    No,
+    #[default]
+    Crop,
+    Fit,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub enum SWWWScallingFilter {
+    Nearest,
+    Bilinear,
+    CatmullRom,
+    Mitchell,
+    #[default]
+    Lanczos3,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub enum SWWWTransitionType {
+    None,
+    #[default]
+    Simple,
+    Fade,
+    Left,
+    Right,
+    Top,
+    Bottom,
+    Wipe,
+    Wave,
+    Grow,
+    Center,
+    Any,
+    Outer,
+    Random,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub enum SWWWTransitionPosition {
+    #[default]
+    Center,
+    Top,
+    Left,
+    Right,
+    Bottom,
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SWWWTransitionBezier {
+    p0: f64,
+    p1: f64,
+    p2: f64,
+    p3: f64,
+}
+
+impl Default for SWWWTransitionBezier {
+    fn default() -> Self {
+        Self {
+            p0: 0.54,
+            p1: 0.0,
+            p2: 0.34,
+            p3: 0.99,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SWWWTransitionWave {
+    width: u32,
+    height: u32,
+}
+
+impl Default for SWWWTransitionWave {
+    fn default() -> Self {
+        Self {
+            width: 20,
+            height: 20,
+        }
+    }
 }
 
 impl SwaybgModes {
@@ -231,6 +331,20 @@ impl WallpaperChanger for WallpaperChangers {
                     .wait()
                     .unwrap();
             }
+            Self::Swww(
+                resize_modes,
+                fill_color,
+                scalling_filter,
+                transition_type,
+                transition_step,
+                transition_duration,
+                transition_fps,
+                transition_angle,
+                transition_position,
+                invert_y,
+                transition_bezier,
+                transition_wave,
+            ) => {}
         });
     }
 
@@ -577,6 +691,20 @@ impl WallpaperChanger for WallpaperChangers {
                 mpvpaper_formats.append(&mut swaybg_formats);
                 mpvpaper_formats
             }
+            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+                vec![
+                    "gif".to_owned(),
+                    "jpeg".to_owned(),
+                    "jpg".to_owned(),
+                    "png".to_owned(),
+                    "pnm".to_owned(),
+                    "tga".to_owned(),
+                    "tiff".to_owned(),
+                    "webp".to_owned(),
+                    "bmp".to_owned(),
+                    "farbfeld".to_owned(),
+                ]
+            }
         }
     }
 }
@@ -586,29 +714,13 @@ lazy_static! {
         Regex::new(r"swaybg (stretch|fit|fill||center|tile|solid_color) [0-9a-f]{6}").unwrap();
 }
 
-impl FromStr for WallpaperChangers {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match &s.to_lowercase()[..] {
-            "hyprpaper" => Ok(WallpaperChangers::Hyprpaper),
-            _ if swaybg_regex.is_match(s) => {
-                let args = s.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
-                let mode = args[1].parse::<SwaybgModes>().unwrap();
-                let rgb = args[2].clone();
-                Ok(WallpaperChangers::Swaybg(mode, rgb))
-            }
-            _ => Err(format!("Unknown wallpaper changer: {}", s)),
-        }
-    }
-}
-
 impl Display for WallpaperChangers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Hyprpaper => write!(f, "Hyprpaper"),
+            Self::Hyprpaper => write!(f, "hyprpaper"),
             Self::Swaybg(_, _) => write!(f, "swaybg"),
             Self::MpvPaper(_, _, _) => write!(f, "mpvpaper"),
+            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => write!(f, "swww"),
         }
     }
 }

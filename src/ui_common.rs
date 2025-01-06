@@ -1,5 +1,5 @@
 use crate::{
-    common::{CacheImageFile, GtkPictureFile, RGB, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH},
+    common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     wallpaper_changers::{
         MpvPaperPauseModes, MpvPaperSlideshowSettings, SwaybgModes, WallpaperChanger,
@@ -13,8 +13,8 @@ use gtk::{
     gio::{spawn_blocking, ListStore, Settings},
     glib::{self, clone, BoxedAnyObject, Object},
     prelude::*,
-    Adjustment, Align, Box, Button, ColorDialog, ColorDialogButton, DropDown, Entry, GridView,
-    ListItem, ListScrollFlags, SpinButton, StringObject, Switch, TextBuffer,
+    Adjustment, Align, Box, ColorDialog, ColorDialogButton, DropDown, Entry, GridView, ListItem,
+    ListScrollFlags, SpinButton, StringObject, Switch, TextBuffer,
 };
 use log::debug;
 use std::{
@@ -22,7 +22,7 @@ use std::{
     cmp::Ordering,
     path::{Path, PathBuf},
 };
-use strum::{IntoEnumIterator, VariantArray};
+use strum::IntoEnumIterator;
 use which::which;
 
 pub fn generate_image_files(
@@ -88,7 +88,7 @@ pub fn generate_image_files(
             sender_images_loading_progress_bar
                 .send_blocking((index as f64) / (files.len() as f64))
                 .expect("The channel must be open");
-            if let Ok(i) = DatabaseConnection::check_cache(&file) {
+            if let Ok(i) = DatabaseConnection::check_cache(file) {
                 sender_cache_images
                     .send_blocking(i)
                     .expect("The channel must be open")
@@ -363,6 +363,9 @@ pub fn get_selected_changer(
                 options
             );
             changer
+        }
+        "swww" => {
+
         }
         _ => WallpaperChangers::Hyprpaper,
     }
