@@ -355,7 +355,13 @@ pub fn get_selected_changer(
                 },
                 options.clone(),
             );
-            log::debug!("Selected changer: {} {} {} {}", changer, slideshow_enable, slideshow_interval, options);
+            log::debug!(
+                "Selected changer: {} {} {} {}",
+                changer,
+                slideshow_enable,
+                slideshow_interval,
+                options
+            );
             changer
         }
         _ => WallpaperChangers::Hyprpaper,

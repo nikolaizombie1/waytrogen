@@ -209,7 +209,7 @@ impl WallpaperChanger for WallpaperChangers {
             }
             Self::MpvPaper(pause_mode, slideshow, mpv_options) => {
                 let mut command = Command::new("mpvpaper");
-                command.arg("-o").arg(format!("\"{}\"",mpv_options));
+                command.arg("-o").arg(format!("\'{}\'", mpv_options));
                 match pause_mode {
                     MpvPaperPauseModes::None => {}
                     MpvPaperPauseModes::AutoPause => {
@@ -255,7 +255,7 @@ impl WallpaperChanger for WallpaperChangers {
                 "gif".to_owned(),
             ],
             Self::MpvPaper(_, _, _) => {
-                vec![
+                let mut mpvpaper_formats = vec![
                     "str".to_owned(),
                     "aa".to_owned(),
                     "aac".to_owned(),
@@ -569,7 +569,13 @@ impl WallpaperChanger for WallpaperChangers {
                     "xvag".to_owned(),
                     "yop".to_owned(),
                     "y4m".to_owned(),
-                ]
+                ];
+                let mut hyprpaper_formats = Self::Hyprpaper.accepted_formats();
+                let mut swaybg_formats =
+                    Self::Swaybg(SwaybgModes::Fill, "FFFFFF".to_owned()).accepted_formats();
+                mpvpaper_formats.append(&mut hyprpaper_formats);
+                mpvpaper_formats.append(&mut swaybg_formats);
+                mpvpaper_formats
             }
         }
     }
