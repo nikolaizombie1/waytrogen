@@ -308,8 +308,9 @@ impl WallpaperChanger for WallpaperChangers {
                     .unwrap();
             }
             Self::MpvPaper(pause_mode, slideshow, mpv_options) => {
+		log::debug!("{}", image.display());
                 let mut command = Command::new("mpvpaper");
-                command.arg("-o").arg(format!("\'{}\'", mpv_options));
+                command.arg("-o").arg(mpv_options);
                 match pause_mode {
                     MpvPaperPauseModes::None => {}
                     MpvPaperPauseModes::AutoPause => {
@@ -323,12 +324,9 @@ impl WallpaperChanger for WallpaperChangers {
                     command.arg("-n").arg(slideshow.seconds.to_string());
                 }
                 command
-                    .arg("-f")
                     .arg(monitor)
                     .arg(image)
                     .spawn()
-                    .unwrap()
-                    .wait()
                     .unwrap();
             }
             Self::Swww(

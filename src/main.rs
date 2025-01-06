@@ -172,6 +172,8 @@ fn build_ui(app: &Application) {
         .collect::<Vec<_>>();
     let selected_monitor_text_buffer = TextBuffer::builder().build();
     debug!("{:?}", monitors);
+    settings.bind("selected-monitor-item", &selected_monitor_text_buffer, "text").build();
+    selected_monitor_text_buffer.set_text(&settings.string("selected-monitor-item").to_string());
 
     let monitors_dropdown =
         DropDown::from_strings(&monitors.iter().map(|s| s.as_str()).collect::<Vec<_>>());
@@ -183,8 +185,6 @@ fn build_ui(app: &Application) {
     monitors_dropdown.connect_selected_notify(clone!(
         #[weak]
         settings,
-        #[weak]
-        selected_monitor_text_buffer,
         move |i| {
             let selected_monitor = i
                 .selected_item()
