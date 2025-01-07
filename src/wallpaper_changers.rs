@@ -13,6 +13,9 @@ pub trait WallpaperChanger {
     fn change(self, image: PathBuf, monitor: String);
     fn accepted_formats(&self) -> Vec<String>;
 }
+pub trait U32toEnum {
+    fn from_u32(i: u32) -> Self;
+}
 
 #[derive(Debug, EnumIter, Clone, Default, Serialize, Deserialize)]
 pub enum WallpaperChangers {
@@ -87,7 +90,7 @@ pub struct MpvPaperSlideshowSettings {
     pub seconds: u32,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray)]
 pub enum SWWWResizeMode {
     No,
     #[default]
@@ -95,7 +98,19 @@ pub enum SWWWResizeMode {
     Fit,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+impl U32toEnum for SWWWResizeMode {
+    fn from_u32(i: u32) -> Self {
+        let i = i%Self::VARIANTS.len() as u32;
+        match i {
+            0 => Self::No,
+            1 => Self::Crop,
+            2 => Self::Fit,
+            _ => Self::default(),
+        }
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray)]
 pub enum SWWWScallingFilter {
     Nearest,
     Bilinear,
@@ -105,7 +120,21 @@ pub enum SWWWScallingFilter {
     Lanczos3,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+impl U32toEnum for SWWWScallingFilter {
+    fn from_u32(i: u32) -> Self {
+        let i = i%Self::VARIANTS.len() as u32;
+        match i {
+            0 => Self::Nearest,
+            1 => Self::Bilinear,
+            2 => Self::CatmullRom,
+            3 => Self::Mitchell,
+            4 => Self::Lanczos3,
+            _ => Self::default()
+        }
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray)]
 pub enum SWWWTransitionType {
     None,
     #[default]
@@ -124,26 +153,56 @@ pub enum SWWWTransitionType {
     Random,
 }
 
+impl U32toEnum for SWWWTransitionType {
+    fn from_u32(i: u32) -> Self {
+        let i = i%Self::VARIANTS.len() as u32;
+        match i {
+            0 => Self::None,
+            1 => Self::Simple,
+            2 => Self::Fade,
+            3 => Self::Left,
+            4 => Self::Right,
+            5 => Self::Top,
+            6 => Self::Bottom,
+            7 => Self::Wipe,
+            8 => Self::Wave,
+            9 => Self::Grow,
+            10 => Self::Center,
+            11 => Self::Any,
+            12 => Self::Outer,
+            13 => Self::Random,
+            _ => Self::default()
+        }
+    }
+}
+
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
-pub enum SWWWTransitionPosition {
-    #[default]
-    Center,
-    Top,
-    Left,
-    Right,
-    Bottom,
-    TopLeft,
-    TopRight,
-    BottomLeft,
-    BottomRight,
+pub struct SWWWTransitionPosition {
+    position: String,
+}
+
+lazy_static! {
+    static ref swww_transition_pos_regex: Regex =
+        Regex::new(r"(0.\d\d?,0\.\d\d?)|(\d+,\d+)|(center|top|left|right|bottom|top-left|top-right|bottom-left|bottom-right)").unwrap();
+}
+
+impl SWWWTransitionPosition {
+    pub fn new(s: &str) -> anyhow::Result<SWWWTransitionPosition> {
+        match swww_transition_pos_regex.is_match(s) {
+            true => Ok(Self {
+                position: s.to_owned(),
+            }),
+            false => Err(anyhow::anyhow!("Invalid Transition Position")),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SWWWTransitionBezier {
-    p0: f64,
-    p1: f64,
-    p2: f64,
-    p3: f64,
+    pub p0: f64,
+    pub p1: f64,
+    pub p2: f64,
+    pub p3: f64,
 }
 
 impl Default for SWWWTransitionBezier {
@@ -159,8 +218,8 @@ impl Default for SWWWTransitionBezier {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SWWWTransitionWave {
-    width: u32,
-    height: u32,
+    pub width: u32,
+    pub height: u32,
 }
 
 impl Default for SWWWTransitionWave {
@@ -172,8 +231,8 @@ impl Default for SWWWTransitionWave {
     }
 }
 
-impl SwaybgModes {
-    pub fn from_u32(i: u32) -> SwaybgModes {
+impl U32toEnum for SwaybgModes {
+    fn from_u32(i: u32) -> SwaybgModes {
         let i = (i as usize) % SwaybgModes::VARIANTS.len();
         match i {
             0 => SwaybgModes::Stretch,
@@ -187,8 +246,8 @@ impl SwaybgModes {
     }
 }
 
-impl MpvPaperPauseModes {
-    pub fn from_u32(i: u32) -> MpvPaperPauseModes {
+impl U32toEnum for MpvPaperPauseModes {
+    fn from_u32(i: u32) -> MpvPaperPauseModes {
         let i = (i as usize) % MpvPaperPauseModes::VARIANTS.len();
         match i {
             0 => MpvPaperPauseModes::None,
@@ -308,7 +367,7 @@ impl WallpaperChanger for WallpaperChangers {
                     .unwrap();
             }
             Self::MpvPaper(pause_mode, slideshow, mpv_options) => {
-		log::debug!("{}", image.display());
+                log::debug!("{}", image.display());
                 let mut command = Command::new("mpvpaper");
                 command.arg("-o").arg(mpv_options);
                 match pause_mode {
@@ -323,11 +382,7 @@ impl WallpaperChanger for WallpaperChangers {
                 if slideshow.enable {
                     command.arg("-n").arg(slideshow.seconds.to_string());
                 }
-                command
-                    .arg(monitor)
-                    .arg(image)
-                    .spawn()
-                    .unwrap();
+                command.arg(monitor).arg(image).spawn().unwrap();
             }
             Self::Swww(
                 resize_modes,

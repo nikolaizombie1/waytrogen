@@ -8,15 +8,15 @@
         <key name="saved-wallpapers" type="s">
             <default>"[]"</default>
         </key>
-        <key name="monitor" type="t">
+        <key name="monitor" type="u">
             <default>0</default>
             <summary>Last set monitor</summary>
         </key>
-        <key name="sort-by" type="t">
+        <key name="sort-by" type="u">
             <default>0</default>
             <summary>Last set sort by option</summary>
         </key>
-        <key name="changer" type="t">
+        <key name="changer" type="u">
             <default>0</default>
             <summary>Last set wallpaper changer</summary>
         </key>
@@ -45,8 +45,72 @@
             <summary>Last set custom options for mpv in mpv paper.</summary>
         </key>
         <key name="selected-monitor-item" type="s">
-        <default>""</default>
-        <summary>Last set monitor string</summary>
+            <default>""</default>
+            <summary>Last set monitor string</summary>
+        </key>
+        <key name="swww-resize" type="u">
+            <default>0</default>
+            <summary>Last set swww resize option</summary>
+        </key>
+        <key name="swww-fill-color" type="s">
+            <default>"000000"</default>
+            <summary>Last set swww fill color</summary>
+        </key>
+        <key name="swww-scaling-filter" type="u">
+            <default>0</default>
+            <summary>Last set swww scalling filter</summary>
+        </key>
+        <key name="swww-transition-type" type="u">
+            <default>0</default>
+            <summary>Last set swww transition type</summary>
+        </key>
+        <key name="swww-transition-step" type="d">
+            <default>90.0</default>
+            <summary>Last set swww transition step</summary>
+        </key>
+        <key name="swww-transition-duration" type="d">
+            <default>3.0</default>
+            <summary>Last set swww transition duration</summary>
+        </key>
+        <key name="swww-transition-angle" type="d">
+            <default>45.0</default>
+            <summary>Last set swww transition angle</summary>
+        </key>
+        <key name="swww-transition-position" type="s">
+            <default>"center"</default>
+            <summary>Last set swww transition position</summary>
+        </key>
+        <key name="swww-invert-y" type="b">
+            <default>false</default>
+            <summary>Last set swww invert y state</summary>
+        </key>
+        <key name="swww-transition-wave-width" type="d">
+            <default>200</default>
+            <summary>Last set swww transition wave width</summary>
+        </key>
+        <key name="swww-transition-wave-height" type="d">
+            <default>200</default>
+            <summary>Last set swww transition wave height</summary>
+        </key>
+        <key name="swww-transition-bezier-p0" type="d">
+            <default>0.54</default>
+            <summary>Last set swww transition bezier p0 value</summary>
+        </key>
+        <key name="swww-transition-bezier-p1" type="d">
+            <default>0.0</default>
+            <summary>Last set swww transition bezier p1 value</summary>
+        </key>
+        <key name="swww-transition-bezier-p2" type="d">
+            <default>0.34</default>
+            <summary>Last set swww transition bezier p2 value</summary>
+        </key>
+        <key name="swww-transition-bezier-p3" type="d">
+            <default>0.99</default>
+            <summary>Last set swww transition bezier p3 value</summary>
+        </key>
+        <key name="swww-transition-fps" type="u">
+        <default>30</default>
+        <summary>Last set swww transition frames per second</summary>
         </key>
     </schema>
 </schemalist>

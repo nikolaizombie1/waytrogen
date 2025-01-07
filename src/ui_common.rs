@@ -2,8 +2,8 @@ use crate::{
     common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     wallpaper_changers::{
-        MpvPaperPauseModes, MpvPaperSlideshowSettings, SwaybgModes, WallpaperChanger,
-        WallpaperChangers,
+        MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWTransitionPosition, SwaybgModes,
+        WallpaperChanger, WallpaperChangers, U32toEnum, SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionType, SWWWTransitionWave
     },
 };
 use async_channel::Sender;
@@ -13,14 +13,14 @@ use gtk::{
     gio::{spawn_blocking, ListStore, Settings},
     glib::{self, clone, BoxedAnyObject, Object},
     prelude::*,
-    Adjustment, Align, Box, ColorDialog, ColorDialogButton, DropDown, Entry, GridView, ListItem,
-    ListScrollFlags, SpinButton, StringObject, Switch, TextBuffer,
+    Adjustment, Align, Box, Button, ColorDialog, ColorDialogButton, DropDown, Entry, GridView,
+    Label, ListItem, ListScrollFlags, SpinButton, StringObject, Switch, TextBuffer, Window,
 };
 use log::debug;
 use std::{
     cell::Ref,
     cmp::Ordering,
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, str::FromStr,
 };
 use strum::IntoEnumIterator;
 use which::which;
@@ -320,6 +320,483 @@ pub fn generate_changer_bar(
                 false.into()
             }));
         }
+        WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+            let resize_dropdown = DropDown::from_strings(&["no", "crop", "fit"]);
+            resize_dropdown.set_margin_top(12);
+            resize_dropdown.set_margin_start(12);
+            resize_dropdown.set_margin_bottom(12);
+            resize_dropdown.set_margin_end(12);
+            resize_dropdown.set_halign(Align::Start);
+            resize_dropdown.set_valign(Align::Center);
+            changer_specific_options_box.append(&resize_dropdown);
+            settings
+                .bind("swww-resize", &resize_dropdown, "selected")
+                .build();
+            let color_dialog = ColorDialog::builder().with_alpha(false).build();
+            let color_picker = ColorDialogButton::builder()
+                .halign(Align::Start)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .dialog(&color_dialog)
+                .build();
+            let rgb_text_buffer = TextBuffer::builder().build();
+            color_picker.connect_rgba_notify(clone!(
+                #[weak]
+                settings,
+                move |b| {
+                    let rgba = b.rgba();
+                    let serialize_struct = RGB {
+                        red: rgba.red(),
+                        green: rgba.green(),
+                        blue: rgba.blue(),
+                    }
+                    .to_string();
+                    rgb_text_buffer.set_text(&serialize_struct);
+                    settings
+                        .bind("swww-fill-color", &rgb_text_buffer, "text")
+                        .build();
+                }
+            ));
+            let rgb = settings
+                .string("swww-fill-color")
+                .to_string()
+                .parse::<RGB>()
+                .unwrap();
+            color_picker.set_rgba(
+                &RGBA::builder()
+                    .red(rgb.red)
+                    .green(rgb.green)
+                    .blue(rgb.blue)
+                    .build(),
+            );
+            changer_specific_options_box.append(&color_picker);
+            let advanced_settings_window = Window::builder()
+                .title("SWWW Advanced Image Settings")
+                .build();
+            let advanced_settings_button = Button::builder()
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .label("Advanced Settings")
+                .halign(Align::Start)
+                .valign(Align::Center)
+                .build();
+            changer_specific_options_box.append(&advanced_settings_button);
+            advanced_settings_button.connect_clicked(
+                move |_| {
+            let advanced_settings_window_box = Box::builder()
+                .orientation(gtk::Orientation::Vertical)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .hexpand(true)
+                .vexpand(true)
+                .build();
+            advanced_settings_window.present();
+            advanced_settings_window.set_child(Some(&advanced_settings_window_box));
+            let filter_options_label = Label::builder()
+                .label("Scalling filter")
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+            let filter_dropdown = DropDown::from_strings(&[
+                "nearest",
+                "bilinear",
+                "catmullrom",
+                "mitchell",
+                "lanczos3",
+            ]);
+            filter_dropdown.set_margin_top(12);
+            filter_dropdown.set_margin_start(12);
+            filter_dropdown.set_margin_bottom(12);
+            filter_dropdown.set_margin_end(12);
+            filter_dropdown.set_halign(Align::Start);
+            filter_dropdown.set_valign(Align::Center);
+            settings
+                .bind("swww-scaling-filter", &filter_dropdown, "selected")
+                .build();
+            let transition_type_label = Label::builder()
+                .label("Transition type")
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+            let transition_type_dropdown = DropDown::from_strings(&[
+                "none", "simple", "fade", "left", "right", "top", "bottom", "wipe", "wave", "grow",
+                "center", "any", "outer", "random",
+            ]);
+            transition_type_dropdown.set_margin_top(12);
+            transition_type_dropdown.set_margin_start(12);
+            transition_type_dropdown.set_margin_bottom(12);
+            transition_type_dropdown.set_margin_end(12);
+            transition_type_dropdown.set_halign(Align::Start);
+            transition_type_dropdown.set_valign(Align::Center);
+            settings
+                .bind(
+                    "swww-transition-type",
+                    &transition_type_dropdown,
+                    "selected",
+                )
+                .build();
+
+            let filter_and_transition_box = Box::builder()
+                .orientation(gtk::Orientation::Horizontal)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .hexpand(true)
+                .vexpand(true)
+                .build();
+
+            filter_and_transition_box.append(&filter_options_label);
+            filter_and_transition_box.append(&filter_dropdown);
+            filter_and_transition_box.append(&transition_type_label);
+            filter_and_transition_box.append(&transition_type_dropdown);
+            advanced_settings_window_box.append(&filter_and_transition_box);
+
+            let transition_step_label = Label::builder()
+                .label("Transition step")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .build();
+
+            let transition_step_adjustment =
+                Adjustment::new(90.0, 0.0, u8::MAX as f64, 1.0, 0.0, 0.0);
+            let transition_step_spinbutton = SpinButton::builder()
+                .adjustment(&transition_step_adjustment)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+
+            settings
+                .bind("swww-transition-step", &transition_step_spinbutton, "value")
+                .build();
+
+            let transition_duration_label = Label::builder()
+                .label("Transition duration")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .build();
+            let transition_duration_adjustment =
+                Adjustment::new(3.0, 0.0, u32::MAX as f64, 1.0, 0.0, 0.0);
+            let transition_duration_spinbutton = SpinButton::builder()
+                .adjustment(&transition_duration_adjustment)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+            settings
+                .bind(
+                    "swww-transition-duration",
+                    &transition_duration_spinbutton,
+                    "value",
+                )
+                .build();
+
+
+
+
+            let transition_angle_label = Label::builder()
+                .label("Transition angle")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .build();
+            let transition_angle_adjustment = Adjustment::new(45.0, 0.0, 270.0, 1.0, 0.0, 0.0);
+            let transition_angle_spinbutton = SpinButton::builder()
+                .adjustment(&transition_angle_adjustment)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+            settings
+                .bind(
+                    "swww-transition-angle",
+                    &transition_angle_spinbutton,
+                    "value",
+                )
+                .build();
+
+            let transition_step_duration_angle_box = Box::builder()
+                .orientation(gtk::Orientation::Horizontal)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .hexpand(true)
+                .vexpand(true)
+                .build();
+
+            transition_step_duration_angle_box.append(&transition_step_label);
+            transition_step_duration_angle_box.append(&transition_step_spinbutton);
+            transition_step_duration_angle_box.append(&transition_duration_label);
+            transition_step_duration_angle_box.append(&transition_duration_spinbutton);
+            transition_step_duration_angle_box.append(&transition_angle_label);
+            transition_step_duration_angle_box.append(&transition_angle_spinbutton);
+            advanced_settings_window_box.append(&transition_step_duration_angle_box);
+
+            let transition_position_label = Label::builder()
+                .label("Transition position")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .build();
+
+            let transition_position_entry = Entry::builder()
+                .placeholder_text("Transition position")
+                .has_tooltip(true)
+                .tooltip_text("Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left orbottom-right.")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .hexpand(true)
+                .halign(Align::Start)
+                .valign(Align::Center)
+                .build();
+
+            let transition_position_entry_text_buffer = TextBuffer::builder().build();
+            settings
+                .bind(
+                    "swww-transition-position",
+                    &transition_position_entry_text_buffer,
+                    "text",
+                )
+                .build();
+
+            transition_position_entry.connect_changed(move |e| {
+                let text = e.text().to_string();
+                match SWWWTransitionPosition::new(&text) {
+                    Ok(_) => transition_position_entry_text_buffer.set_text(&text),
+                    Err(_) => {}
+                }
+            });
+
+            let invert_y_label = Label::builder()
+                .label("Invert y")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .build();
+
+            let invert_y_switch = Switch::builder()
+                .tooltip_text("Invert y position in transition position flag")
+                .has_tooltip(true)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Start)
+                .valign(Align::Center)
+                .build();
+
+            settings.bind("swww-invert-y", &invert_y_switch, "active").build();
+
+            let transition_wave_label = Label::builder()
+                .label("Transition wave")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .build();
+
+            let transition_wave_width_adjustment =
+                Adjustment::new(20.0, 0.0, u32::MAX as f64, 1.0, 0.0, 0.0);
+            let transition_wave_width_spinbutton = SpinButton::builder()
+                .adjustment(&transition_wave_width_adjustment)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+
+            settings.bind("swww-transition-wave-width", &transition_wave_width_spinbutton, "value").build();
+
+            let transition_wave_height_adjustment =
+                Adjustment::new(20.0, 0.0, u32::MAX as f64, 1.0, 0.0, 0.0);
+            let transition_wave_height_spinbutton = SpinButton::builder()
+                .adjustment(&transition_wave_height_adjustment)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+
+            settings.bind("swww-transition-wave-height", &transition_wave_height_spinbutton, "value").build();
+
+            let transition_position_invert_y_wave_box = Box::builder()
+                .orientation(gtk::Orientation::Horizontal)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .hexpand(true)
+                .vexpand(true)
+                .build();
+
+            transition_position_invert_y_wave_box.append(&transition_position_label);
+            transition_position_invert_y_wave_box.append(&transition_position_entry);
+            transition_position_invert_y_wave_box.append(&invert_y_label);
+            transition_position_invert_y_wave_box.append(&invert_y_switch);
+            transition_position_invert_y_wave_box.append(&transition_wave_label);
+            transition_position_invert_y_wave_box.append(&transition_wave_width_spinbutton);
+            transition_position_invert_y_wave_box.append(&transition_wave_height_spinbutton);
+            advanced_settings_window_box.append(&transition_position_invert_y_wave_box);
+
+            let transition_bezier_label = Label::builder()
+                .label("Transition bezier")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .build();
+
+            let transition_bezier_adjustments = Adjustment::new(0.0, f64::MIN, f64::MAX, 0.01, 0.0, 0.0);
+            let transition_bezier_p0_spinbutton = SpinButton::builder()
+                .adjustment(&transition_bezier_adjustments)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+            settings.bind("swww-transition-bezier-p0", &transition_bezier_p0_spinbutton, "value").build();
+            let transition_bezier_p1_spinbutton = SpinButton::builder()
+                .adjustment(&transition_bezier_adjustments)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+            settings.bind("swww-transition-bezier-p1", &transition_bezier_p1_spinbutton, "value").build();
+            let transition_bezier_p2_spinbutton = SpinButton::builder()
+                .adjustment(&transition_bezier_adjustments)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+            settings.bind("swww-transition-bezier-p2", &transition_bezier_p2_spinbutton, "value").build();
+            let transition_bezier_p3_spinbutton = SpinButton::builder()
+                .adjustment(&transition_bezier_adjustments)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+            settings.bind("swww-transition-bezier-p3", &transition_bezier_p3_spinbutton, "value").build();
+
+            let transition_bezier_fps_box = Box::builder()
+                .orientation(gtk::Orientation::Horizontal)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .hexpand(true)
+                .vexpand(true)
+                .build();
+
+            let transition_frames_per_second_label = Label::builder()
+                .label("Transition FPS")
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .build();
+
+            let transition_frames_per_second_adjustment =
+                Adjustment::new(30.0, 1.0, u32::MAX as f64, 1.0, 0.0, 0.0);
+
+            let transition_frames_per_second_spinbutton = SpinButton::builder()
+                .adjustment(&transition_frames_per_second_adjustment)
+                .numeric(true)
+                .halign(Align::Center)
+                .valign(Align::Center)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .build();
+
+            settings.bind("swww-transition-fps", &transition_frames_per_second_spinbutton, "value").build();
+
+            transition_bezier_fps_box.append(&transition_bezier_label);
+            transition_bezier_fps_box.append(&transition_bezier_p0_spinbutton);
+            transition_bezier_fps_box.append(&transition_bezier_p1_spinbutton);
+            transition_bezier_fps_box.append(&transition_bezier_p2_spinbutton);
+            transition_bezier_fps_box.append(&transition_bezier_p3_spinbutton);
+            transition_bezier_fps_box.append(&transition_frames_per_second_label);
+            transition_bezier_fps_box.append(&transition_frames_per_second_spinbutton);
+            advanced_settings_window_box.append(&transition_bezier_fps_box);
+                }
+            );
+        }
     }
 }
 
@@ -365,7 +842,25 @@ pub fn get_selected_changer(
             changer
         }
         "swww" => {
-
+            log::debug!("Before posible get error");
+            let resize = SWWWResizeMode::from_u32(settings.uint("swww-resize"));
+            let fill_color = RGB::from_str(settings.string("swww-fill-color").as_str()).unwrap();
+            let scaling_filter = SWWWScallingFilter::from_u32(settings.uint("swww-scaling-filter"));
+            let transition_type = SWWWTransitionType::from_u32(settings.uint("swww-transition-type"));
+            let transition_step = settings.double("swww-transition-step") as u8;
+            let transition_duration = settings.double("swww-transition-duration") as u32;
+            let transition_angle = settings.double("swww-transition-angle") as u16;
+            let transition_position = SWWWTransitionPosition::new(settings.string("swww-transition-position").as_str()).unwrap();
+            let invert_y = settings.boolean("swww-invert-y");
+            let transition_wave = SWWWTransitionWave { width: settings.double("swww-transition-wave-width") as u32, height: settings.double("swww-transition-wave-height") as u32};
+            let transition_bezier = SWWWTransitionBezier{ 
+                p0: settings.double("swww-transition-bezier-p0"),
+                p1: settings.double("swww-transition-bezier-p1"),
+                p2: settings.double("swww-transition-bezier-p2"),
+                p3: settings.double("swww-transition-bezier-p3"),
+            };
+            let transition_fps = settings.uint("swww-transition-fps");
+            WallpaperChangers::Swww(resize, fill_color, scaling_filter, transition_type, transition_step, transition_duration, transition_fps, transition_angle, transition_position, invert_y, transition_bezier, transition_wave)
         }
         _ => WallpaperChangers::Hyprpaper,
     }

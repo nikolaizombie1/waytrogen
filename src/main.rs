@@ -172,7 +172,13 @@ fn build_ui(app: &Application) {
         .collect::<Vec<_>>();
     let selected_monitor_text_buffer = TextBuffer::builder().build();
     debug!("{:?}", monitors);
-    settings.bind("selected-monitor-item", &selected_monitor_text_buffer, "text").build();
+    settings
+        .bind(
+            "selected-monitor-item",
+            &selected_monitor_text_buffer,
+            "text",
+        )
+        .build();
     selected_monitor_text_buffer.set_text(&settings.string("selected-monitor-item").to_string());
 
     let monitors_dropdown =
