@@ -24,6 +24,7 @@ use std::{
 };
 use strum::IntoEnumIterator;
 use which::which;
+use gettextrs::*;
 
 pub fn generate_image_files(
     path: String,
@@ -36,7 +37,7 @@ pub fn generate_image_files(
     spawn_blocking(move || {
         sender_changer_options
             .send_blocking(false)
-            .expect("The channel must be open");
+            .expect(&gettext("The channel must be open"));
         let mut files = walkdir::WalkDir::new(path)
             .into_iter()
             .filter_map(|f| f.ok())
@@ -87,16 +88,16 @@ pub fn generate_image_files(
         for (index, file) in files.iter().enumerate() {
             sender_images_loading_progress_bar
                 .send_blocking((index as f64) / (files.len() as f64))
-                .expect("The channel must be open");
+                .expect(&gettext("The channel must be open"));
             if let Ok(i) = DatabaseConnection::check_cache(file) {
                 sender_cache_images
                     .send_blocking(i)
-                    .expect("The channel must be open")
+                    .expect(&gettext("The channel must be open"))
             }
         }
         sender_changer_options
             .send_blocking(true)
-            .expect("The channel must be open");
+            .expect(&gettext("The channel must be open"));
     });
 }
 
@@ -147,12 +148,12 @@ pub fn generate_changer_bar(
         WallpaperChangers::Hyprpaper => {}
         WallpaperChangers::Swaybg(_, _) => {
             let dropdown = DropDown::from_strings(&[
-                "stretch",
-                "fit",
-                "fill",
-                "center",
-                "tile",
-                "solid_color",
+                &gettext("stretch"),
+                &gettext("fit"),
+                &gettext("fill"),
+                &gettext("center"),
+                &gettext("tile"),
+                &gettext("solid_color"),
             ]);
             dropdown.set_halign(Align::Start);
             dropdown.set_valign(Align::Center);
@@ -185,7 +186,7 @@ pub fn generate_changer_bar(
                         blue: rgba.blue(),
                     }
                     .to_string();
-                    debug!("Serialized RGB: {}", serialize_struct);
+                    debug!("{}: {}", gettext("Serialized RGB"), serialize_struct);
                     rgb_text_buffer.set_text(&serialize_struct);
                     settings
                         .bind("swaybg-color", &rgb_text_buffer, "text")
@@ -207,7 +208,7 @@ pub fn generate_changer_bar(
         }
         WallpaperChangers::MpvPaper(_, _, _) => {
             let pause_options_dropdown =
-                DropDown::from_strings(&["none", "auto-pause", "auto-stop"]);
+                DropDown::from_strings(&[&gettext("none"), &gettext("auto-pause"), &gettext("auto-stop")]);
             pause_options_dropdown.set_margin_top(12);
             pause_options_dropdown.set_margin_start(12);
             pause_options_dropdown.set_margin_bottom(12);
@@ -219,7 +220,7 @@ pub fn generate_changer_bar(
                 .build();
             changer_specific_options_box.append(&pause_options_dropdown);
             let slideshow_enable_switch = Switch::builder()
-                .tooltip_text("Enable slideshow for the current folder.")
+                .tooltip_text(&gettext("Enable slideshow for the current folder."))
                 .has_tooltip(true)
                 .margin_top(12)
                 .margin_start(12)
@@ -233,7 +234,7 @@ pub fn generate_changer_bar(
                 .adjustment(&adjustment)
                 .numeric(true)
                 .has_tooltip(true)
-                .tooltip_text("Slideshow change interval")
+                .tooltip_text(&gettext("Slideshow change interval"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -256,7 +257,7 @@ pub fn generate_changer_bar(
             let mpv_options = Entry::builder()
                 .placeholder_text("Additional mpv options")
                 .has_tooltip(true)
-                .tooltip_text("Additional command line options to be sent to mpv.")
+                .tooltip_text(&gettext("Additional command line options to be sent to mpv."))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -277,7 +278,6 @@ pub fn generate_changer_bar(
             let mpv_options_text_buffer_copy = mpv_options_text_buffer.clone();
             mpv_options.connect_changed(clone!(move |e| {
                 let text = &e.text().to_string()[..];
-                log::debug!("Options: {}", text);
                 mpv_options_text_buffer_copy.set_text(text);
             }));
             mpv_options.set_text(
@@ -310,7 +310,8 @@ pub fn generate_changer_bar(
                     let path = settings.string("wallpaper-folder").to_string();
                     let monitor = settings.string("selected-monitor-item").to_string();
                     log::debug!(
-                        "Entered switch callback: {:#?} {} {}",
+                        "{}: {:#?} {} {}",
+                        gettext("Entered switch callback"),
                         varient,
                         path,
                         monitor
@@ -321,7 +322,7 @@ pub fn generate_changer_bar(
             }));
         }
         WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
-            let resize_dropdown = DropDown::from_strings(&["no", "crop", "fit"]);
+            let resize_dropdown = DropDown::from_strings(&[&gettext("no"), &gettext("crop"), &gettext("fit")]);
             resize_dropdown.set_margin_top(12);
             resize_dropdown.set_margin_start(12);
             resize_dropdown.set_margin_bottom(12);
@@ -374,7 +375,7 @@ pub fn generate_changer_bar(
             );
             changer_specific_options_box.append(&color_picker);
             let advanced_settings_window = Window::builder()
-                .title("SWWW Advanced Image Settings")
+                .title(&gettext("SWWW Advanced Image Settings"))
                 .hide_on_close(true)
                 .build();
             let advanced_settings_button = Button::builder()
@@ -382,7 +383,7 @@ pub fn generate_changer_bar(
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-                .label("Advanced Settings")
+                .label(&gettext("Advanced Settings"))
                 .halign(Align::Start)
                 .valign(Align::Center)
                 .build();
@@ -401,7 +402,7 @@ pub fn generate_changer_bar(
             advanced_settings_window.present();
             advanced_settings_window.set_child(Some(&advanced_settings_window_box));
             let filter_options_label = Label::builder()
-                .label("Scalling filter")
+                .label(&gettext("Scalling filter"))
                 .halign(Align::Center)
                 .valign(Align::Center)
                 .margin_top(12)
@@ -410,11 +411,11 @@ pub fn generate_changer_bar(
                 .margin_end(12)
                 .build();
             let filter_dropdown = DropDown::from_strings(&[
-                "nearest",
-                "bilinear",
-                "catmullrom",
-                "mitchell",
-                "lanczos3",
+                &gettext("nearest"),
+                &gettext("bilinear"),
+                &gettext("catmullrom"),
+                &gettext("mitchell"),
+                &gettext("lanczos3"),
             ]);
             filter_dropdown.set_margin_top(12);
             filter_dropdown.set_margin_start(12);
@@ -426,7 +427,7 @@ pub fn generate_changer_bar(
                 .bind("swww-scaling-filter", &filter_dropdown, "selected")
                 .build();
             let transition_type_label = Label::builder()
-                .label("Transition type")
+                .label(&gettext("Transition type"))
                 .halign(Align::Center)
                 .valign(Align::Center)
                 .margin_top(12)
@@ -435,8 +436,8 @@ pub fn generate_changer_bar(
                 .margin_end(12)
                 .build();
             let transition_type_dropdown = DropDown::from_strings(&[
-                "none", "simple", "fade", "left", "right", "top", "bottom", "wipe", "wave", "grow",
-                "center", "any", "outer", "random",
+                &gettext("none"), &gettext("simple"), &gettext("fade"), &gettext("left"), &gettext("right"), &gettext("top"), &gettext("bottom"), &gettext("wipe"), &gettext("wave"), &gettext("grow"),
+                &gettext("center"), &gettext("any"), &gettext("outer"), &gettext("random"),
             ]);
             transition_type_dropdown.set_margin_top(12);
             transition_type_dropdown.set_margin_start(12);
@@ -469,7 +470,7 @@ pub fn generate_changer_bar(
             advanced_settings_window_box.append(&filter_and_transition_box);
 
             let transition_step_label = Label::builder()
-                .label("Transition step")
+                .label(&gettext("Transition step"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -496,7 +497,7 @@ pub fn generate_changer_bar(
                 .build();
 
             let transition_duration_label = Label::builder()
-                .label("Transition duration")
+                .label(&gettext("Transition duration"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -528,7 +529,7 @@ pub fn generate_changer_bar(
 
 
             let transition_angle_label = Label::builder()
-                .label("Transition angle")
+                .label(&gettext("Transition angle"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -574,7 +575,7 @@ pub fn generate_changer_bar(
             advanced_settings_window_box.append(&transition_step_duration_angle_box);
 
             let transition_position_label = Label::builder()
-                .label("Transition position")
+                .label(&gettext("Transition position"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -584,9 +585,9 @@ pub fn generate_changer_bar(
                 .build();
 
             let transition_position_entry = Entry::builder()
-                .placeholder_text("Transition position")
+                .placeholder_text(&gettext("Transition position"))
                 .has_tooltip(true)
-                .tooltip_text("Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right.")
+                .tooltip_text(&gettext("Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -614,7 +615,7 @@ pub fn generate_changer_bar(
             });
 
             let invert_y_label = Label::builder()
-                .label("Invert y")
+                .label(&gettext("Invert Y"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -624,7 +625,7 @@ pub fn generate_changer_bar(
                 .build();
 
             let invert_y_switch = Switch::builder()
-                .tooltip_text("Invert y position in transition position flag")
+                .tooltip_text(&gettext("Invert y position in transition position flag"))
                 .has_tooltip(true)
                 .margin_top(12)
                 .margin_start(12)
@@ -637,7 +638,7 @@ pub fn generate_changer_bar(
             settings.bind("swww-invert-y", &invert_y_switch, "active").build();
 
             let transition_wave_label = Label::builder()
-                .label("Transition wave")
+                .label(&gettext("Transition wave"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -696,7 +697,7 @@ pub fn generate_changer_bar(
             advanced_settings_window_box.append(&transition_position_invert_y_wave_box);
 
             let transition_bezier_label = Label::builder()
-                .label("Transition bezier")
+                .label(&gettext("Transition bezier"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -766,7 +767,7 @@ pub fn generate_changer_bar(
                 .build();
 
             let transition_frames_per_second_label = Label::builder()
-                .label("Transition FPS")
+                .label(&gettext("Transition FPS"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -800,22 +801,22 @@ pub fn generate_changer_bar(
             transition_bezier_fps_box.append(&transition_frames_per_second_spinbutton);
             advanced_settings_window_box.append(&transition_bezier_fps_box);
 
-		    let window_hide_button = Button::builder().label("Ok").
+		    let window_hide_button = Button::builder().
                 margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-                .label("Restore Defaults")
+                .label(&gettext("Restore Defaults"))
                 .halign(Align::End)
                 .valign(Align::Center)
                 .build();
 
-            let restore_defaults_button = Button::builder().label("Restore Defaults").
+            let restore_defaults_button = Button::builder().
                 margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-                .label("Confirm")
+                .label(&gettext("Confirm"))
                 .halign(Align::End)
                 .valign(Align::Center)
                 .build();
@@ -898,7 +899,8 @@ pub fn get_selected_changer(
                 options.clone(),
             );
             log::debug!(
-                "Selected changer: {} {} {} {}",
+                "{}: {} {} {} {}",
+                gettext("Selected changer"),
                 changer,
                 slideshow_enable,
                 slideshow_interval,
@@ -907,7 +909,6 @@ pub fn get_selected_changer(
             changer
         }
         "swww" => {
-            log::debug!("Before posible get error");
             let resize = SWWWResizeMode::from_u32(settings.uint("swww-resize"));
             let fill_color = RGB::from_str(settings.string("swww-fill-color").as_str()).unwrap();
             let scaling_filter = SWWWScallingFilter::from_u32(settings.uint("swww-scaling-filter"));

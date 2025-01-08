@@ -23,6 +23,8 @@ use waytrogen::{
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
 
+use gettextrs::*;
+
 const APP_ID: &str = "org.Waytrogen.Waytrogen";
 
 fn main() -> glib::ExitCode {
@@ -49,6 +51,8 @@ fn main() -> glib::ExitCode {
         glib::ExitCode::SUCCESS
     } else {
         let app = Application::builder().application_id(APP_ID).build();
+        textdomain("waytrogen").unwrap();
+        bind_textdomain_codeset("waytrogen", "UTF-8").unwrap();
 
         app.connect_activate(build_ui);
 
@@ -143,7 +147,7 @@ fn build_ui(app: &Application) {
         .margin_end(12)
         .halign(Align::End)
         .valign(Align::Center)
-        .label("Images Folder")
+        .label(&ngettext("Image Folder", "Images Folder", 2))
         .build();
     let folder_path_buffer_copy = folder_path_buffer.clone();
     open_folder_button.connect_clicked(clone!(
@@ -292,12 +296,12 @@ fn build_ui(app: &Application) {
                             changer: selected_changer.clone(),
                         })
                         .collect::<Vec<_>>();
-                    debug!("Saved wallpapers: {:#?}", previous_wallpapers);
+                    debug!("{}: {:#?}", gettext("Saved wallpapers"), previous_wallpapers);
                     let saved_wallpapers = string_to_gschema_string(
                         &serde_json::to_string::<Vec<Wallpaper>>(&previous_wallpapers).unwrap(),
                     );
                     previous_wallpapers_text_buffer.set_text(&saved_wallpapers);
-                    debug!("Stored Text: {}", saved_wallpapers);
+                    debug!("{}: {}", gettext("Stored Text"),saved_wallpapers);
                     selected_changer
                         .clone()
                         .change(PathBuf::from(&path.clone()), selected_monitor.clone())
@@ -320,7 +324,7 @@ fn build_ui(app: &Application) {
         .valign(Align::Center)
         .build();
     let invert_sort_switch_label = Text::builder()
-        .text("Invert Sort")
+        .text(&gettext("Invert Sort"))
         .margin_start(3)
         .margin_top(12)
         .margin_bottom(12)
@@ -523,7 +527,7 @@ fn build_ui(app: &Application) {
         .margin_end(12)
         .halign(Align::Center)
         .valign(Align::Center)
-        .text("Images are loading, please wait")
+        .text(gettext("Images are loading, please wait"))
         .show_text(true)
         .visible(true)
         .sensitive(true)
@@ -553,12 +557,12 @@ fn build_ui(app: &Application) {
         image_grid,
         async move {
             while let Ok(b) = receiver_changer_options_bar.recv().await {
-                debug!("Finished loading images");
+                debug!("{}",gettext("Finished loading images"));
                 changer_options_box.set_sensitive(b);
                 images_loading_progress_bar.set_visible(!b);
                 image_grid.set_sensitive(b);
                 if b {
-                    debug!("Hiding unsupported images");
+                    debug!("{}",gettext("Hiding unsupported images"));
                     hide_unsupported_files(
                         image_list_store.clone(),
                         get_selected_changer(&wallpaper_changers_dropdown, &settings),

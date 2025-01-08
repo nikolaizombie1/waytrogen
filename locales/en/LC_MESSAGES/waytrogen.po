@@ -1,0 +1,287 @@
+# English translations for PACKAGE package.
+# Copyright (C) 2025 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-08 18:00+0000\n"
+"PO-Revision-Date: 2025-01-08 18:00+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/common.rs:70
+msgid "Failed to create thumbnail for"
+msgstr "Failed to create thumbnail for"
+
+#: src/common.rs:93
+msgid "Thumbnail could not be generated using ffmpg."
+msgstr "Thumbnail could not be generated using ffmpg."
+
+#: src/common.rs:146
+msgid "Invalid string"
+msgstr "Invalid string"
+
+#: src/database.rs:63
+msgid "Cache Hit"
+msgstr "Cache Hit"
+
+#: src/database.rs:67
+msgid "Cache Miss"
+msgstr "Cache Miss"
+
+#: src/database.rs:70
+msgid "GTK Picture created successfully."
+msgstr "GTK Picture created successfully."
+
+#: src/database.rs:78
+msgid "File could not be converted to a GTK Picture"
+msgstr "File could not be converted to a GTK Picture"
+
+#: src/ui_common.rs:40 src/ui_common.rs:91 src/ui_common.rs:95
+#: src/ui_common.rs:100
+msgid "The channel must be open"
+msgstr "The channel must be open"
+
+#: src/ui_common.rs:151
+msgid "stretch"
+msgstr "stretch"
+
+#: src/ui_common.rs:152 src/ui_common.rs:325
+msgid "fit"
+msgstr "fit"
+
+#: src/ui_common.rs:153
+msgid "fill"
+msgstr "fill"
+
+#: src/ui_common.rs:154 src/ui_common.rs:440
+msgid "center"
+msgstr "center"
+
+#: src/ui_common.rs:155
+msgid "tile"
+msgstr "tile"
+
+#: src/ui_common.rs:156
+msgid "solid_color"
+msgstr "solid_color"
+
+#: src/ui_common.rs:189
+msgid "Serialized RGB"
+msgstr "Serialized RGB"
+
+#: src/ui_common.rs:211 src/ui_common.rs:439
+msgid "none"
+msgstr "none"
+
+#: src/ui_common.rs:211
+msgid "auto-pause"
+msgstr "auto-pause"
+
+#: src/ui_common.rs:211
+msgid "auto-stop"
+msgstr "auto-stop"
+
+#: src/ui_common.rs:223
+msgid "Enable slideshow for the current folder."
+msgstr "Enable slideshow for the current folder."
+
+#: src/ui_common.rs:237
+msgid "Slideshow change interval"
+msgstr "Slideshow change interval"
+
+#: src/ui_common.rs:260
+msgid "Additional command line options to be sent to mpv."
+msgstr "Additional command line options to be sent to mpv."
+
+#: src/ui_common.rs:314
+msgid "Entered switch callback"
+msgstr "Entered switch callback"
+
+#: src/ui_common.rs:325
+msgid "no"
+msgstr "no"
+
+#: src/ui_common.rs:325
+msgid "crop"
+msgstr "crop"
+
+#: src/ui_common.rs:378
+msgid "SWWW Advanced Image Settings"
+msgstr "SWWW Advanced Image Settings"
+
+#: src/ui_common.rs:386
+msgid "Advanced Settings"
+msgstr "Advanced Settings"
+
+#: src/ui_common.rs:405
+msgid "Scalling filter"
+msgstr "Scalling filter"
+
+#: src/ui_common.rs:414
+msgid "nearest"
+msgstr "nearest"
+
+#: src/ui_common.rs:415
+msgid "bilinear"
+msgstr "bilinear"
+
+#: src/ui_common.rs:416
+msgid "catmullrom"
+msgstr "catmullrom"
+
+#: src/ui_common.rs:417
+msgid "mitchell"
+msgstr "mitchell"
+
+#: src/ui_common.rs:418
+msgid "lanczos3"
+msgstr "lanczos3"
+
+#: src/ui_common.rs:430
+msgid "Transition type"
+msgstr "Transition type"
+
+#: src/ui_common.rs:439
+msgid "simple"
+msgstr "simple"
+
+#: src/ui_common.rs:439
+msgid "fade"
+msgstr "fade"
+
+#: src/ui_common.rs:439
+msgid "left"
+msgstr "left"
+
+#: src/ui_common.rs:439
+msgid "right"
+msgstr "right"
+
+#: src/ui_common.rs:439
+msgid "top"
+msgstr "top"
+
+#: src/ui_common.rs:439
+msgid "bottom"
+msgstr "bottom"
+
+#: src/ui_common.rs:439
+msgid "wipe"
+msgstr "wipe"
+
+#: src/ui_common.rs:439
+msgid "wave"
+msgstr "wave"
+
+#: src/ui_common.rs:439
+msgid "grow"
+msgstr "grow"
+
+#: src/ui_common.rs:440
+msgid "any"
+msgstr "any"
+
+#: src/ui_common.rs:440
+msgid "outer"
+msgstr "outer"
+
+#: src/ui_common.rs:440
+msgid "random"
+msgstr "random"
+
+#: src/ui_common.rs:473
+msgid "Transition step"
+msgstr "Transition step"
+
+#: src/ui_common.rs:500
+msgid "Transition duration"
+msgstr "Transition duration"
+
+#: src/ui_common.rs:532
+msgid "Transition angle"
+msgstr "Transition angle"
+
+#: src/ui_common.rs:578 src/ui_common.rs:588
+msgid "Transition position"
+msgstr "Transition position"
+
+#: src/ui_common.rs:590
+msgid ""
+"Can either be floating point number between 0 and 0.99, integer coordinate "
+"like 200,200 or one of the following: center, top, left, right, bottom, top-"
+"left, top-right, bottom-left or bottom-right."
+msgstr ""
+"Can either be floating point number between 0 and 0.99, integer coordinate "
+"like 200,200 or one of the following: center, top, left, right, bottom, top-"
+"left, top-right, bottom-left or bottom-right."
+
+#: src/ui_common.rs:618
+msgid "Invert Y"
+msgstr "Invert Y"
+
+#: src/ui_common.rs:628
+msgid "Invert y position in transition position flag"
+msgstr "Invert y position in transition position flag"
+
+#: src/ui_common.rs:641
+msgid "Transition wave"
+msgstr "Transition wave"
+
+#: src/ui_common.rs:700
+msgid "Transition bezier"
+msgstr "Transition bezier"
+
+#: src/ui_common.rs:770
+msgid "Transition FPS"
+msgstr "Transition FPS"
+
+#: src/ui_common.rs:809
+msgid "Restore Defaults"
+msgstr "Restore Defaults"
+
+#: src/ui_common.rs:819
+msgid "Confirm"
+msgstr "Confirm"
+
+#: src/ui_common.rs:903
+msgid "Selected changer"
+msgstr "Selected changer"
+
+#: src/main.rs:150
+msgid "Image Folder"
+msgid_plural "Images Folder"
+msgstr[0] "Image Folder"
+msgstr[1] "Images Folder"
+
+#: src/main.rs:299
+msgid "Saved wallpapers"
+msgstr "Saved wallpapers"
+
+#: src/main.rs:304
+msgid "Stored Text"
+msgstr "Stored Text"
+
+#: src/main.rs:327
+msgid "Invert Sort"
+msgstr "Invert Sort"
+
+#: src/main.rs:530
+msgid "Images are loading, please wait"
+msgstr "Images are loading, please wait"
+
+#: src/main.rs:560
+msgid "Finished loading images"
+msgstr "Finished loading images"
+
+#: src/main.rs:565
+msgid "Hiding unsupported images"
+msgstr "Hiding unsupported images"

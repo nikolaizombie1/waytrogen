@@ -15,6 +15,7 @@ use std::{
 };
 
 use crate::wallpaper_changers::WallpaperChangers;
+use gettextrs::*;
 
 pub const THUMBNAIL_HEIGHT: i32 = 200;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
@@ -66,7 +67,7 @@ impl CacheImageFile {
             return Ok(i);
         }
         Err(anyhow::anyhow!(
-            "Failed to create thumbnail for: {}",
+            "{}: {}", gettext("Failed to create thumbnail for"),
             path.as_os_str().to_str().unwrap_or_default()
         ))
     }
@@ -89,7 +90,7 @@ impl CacheImageFile {
         match code {
             0 => Self::try_create_thumbnail_with_image(&output_path),
             _ => Err(anyhow::anyhow!(
-                "Thumbnail could not be generated using ffmpg."
+                gettext("Thumbnail could not be generated using ffmpg.")
             )),
         }
     }
@@ -142,7 +143,7 @@ impl FromStr for RGB {
             let blue = (blue[0] as f32) / 255.0;
             Ok(Self { red, green, blue })
         } else {
-            Err("Invalid string".to_owned())
+            Err(gettext("Invalid string"))
         }
     }
 }
