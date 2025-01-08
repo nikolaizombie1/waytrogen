@@ -1,8 +1,8 @@
 use crate::common::CacheImageFile;
+use gettextrs::*;
 use log::{debug, trace, warn};
 use sqlite::{Connection, Value};
 use std::path::Path;
-use gettextrs::*;
 
 pub struct DatabaseConnection {
     connetion: Connection,
@@ -64,10 +64,19 @@ impl DatabaseConnection {
                 Ok(f)
             }
             Err(e) => {
-                trace!("{}: {} {}", gettext("Cache Miss"), path.to_str().unwrap(), e);
+                trace!(
+                    "{}: {} {}",
+                    gettext("Cache Miss"),
+                    path.to_str().unwrap(),
+                    e
+                );
                 match CacheImageFile::from_file(path) {
                     Ok(g) => {
-                        trace!("{} {}", gettext("GTK Picture created successfully."), g.path);
+                        trace!(
+                            "{} {}",
+                            gettext("GTK Picture created successfully."),
+                            g.path
+                        );
                         conn.insert_image_file(&g)?;
                         debug!("{} {}", "Picture inserted into database.", &g.path);
                         Ok(g)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-08 18:00+0000\n"
+"POT-Creation-Date: 2025-01-08 23:34+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/common.rs:70 src/common.rs:70
+#: src/common.rs:71 src/common.rs:71
 msgid "Failed to create thumbnail for"
 msgstr ""
 
-#: src/common.rs:93 src/common.rs:93
+#: src/common.rs:94 src/common.rs:94
 msgid "Thumbnail could not be generated using ffmpg."
 msgstr ""
 
-#: src/common.rs:146 src/common.rs:146
+#: src/common.rs:147 src/common.rs:147
 msgid "Invalid string"
 msgstr ""
 
@@ -33,248 +33,256 @@ msgstr ""
 msgid "Cache Hit"
 msgstr ""
 
-#: src/database.rs:67 src/database.rs:67
+#: src/database.rs:69 src/database.rs:69
 msgid "Cache Miss"
 msgstr ""
 
-#: src/database.rs:70 src/database.rs:70
+#: src/database.rs:77 src/database.rs:77
 msgid "GTK Picture created successfully."
 msgstr ""
 
-#: src/database.rs:78 src/database.rs:78
+#: src/database.rs:87 src/database.rs:87
 msgid "File could not be converted to a GTK Picture"
 msgstr ""
 
-#: src/ui_common.rs:40 src/ui_common.rs:91 src/ui_common.rs:95 src/ui_common.rs:100 src/ui_common.rs:40 src/ui_common.rs:91 src/ui_common.rs:95 src/ui_common.rs:100
+#: src/ui_common.rs:42 src/ui_common.rs:93 src/ui_common.rs:97 src/ui_common.rs:102 src/ui_common.rs:42 src/ui_common.rs:93 src/ui_common.rs:97 src/ui_common.rs:102
 msgid "The channel must be open"
 msgstr ""
 
-#: src/ui_common.rs:151 src/ui_common.rs:151
+#: src/ui_common.rs:153 src/ui_common.rs:153
 msgid "stretch"
 msgstr ""
 
-#: src/ui_common.rs:152 src/ui_common.rs:325 src/ui_common.rs:152 src/ui_common.rs:325
+#: src/ui_common.rs:154 src/ui_common.rs:333 src/ui_common.rs:154 src/ui_common.rs:333
 msgid "fit"
 msgstr ""
 
-#: src/ui_common.rs:153 src/ui_common.rs:153
+#: src/ui_common.rs:155 src/ui_common.rs:155
 msgid "fill"
 msgstr ""
 
-#: src/ui_common.rs:154 src/ui_common.rs:440 src/ui_common.rs:154 src/ui_common.rs:440
+#: src/ui_common.rs:156 src/ui_common.rs:448 src/ui_common.rs:156 src/ui_common.rs:448
 msgid "center"
 msgstr ""
 
-#: src/ui_common.rs:155 src/ui_common.rs:155
+#: src/ui_common.rs:157 src/ui_common.rs:157
 msgid "tile"
 msgstr ""
 
-#: src/ui_common.rs:156 src/ui_common.rs:156
+#: src/ui_common.rs:158 src/ui_common.rs:158
 msgid "solid_color"
 msgstr ""
 
-#: src/ui_common.rs:189 src/ui_common.rs:189
+#: src/ui_common.rs:191 src/ui_common.rs:191
 msgid "Serialized RGB"
 msgstr ""
 
-#: src/ui_common.rs:211 src/ui_common.rs:439 src/ui_common.rs:211 src/ui_common.rs:439
+#: src/ui_common.rs:213 src/ui_common.rs:447 src/ui_common.rs:213 src/ui_common.rs:447
 msgid "none"
 msgstr ""
 
-#: src/ui_common.rs:211 src/ui_common.rs:211
+#: src/ui_common.rs:214 src/ui_common.rs:214
 msgid "auto-pause"
 msgstr ""
 
-#: src/ui_common.rs:211 src/ui_common.rs:211
+#: src/ui_common.rs:215 src/ui_common.rs:215
 msgid "auto-stop"
 msgstr ""
 
-#: src/ui_common.rs:223 src/ui_common.rs:223
+#: src/ui_common.rs:228 src/ui_common.rs:228
 msgid "Enable slideshow for the current folder."
 msgstr ""
 
-#: src/ui_common.rs:237 src/ui_common.rs:237
+#: src/ui_common.rs:242 src/ui_common.rs:242
 msgid "Slideshow change interval"
 msgstr ""
 
-#: src/ui_common.rs:260 src/ui_common.rs:260
+#: src/ui_common.rs:266 src/ui_common.rs:266
 msgid "Additional command line options to be sent to mpv."
 msgstr ""
 
-#: src/ui_common.rs:314 src/ui_common.rs:314
+#: src/ui_common.rs:321 src/ui_common.rs:321
 msgid "Entered switch callback"
 msgstr ""
 
-#: src/ui_common.rs:325 src/ui_common.rs:325
+#: src/ui_common.rs:333 src/ui_common.rs:333
 msgid "no"
 msgstr ""
 
-#: src/ui_common.rs:325 src/ui_common.rs:325
+#: src/ui_common.rs:333 src/ui_common.rs:333
 msgid "crop"
 msgstr ""
 
-#: src/ui_common.rs:378 src/ui_common.rs:378
+#: src/ui_common.rs:386 src/ui_common.rs:386
 msgid "SWWW Advanced Image Settings"
 msgstr ""
 
-#: src/ui_common.rs:386 src/ui_common.rs:386
+#: src/ui_common.rs:394 src/ui_common.rs:394
 msgid "Advanced Settings"
 msgstr ""
 
-#: src/ui_common.rs:405 src/ui_common.rs:405
+#: src/ui_common.rs:413 src/ui_common.rs:413
 msgid "Scalling filter"
 msgstr ""
 
-#: src/ui_common.rs:414 src/ui_common.rs:414
+#: src/ui_common.rs:422 src/ui_common.rs:422
 msgid "nearest"
 msgstr ""
 
-#: src/ui_common.rs:415 src/ui_common.rs:415
+#: src/ui_common.rs:423 src/ui_common.rs:423
 msgid "bilinear"
 msgstr ""
 
-#: src/ui_common.rs:416 src/ui_common.rs:416
+#: src/ui_common.rs:424 src/ui_common.rs:424
 msgid "catmullrom"
 msgstr ""
 
-#: src/ui_common.rs:417 src/ui_common.rs:417
+#: src/ui_common.rs:425 src/ui_common.rs:425
 msgid "mitchell"
 msgstr ""
 
-#: src/ui_common.rs:418 src/ui_common.rs:418
+#: src/ui_common.rs:426 src/ui_common.rs:426
 msgid "lanczos3"
 msgstr ""
 
-#: src/ui_common.rs:430 src/ui_common.rs:430
+#: src/ui_common.rs:438 src/ui_common.rs:438
 msgid "Transition type"
 msgstr ""
 
-#: src/ui_common.rs:439 src/ui_common.rs:439
+#: src/ui_common.rs:447 src/ui_common.rs:447
 msgid "simple"
 msgstr ""
 
-#: src/ui_common.rs:439 src/ui_common.rs:439
+#: src/ui_common.rs:447 src/ui_common.rs:447
 msgid "fade"
 msgstr ""
 
-#: src/ui_common.rs:439 src/ui_common.rs:439
+#: src/ui_common.rs:447 src/ui_common.rs:447
 msgid "left"
 msgstr ""
 
-#: src/ui_common.rs:439 src/ui_common.rs:439
+#: src/ui_common.rs:447 src/ui_common.rs:447
 msgid "right"
 msgstr ""
 
-#: src/ui_common.rs:439 src/ui_common.rs:439
+#: src/ui_common.rs:447 src/ui_common.rs:447
 msgid "top"
 msgstr ""
 
-#: src/ui_common.rs:439 src/ui_common.rs:439
+#: src/ui_common.rs:447 src/ui_common.rs:447
 msgid "bottom"
 msgstr ""
 
-#: src/ui_common.rs:439 src/ui_common.rs:439
+#: src/ui_common.rs:447 src/ui_common.rs:447
 msgid "wipe"
 msgstr ""
 
-#: src/ui_common.rs:439 src/ui_common.rs:439
+#: src/ui_common.rs:447 src/ui_common.rs:447
 msgid "wave"
 msgstr ""
 
-#: src/ui_common.rs:439 src/ui_common.rs:439
+#: src/ui_common.rs:447 src/ui_common.rs:447
 msgid "grow"
 msgstr ""
 
-#: src/ui_common.rs:440 src/ui_common.rs:440
+#: src/ui_common.rs:448 src/ui_common.rs:448
 msgid "any"
 msgstr ""
 
-#: src/ui_common.rs:440 src/ui_common.rs:440
+#: src/ui_common.rs:448 src/ui_common.rs:448
 msgid "outer"
 msgstr ""
 
-#: src/ui_common.rs:440 src/ui_common.rs:440
+#: src/ui_common.rs:448 src/ui_common.rs:448
 msgid "random"
 msgstr ""
 
-#: src/ui_common.rs:473 src/ui_common.rs:473
+#: src/ui_common.rs:481 src/ui_common.rs:481
 msgid "Transition step"
 msgstr ""
 
-#: src/ui_common.rs:500 src/ui_common.rs:500
+#: src/ui_common.rs:508 src/ui_common.rs:508
 msgid "Transition duration"
 msgstr ""
 
-#: src/ui_common.rs:532 src/ui_common.rs:532
+#: src/ui_common.rs:540 src/ui_common.rs:540
 msgid "Transition angle"
 msgstr ""
 
-#: src/ui_common.rs:578 src/ui_common.rs:588 src/ui_common.rs:578 src/ui_common.rs:588
+#: src/ui_common.rs:586 src/ui_common.rs:596 src/ui_common.rs:586 src/ui_common.rs:596
 msgid "Transition position"
 msgstr ""
 
-#: src/ui_common.rs:590 src/ui_common.rs:590
+#: src/ui_common.rs:598 src/ui_common.rs:598
 msgid "Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."
 msgstr ""
 
-#: src/ui_common.rs:618 src/ui_common.rs:618
+#: src/ui_common.rs:626 src/ui_common.rs:626
 msgid "Invert Y"
 msgstr ""
 
-#: src/ui_common.rs:628 src/ui_common.rs:628
+#: src/ui_common.rs:636 src/ui_common.rs:636
 msgid "Invert y position in transition position flag"
 msgstr ""
 
-#: src/ui_common.rs:641 src/ui_common.rs:641
+#: src/ui_common.rs:649 src/ui_common.rs:649
 msgid "Transition wave"
 msgstr ""
 
-#: src/ui_common.rs:700 src/ui_common.rs:700
+#: src/ui_common.rs:708 src/ui_common.rs:708
 msgid "Transition bezier"
 msgstr ""
 
-#: src/ui_common.rs:770 src/ui_common.rs:770
+#: src/ui_common.rs:778 src/ui_common.rs:778
 msgid "Transition FPS"
 msgstr ""
 
-#: src/ui_common.rs:809 src/ui_common.rs:809
-msgid "Restore Defaults"
-msgstr ""
-
-#: src/ui_common.rs:819 src/ui_common.rs:819
+#: src/ui_common.rs:817 src/ui_common.rs:817
 msgid "Confirm"
 msgstr ""
 
-#: src/ui_common.rs:903 src/ui_common.rs:903
+#: src/ui_common.rs:827 src/ui_common.rs:827
+msgid "Restore Defaults"
+msgstr ""
+
+#: src/ui_common.rs:911 src/ui_common.rs:911
 msgid "Selected changer"
 msgstr ""
 
-#: src/main.rs:150
+#: src/main.rs:151
 msgid "Image Folder"
 msgid_plural "Images Folder"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/main.rs:299
+#: src/main.rs:302
 msgid "Saved wallpapers"
 msgstr ""
 
-#: src/main.rs:304
+#: src/main.rs:309
 msgid "Stored Text"
 msgstr ""
 
-#: src/main.rs:327
+#: src/main.rs:320
+msgid "Date"
+msgstr ""
+
+#: src/main.rs:320
+msgid "Name"
+msgstr ""
+
+#: src/main.rs:332
 msgid "Invert Sort"
 msgstr ""
 
-#: src/main.rs:530
+#: src/main.rs:535
 msgid "Images are loading, please wait"
 msgstr ""
 
-#: src/main.rs:560
+#: src/main.rs:565
 msgid "Finished loading images"
 msgstr ""
 
-#: src/main.rs:565
+#: src/main.rs:570
 msgid "Hiding unsupported images"
 msgstr ""

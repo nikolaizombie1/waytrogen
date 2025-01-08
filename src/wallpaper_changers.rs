@@ -16,7 +16,6 @@ pub trait U32Enum {
     fn to_u32(&self) -> u32;
 }
 
-
 #[derive(Debug, EnumIter, Clone, Default, Serialize, Deserialize)]
 pub enum WallpaperChangers {
     #[default]
@@ -142,7 +141,7 @@ impl U32Enum for SWWWResizeMode {
             _ => Self::default(),
         }
     }
-    
+
     fn to_u32(&self) -> u32 {
         match self {
             Self::No => 0,
@@ -150,9 +149,7 @@ impl U32Enum for SWWWResizeMode {
             Self::Fit => 2,
         }
     }
-    
 }
-
 
 impl Display for SWWWResizeMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -186,17 +183,16 @@ impl U32Enum for SWWWScallingFilter {
             _ => Self::default(),
         }
     }
-    
+
     fn to_u32(&self) -> u32 {
         match self {
             Self::Nearest => 0,
             Self::Bilinear => 1,
             Self::CatmullRom => 2,
             Self::Mitchell => 3,
-            Self::Lanczos3 => 4
+            Self::Lanczos3 => 4,
         }
     }
-    
 }
 
 impl Display for SWWWScallingFilter {
@@ -251,7 +247,7 @@ impl U32Enum for SWWWTransitionType {
             _ => Self::default(),
         }
     }
-    
+
     fn to_u32(&self) -> u32 {
         match self {
             Self::None => 0,
@@ -267,10 +263,9 @@ impl U32Enum for SWWWTransitionType {
             Self::Center => 10,
             Self::Any => 11,
             Self::Outer => 12,
-            Self::Random => 13
+            Self::Random => 13,
         }
     }
-    
 }
 
 impl Display for SWWWTransitionType {
@@ -380,7 +375,7 @@ impl U32Enum for SwaybgModes {
             _ => Self::Stretch,
         }
     }
-    
+
     fn to_u32(&self) -> u32 {
         match self {
             Self::Stretch => 0,
@@ -388,10 +383,9 @@ impl U32Enum for SwaybgModes {
             Self::Fill => 2,
             Self::Center => 3,
             Self::Tile => 4,
-            Self::SolidColor => 5
+            Self::SolidColor => 5,
         }
     }
-    
 }
 
 impl U32Enum for MpvPaperPauseModes {
@@ -404,15 +398,14 @@ impl U32Enum for MpvPaperPauseModes {
             _ => Self::None,
         }
     }
-    
+
     fn to_u32(&self) -> u32 {
         match self {
             Self::None => 0,
             Self::AutoPause => 1,
-            Self::AutoStop => 2
+            Self::AutoStop => 2,
         }
     }
-    
 }
 
 impl FromStr for SwaybgModes {

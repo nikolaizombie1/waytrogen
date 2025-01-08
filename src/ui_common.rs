@@ -2,10 +2,13 @@ use crate::{
     common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     wallpaper_changers::{
-        MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave, SwaybgModes, U32Enum, WallpaperChanger, WallpaperChangers
+        MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter,
+        SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave,
+        SwaybgModes, U32Enum, WallpaperChanger, WallpaperChangers,
     },
 };
 use async_channel::Sender;
+use gettextrs::*;
 use gtk::{
     self,
     gdk::RGBA,
@@ -24,7 +27,6 @@ use std::{
 };
 use strum::IntoEnumIterator;
 use which::which;
-use gettextrs::*;
 
 pub fn generate_image_files(
     path: String,
@@ -207,8 +209,11 @@ pub fn generate_changer_bar(
             );
         }
         WallpaperChangers::MpvPaper(_, _, _) => {
-            let pause_options_dropdown =
-                DropDown::from_strings(&[&gettext("none"), &gettext("auto-pause"), &gettext("auto-stop")]);
+            let pause_options_dropdown = DropDown::from_strings(&[
+                &gettext("none"),
+                &gettext("auto-pause"),
+                &gettext("auto-stop"),
+            ]);
             pause_options_dropdown.set_margin_top(12);
             pause_options_dropdown.set_margin_start(12);
             pause_options_dropdown.set_margin_bottom(12);
@@ -257,7 +262,9 @@ pub fn generate_changer_bar(
             let mpv_options = Entry::builder()
                 .placeholder_text("Additional mpv options")
                 .has_tooltip(true)
-                .tooltip_text(&gettext("Additional command line options to be sent to mpv."))
+                .tooltip_text(&gettext(
+                    "Additional command line options to be sent to mpv.",
+                ))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -322,7 +329,8 @@ pub fn generate_changer_bar(
             }));
         }
         WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
-            let resize_dropdown = DropDown::from_strings(&[&gettext("no"), &gettext("crop"), &gettext("fit")]);
+            let resize_dropdown =
+                DropDown::from_strings(&[&gettext("no"), &gettext("crop"), &gettext("fit")]);
             resize_dropdown.set_margin_top(12);
             resize_dropdown.set_margin_start(12);
             resize_dropdown.set_margin_bottom(12);
@@ -806,7 +814,7 @@ pub fn generate_changer_bar(
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-                .label(&gettext("Restore Defaults"))
+                .label(&gettext("Confirm"))
                 .halign(Align::End)
                 .valign(Align::Center)
                 .build();
@@ -816,7 +824,7 @@ pub fn generate_changer_bar(
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-                .label(&gettext("Confirm"))
+                .label(&gettext("Restore Defaults"))
                 .halign(Align::End)
                 .valign(Align::Center)
                 .build();
@@ -857,8 +865,8 @@ pub fn generate_changer_bar(
 			move |_| {
 			advanced_settings_window.set_visible(false);
 		    }));
-		    window_control_box.append(&window_hide_button);
             window_control_box.append(&restore_defaults_button);
+		    window_control_box.append(&window_hide_button);
 		    advanced_settings_window_box.append(&window_control_box);
                 }
             );

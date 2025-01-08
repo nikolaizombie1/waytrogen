@@ -67,7 +67,8 @@ impl CacheImageFile {
             return Ok(i);
         }
         Err(anyhow::anyhow!(
-            "{}: {}", gettext("Failed to create thumbnail for"),
+            "{}: {}",
+            gettext("Failed to create thumbnail for"),
             path.as_os_str().to_str().unwrap_or_default()
         ))
     }
@@ -89,9 +90,9 @@ impl CacheImageFile {
             .unwrap_or(255);
         match code {
             0 => Self::try_create_thumbnail_with_image(&output_path),
-            _ => Err(anyhow::anyhow!(
-                gettext("Thumbnail could not be generated using ffmpg.")
-            )),
+            _ => Err(anyhow::anyhow!(gettext(
+                "Thumbnail could not be generated using ffmpg."
+            ))),
         }
     }
 

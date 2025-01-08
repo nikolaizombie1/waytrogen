@@ -53,6 +53,7 @@ fn main() -> glib::ExitCode {
         let app = Application::builder().application_id(APP_ID).build();
         textdomain("waytrogen").unwrap();
         bind_textdomain_codeset("waytrogen", "UTF-8").unwrap();
+	bindtextdomain("waytrogen", "/usr/share/locale/").unwrap();
 
         app.connect_activate(build_ui);
 
@@ -296,12 +297,16 @@ fn build_ui(app: &Application) {
                             changer: selected_changer.clone(),
                         })
                         .collect::<Vec<_>>();
-                    debug!("{}: {:#?}", gettext("Saved wallpapers"), previous_wallpapers);
+                    debug!(
+                        "{}: {:#?}",
+                        gettext("Saved wallpapers"),
+                        previous_wallpapers
+                    );
                     let saved_wallpapers = string_to_gschema_string(
                         &serde_json::to_string::<Vec<Wallpaper>>(&previous_wallpapers).unwrap(),
                     );
                     previous_wallpapers_text_buffer.set_text(&saved_wallpapers);
-                    debug!("{}: {}", gettext("Stored Text"),saved_wallpapers);
+                    debug!("{}: {}", gettext("Stored Text"), saved_wallpapers);
                     selected_changer
                         .clone()
                         .change(PathBuf::from(&path.clone()), selected_monitor.clone())
@@ -312,7 +317,7 @@ fn build_ui(app: &Application) {
         }
     ));
 
-    let sort_dropdown = DropDown::from_strings(&["Date", "Name"]);
+    let sort_dropdown = DropDown::from_strings(&[&gettext("Date"), &gettext("Name")]);
     sort_dropdown.set_halign(Align::End);
     sort_dropdown.set_valign(Align::Center);
     let invert_sort_switch = Switch::builder()
@@ -557,12 +562,12 @@ fn build_ui(app: &Application) {
         image_grid,
         async move {
             while let Ok(b) = receiver_changer_options_bar.recv().await {
-                debug!("{}",gettext("Finished loading images"));
+                debug!("{}", gettext("Finished loading images"));
                 changer_options_box.set_sensitive(b);
                 images_loading_progress_bar.set_visible(!b);
                 image_grid.set_sensitive(b);
                 if b {
-                    debug!("{}",gettext("Hiding unsupported images"));
+                    debug!("{}", gettext("Hiding unsupported images"));
                     hide_unsupported_files(
                         image_list_store.clone(),
                         get_selected_changer(&wallpaper_changers_dropdown, &settings),
