@@ -2,9 +2,7 @@ use crate::{
     common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     wallpaper_changers::{
-        MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter,
-        SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave,
-        SwaybgModes, U32toEnum, WallpaperChanger, WallpaperChangers,
+        MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave, SwaybgModes, U32Enum, WallpaperChanger, WallpaperChangers
     },
 };
 use async_channel::Sender;
@@ -606,6 +604,10 @@ pub fn generate_changer_bar(
                 )
                 .build();
 
+            transition_position_entry.set_text(
+                &transition_position_entry_text_buffer.text(&transition_position_entry_text_buffer.start_iter(), &transition_position_entry_text_buffer.end_iter(), false).to_string()
+            );
+
             transition_position_entry.connect_changed(move |e| {
                 let text = e.text().to_string();
                 if SWWWTransitionPosition::new(&text).is_ok() { transition_position_entry_text_buffer.set_text(&text) }
@@ -803,21 +805,51 @@ pub fn generate_changer_bar(
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
+                .label("Restore Defaults")
+                .halign(Align::End)
+                .valign(Align::Center)
+                .build();
+
+            let restore_defaults_button = Button::builder().label("Restore Defaults").
+                margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
                 .label("Confirm")
                 .halign(Align::End)
                 .valign(Align::Center)
                 .build();
+
+
 		    let window_control_box = Box::builder()
                 .orientation(gtk::Orientation::Horizontal)
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-			.halign(Align::End)
-.valign(Align::Center)
+			    .halign(Align::End)
+                .valign(Align::Center)
                 .hexpand(true)
                 .vexpand(true)
                 .build();
+
+
+            restore_defaults_button.connect_clicked(move |_| {
+                filter_dropdown.set_selected(SWWWScallingFilter::default().to_u32());
+                transition_step_spinbutton.set_value(90.0);
+                transition_duration_spinbutton.set_value(3.0);
+                transition_angle_spinbutton.set_value(45.0);
+                transition_position_entry.set_text(&SWWWTransitionPosition::default().to_string());
+                invert_y_switch.set_state(false);
+                transition_wave_width_spinbutton.set_value(200.0);
+                transition_wave_height_spinbutton.set_value(200.0);
+                transition_bezier_p0_spinbutton.set_value(SWWWTransitionBezier::default().p0);
+                transition_bezier_p1_spinbutton.set_value(SWWWTransitionBezier::default().p1);
+                transition_bezier_p2_spinbutton.set_value(SWWWTransitionBezier::default().p2);
+                transition_bezier_p3_spinbutton.set_value(SWWWTransitionBezier::default().p3);
+                transition_frames_per_second_spinbutton.set_value(30.0);
+            });
+
 		    window_hide_button.connect_clicked(clone!(
 			#[weak]
 			advanced_settings_window,
@@ -825,6 +857,7 @@ pub fn generate_changer_bar(
 			advanced_settings_window.set_visible(false);
 		    }));
 		    window_control_box.append(&window_hide_button);
+            window_control_box.append(&restore_defaults_button);
 		    advanced_settings_window_box.append(&window_control_box);
                 }
             );

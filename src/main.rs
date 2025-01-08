@@ -52,7 +52,7 @@ fn main() -> glib::ExitCode {
 
         app.connect_activate(build_ui);
 
-	let empty: Vec<String> = vec![];
+        let empty: Vec<String> = vec![];
         // Run the application
         app.run_with_args(&empty)
     }

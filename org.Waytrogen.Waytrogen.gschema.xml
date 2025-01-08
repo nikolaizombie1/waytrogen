@@ -61,7 +61,7 @@
             <summary>Last set swww scalling filter</summary>
         </key>
         <key name="swww-transition-type" type="u">
-            <default>0</default>
+            <default>1</default>
             <summary>Last set swww transition type</summary>
         </key>
         <key name="swww-transition-step" type="d">

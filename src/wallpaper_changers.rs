@@ -3,9 +3,7 @@ use lazy_static::lazy_static;
 use log::debug;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::{
-    fmt::Display, path::PathBuf, process::Command, str::FromStr, thread, time::Duration,
-};
+use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, thread, time::Duration};
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr, VariantArray};
 
@@ -13,9 +11,11 @@ pub trait WallpaperChanger {
     fn change(self, image: PathBuf, monitor: String);
     fn accepted_formats(&self) -> Vec<String>;
 }
-pub trait U32toEnum {
+pub trait U32Enum {
     fn from_u32(i: u32) -> Self;
+    fn to_u32(&self) -> u32;
 }
+
 
 #[derive(Debug, EnumIter, Clone, Default, Serialize, Deserialize)]
 pub enum WallpaperChangers {
@@ -132,7 +132,7 @@ pub enum SWWWResizeMode {
     Fit,
 }
 
-impl U32toEnum for SWWWResizeMode {
+impl U32Enum for SWWWResizeMode {
     fn from_u32(i: u32) -> Self {
         let i = i % Self::VARIANTS.len() as u32;
         match i {
@@ -142,7 +142,17 @@ impl U32toEnum for SWWWResizeMode {
             _ => Self::default(),
         }
     }
+    
+    fn to_u32(&self) -> u32 {
+        match self {
+            Self::No => 0,
+            Self::Crop => 1,
+            Self::Fit => 2,
+        }
+    }
+    
 }
+
 
 impl Display for SWWWResizeMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -164,7 +174,7 @@ pub enum SWWWScallingFilter {
     Lanczos3,
 }
 
-impl U32toEnum for SWWWScallingFilter {
+impl U32Enum for SWWWScallingFilter {
     fn from_u32(i: u32) -> Self {
         let i = i % Self::VARIANTS.len() as u32;
         match i {
@@ -176,6 +186,17 @@ impl U32toEnum for SWWWScallingFilter {
             _ => Self::default(),
         }
     }
+    
+    fn to_u32(&self) -> u32 {
+        match self {
+            Self::Nearest => 0,
+            Self::Bilinear => 1,
+            Self::CatmullRom => 2,
+            Self::Mitchell => 3,
+            Self::Lanczos3 => 4
+        }
+    }
+    
 }
 
 impl Display for SWWWScallingFilter {
@@ -209,7 +230,7 @@ pub enum SWWWTransitionType {
     Random,
 }
 
-impl U32toEnum for SWWWTransitionType {
+impl U32Enum for SWWWTransitionType {
     fn from_u32(i: u32) -> Self {
         let i = i % Self::VARIANTS.len() as u32;
         match i {
@@ -230,6 +251,26 @@ impl U32toEnum for SWWWTransitionType {
             _ => Self::default(),
         }
     }
+    
+    fn to_u32(&self) -> u32 {
+        match self {
+            Self::None => 0,
+            Self::Simple => 1,
+            Self::Fade => 2,
+            Self::Left => 3,
+            Self::Right => 4,
+            Self::Top => 5,
+            Self::Bottom => 6,
+            Self::Wipe => 7,
+            Self::Wave => 8,
+            Self::Grow => 9,
+            Self::Center => 10,
+            Self::Any => 11,
+            Self::Outer => 12,
+            Self::Random => 13
+        }
+    }
+    
 }
 
 impl Display for SWWWTransitionType {
@@ -326,31 +367,52 @@ impl Default for SWWWTransitionWave {
     }
 }
 
-impl U32toEnum for SwaybgModes {
+impl U32Enum for SwaybgModes {
     fn from_u32(i: u32) -> SwaybgModes {
         let i = (i as usize) % SwaybgModes::VARIANTS.len();
         match i {
-            0 => SwaybgModes::Stretch,
-            1 => SwaybgModes::Fit,
-            2 => SwaybgModes::Fill,
-            3 => SwaybgModes::Center,
-            4 => SwaybgModes::Tile,
-            5 => SwaybgModes::SolidColor,
-            _ => SwaybgModes::Stretch,
+            0 => Self::Stretch,
+            1 => Self::Fit,
+            2 => Self::Fill,
+            3 => Self::Center,
+            4 => Self::Tile,
+            5 => Self::SolidColor,
+            _ => Self::Stretch,
         }
     }
+    
+    fn to_u32(&self) -> u32 {
+        match self {
+            Self::Stretch => 0,
+            Self::Fit => 1,
+            Self::Fill => 2,
+            Self::Center => 3,
+            Self::Tile => 4,
+            Self::SolidColor => 5
+        }
+    }
+    
 }
 
-impl U32toEnum for MpvPaperPauseModes {
+impl U32Enum for MpvPaperPauseModes {
     fn from_u32(i: u32) -> MpvPaperPauseModes {
         let i = (i as usize) % MpvPaperPauseModes::VARIANTS.len();
         match i {
-            0 => MpvPaperPauseModes::None,
-            1 => MpvPaperPauseModes::AutoPause,
-            2 => MpvPaperPauseModes::AutoStop,
-            _ => MpvPaperPauseModes::None,
+            0 => Self::None,
+            1 => Self::AutoPause,
+            2 => Self::AutoStop,
+            _ => Self::None,
         }
     }
+    
+    fn to_u32(&self) -> u32 {
+        match self {
+            Self::None => 0,
+            Self::AutoPause => 1,
+            Self::AutoStop => 2
+        }
+    }
+    
 }
 
 impl FromStr for SwaybgModes {
@@ -358,12 +420,12 @@ impl FromStr for SwaybgModes {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match &s.to_ascii_lowercase()[..] {
-            "stretch" => Ok(SwaybgModes::Stretch),
-            "fit" => Ok(SwaybgModes::Fit),
-            "fill" => Ok(SwaybgModes::Fill),
-            "center" => Ok(SwaybgModes::Center),
-            "tile" => Ok(SwaybgModes::Tile),
-            "solid_color" => Ok(SwaybgModes::SolidColor),
+            "stretch" => Ok(Self::Stretch),
+            "fit" => Ok(Self::Fit),
+            "fill" => Ok(Self::Fill),
+            "center" => Ok(Self::Center),
+            "tile" => Ok(Self::Tile),
+            "solid_color" => Ok(Self::SolidColor),
             _ => Err(format!("Unknown swaybg mode: {}", s)),
         }
     }
@@ -372,12 +434,12 @@ impl FromStr for SwaybgModes {
 impl Display for SwaybgModes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SwaybgModes::Stretch => write!(f, "stretch"),
-            SwaybgModes::Fit => write!(f, "fit"),
-            SwaybgModes::Fill => write!(f, "fill"),
-            SwaybgModes::Center => write!(f, "center"),
-            SwaybgModes::Tile => write!(f, "tile"),
-            SwaybgModes::SolidColor => write!(f, "solid_color"),
+            Self::Stretch => write!(f, "stretch"),
+            Self::Fit => write!(f, "fit"),
+            Self::Fill => write!(f, "fill"),
+            Self::Center => write!(f, "center"),
+            Self::Tile => write!(f, "tile"),
+            Self::SolidColor => write!(f, "solid_color"),
         }
     }
 }
@@ -409,8 +471,8 @@ impl WallpaperChanger for WallpaperChangers {
     fn change(self, image: PathBuf, monitor: String) {
         thread::spawn(move || match self {
             Self::Hyprpaper => {
-                    debug!("Starting hyprpaper");
-                    Command::new("hyprpaper").spawn().unwrap().wait().unwrap();
+                debug!("Starting hyprpaper");
+                Command::new("hyprpaper").spawn().unwrap().wait().unwrap();
                 Command::new("hyprctl")
                     .arg("hyprpaper")
                     .arg("unload")
@@ -469,7 +531,13 @@ impl WallpaperChanger for WallpaperChangers {
                 if slideshow.enable {
                     command.arg("-n").arg(slideshow.seconds.to_string());
                 }
-                command.arg(monitor).arg(image).spawn().unwrap().wait().unwrap();
+                command
+                    .arg(monitor)
+                    .arg(image)
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap();
             }
             Self::Swww(
                 resize_modes,
