@@ -586,7 +586,7 @@ pub fn generate_changer_bar(
             let transition_position_entry = Entry::builder()
                 .placeholder_text("Transition position")
                 .has_tooltip(true)
-                .tooltip_text("Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left orbottom-right.")
+                .tooltip_text("Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right.")
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
