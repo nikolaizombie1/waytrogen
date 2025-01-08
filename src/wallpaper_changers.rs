@@ -4,7 +4,7 @@ use log::debug;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
-    ffi::OsStr, fmt::Display, path::PathBuf, process::Command, str::FromStr, thread, time::Duration,
+    fmt::Display, path::PathBuf, process::Command, str::FromStr, thread, time::Duration,
 };
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr, VariantArray};
@@ -43,12 +43,46 @@ impl WallpaperChangers {
     pub fn killall_changers() {
         thread::spawn(|| {
             for changer in WallpaperChangers::iter() {
-                Command::new("pkill")
-                    .arg(changer.to_string())
-                    .spawn()
-                    .unwrap()
-                    .wait()
-                    .unwrap();
+                match changer {
+                    Self::Hyprpaper => {
+                        Command::new("pkill")
+                            .arg("hyprpaper")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
+                    }
+                    Self::Swaybg(_, _) => {
+                        Command::new("pkill")
+                            .arg("swaybg")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
+                    }
+                    Self::MpvPaper(_, _, _) => {
+                        Command::new("pkill")
+                            .arg("mpvpaper")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
+                    }
+                    Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+                        Command::new("pkill")
+                            .arg("swww-daemon")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
+                        Command::new("pkill")
+                            .arg("swww")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
+                    }
+                }
             }
         });
     }
@@ -100,12 +134,22 @@ pub enum SWWWResizeMode {
 
 impl U32toEnum for SWWWResizeMode {
     fn from_u32(i: u32) -> Self {
-        let i = i%Self::VARIANTS.len() as u32;
+        let i = i % Self::VARIANTS.len() as u32;
         match i {
             0 => Self::No,
             1 => Self::Crop,
             2 => Self::Fit,
             _ => Self::default(),
+        }
+    }
+}
+
+impl Display for SWWWResizeMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::No => write!(f, "no"),
+            Self::Crop => write!(f, "crop"),
+            Self::Fit => write!(f, "fit"),
         }
     }
 }
@@ -122,14 +166,26 @@ pub enum SWWWScallingFilter {
 
 impl U32toEnum for SWWWScallingFilter {
     fn from_u32(i: u32) -> Self {
-        let i = i%Self::VARIANTS.len() as u32;
+        let i = i % Self::VARIANTS.len() as u32;
         match i {
             0 => Self::Nearest,
             1 => Self::Bilinear,
             2 => Self::CatmullRom,
             3 => Self::Mitchell,
             4 => Self::Lanczos3,
-            _ => Self::default()
+            _ => Self::default(),
+        }
+    }
+}
+
+impl Display for SWWWScallingFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Nearest => write!(f, "Nearest"),
+            Self::Bilinear => write!(f, "Bilinear"),
+            Self::CatmullRom => write!(f, "CatmullRom"),
+            Self::Mitchell => write!(f, "Mitchell"),
+            Self::Lanczos3 => write!(f, "Lanczos3"),
         }
     }
 }
@@ -155,7 +211,7 @@ pub enum SWWWTransitionType {
 
 impl U32toEnum for SWWWTransitionType {
     fn from_u32(i: u32) -> Self {
-        let i = i%Self::VARIANTS.len() as u32;
+        let i = i % Self::VARIANTS.len() as u32;
         match i {
             0 => Self::None,
             1 => Self::Simple,
@@ -171,14 +227,41 @@ impl U32toEnum for SWWWTransitionType {
             11 => Self::Any,
             12 => Self::Outer,
             13 => Self::Random,
-            _ => Self::default()
+            _ => Self::default(),
+        }
+    }
+}
+
+impl Display for SWWWTransitionType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::None => write!(f, "none"),
+            Self::Simple => write!(f, "simple"),
+            Self::Fade => write!(f, "fade"),
+            Self::Left => write!(f, "left"),
+            Self::Right => write!(f, "right"),
+            Self::Top => write!(f, "top"),
+            Self::Bottom => write!(f, "bottm"),
+            Self::Wipe => write!(f, "wipe"),
+            Self::Wave => write!(f, "wave"),
+            Self::Grow => write!(f, "grow"),
+            Self::Center => write!(f, "center"),
+            Self::Any => write!(f, "any"),
+            Self::Outer => write!(f, "outer"),
+            Self::Random => write!(f, "random"),
         }
     }
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct SWWWTransitionPosition {
-    position: String,
+    pub position: String,
+}
+
+impl Display for SWWWTransitionPosition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.position)
+    }
 }
 
 lazy_static! {
@@ -205,6 +288,12 @@ pub struct SWWWTransitionBezier {
     pub p3: f64,
 }
 
+impl Display for SWWWTransitionBezier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{},{},{},{}", self.p0, self.p1, self.p2, self.p3)
+    }
+}
+
 impl Default for SWWWTransitionBezier {
     fn default() -> Self {
         Self {
@@ -220,6 +309,12 @@ impl Default for SWWWTransitionBezier {
 pub struct SWWWTransitionWave {
     pub width: u32,
     pub height: u32,
+}
+
+impl Display for SWWWTransitionWave {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{},{}", self.width, self.height)
+    }
 }
 
 impl Default for SWWWTransitionWave {
@@ -314,16 +409,8 @@ impl WallpaperChanger for WallpaperChangers {
     fn change(self, image: PathBuf, monitor: String) {
         thread::spawn(move || match self {
             Self::Hyprpaper => {
-                let mut system = sysinfo::System::new();
-                system.refresh_all();
-                if system
-                    .processes_by_name(OsStr::new("hyprpaper"))
-                    .collect::<Vec<_>>()
-                    .is_empty()
-                {
                     debug!("Starting hyprpaper");
                     Command::new("hyprpaper").spawn().unwrap().wait().unwrap();
-                }
                 Command::new("hyprctl")
                     .arg("hyprpaper")
                     .arg("unload")
@@ -382,7 +469,7 @@ impl WallpaperChanger for WallpaperChangers {
                 if slideshow.enable {
                     command.arg("-n").arg(slideshow.seconds.to_string());
                 }
-                command.arg(monitor).arg(image).spawn().unwrap();
+                command.arg(monitor).arg(image).spawn().unwrap().wait().unwrap();
             }
             Self::Swww(
                 resize_modes,
@@ -397,7 +484,46 @@ impl WallpaperChanger for WallpaperChangers {
                 invert_y,
                 transition_bezier,
                 transition_wave,
-            ) => {}
+            ) => {
+                log::debug!("Starting swww daemon");
+                Command::new("swww-daemon").spawn().unwrap().wait().unwrap();
+                let mut command = Command::new("swww");
+                command
+                    .arg("img")
+                    .arg("--resize")
+                    .arg(resize_modes.to_string())
+                    .arg("--fill-color")
+                    .arg(fill_color.to_string())
+                    .arg("--outputs")
+                    .arg(monitor)
+                    .arg("--filter")
+                    .arg(scalling_filter.to_string())
+                    .arg("--transition-type")
+                    .arg(transition_type.to_string())
+                    .arg("--transition-step")
+                    .arg(transition_step.to_string())
+                    .arg("--transition-duration")
+                    .arg(transition_duration.to_string())
+                    .arg("--transition-fps")
+                    .arg(transition_fps.to_string())
+                    .arg("--transition-angle")
+                    .arg(transition_angle.to_string())
+                    .arg("--transition-pos")
+                    .arg(transition_position.to_string());
+                if invert_y {
+                    command.arg("--invert-y");
+                }
+                command
+                    .arg("--transition-bezier")
+                    .arg(transition_bezier.to_string())
+                    .arg("--transition-wave")
+                    .arg(transition_wave.to_string())
+                    .arg(image)
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap();
+            }
         });
     }
 

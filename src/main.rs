@@ -29,7 +29,7 @@ fn main() -> glib::ExitCode {
     let args = Cli::parse();
     stderrlog::new()
         .module(module_path!())
-        .verbosity(3)
+        .verbosity(args.verbosity as usize)
         .init()
         .unwrap();
     // Create a new application
@@ -52,8 +52,9 @@ fn main() -> glib::ExitCode {
 
         app.connect_activate(build_ui);
 
+	let empty: Vec<String> = vec![];
         // Run the application
-        app.run()
+        app.run_with_args(&empty)
     }
 }
 
@@ -179,7 +180,7 @@ fn build_ui(app: &Application) {
             "text",
         )
         .build();
-    selected_monitor_text_buffer.set_text(&settings.string("selected-monitor-item").to_string());
+    selected_monitor_text_buffer.set_text(settings.string("selected-monitor-item").as_ref());
 
     let monitors_dropdown =
         DropDown::from_strings(&monitors.iter().map(|s| s.as_str()).collect::<Vec<_>>());
@@ -353,7 +354,7 @@ fn build_ui(app: &Application) {
     ));
 
     let removed_images_list_store_copy = removed_images_list_store.clone();
-    wallpaper_changers_dropdown.connect_selected_notify(clone!(
+    wallpaper_changers_dropdown.connect_selected_item_notify(clone!(
         #[weak]
         image_list_store,
         #[weak]

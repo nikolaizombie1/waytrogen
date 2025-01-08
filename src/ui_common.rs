@@ -2,8 +2,9 @@ use crate::{
     common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     wallpaper_changers::{
-        MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWTransitionPosition, SwaybgModes,
-        WallpaperChanger, WallpaperChangers, U32toEnum, SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionType, SWWWTransitionWave
+        MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter,
+        SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave,
+        SwaybgModes, U32toEnum, WallpaperChanger, WallpaperChangers,
     },
 };
 use async_channel::Sender;
@@ -20,7 +21,8 @@ use log::debug;
 use std::{
     cell::Ref,
     cmp::Ordering,
-    path::{Path, PathBuf}, str::FromStr,
+    path::{Path, PathBuf},
+    str::FromStr,
 };
 use strum::IntoEnumIterator;
 use which::which;
@@ -375,6 +377,7 @@ pub fn generate_changer_bar(
             changer_specific_options_box.append(&color_picker);
             let advanced_settings_window = Window::builder()
                 .title("SWWW Advanced Image Settings")
+                .hide_on_close(true)
                 .build();
             let advanced_settings_button = Button::builder()
                 .margin_top(12)
@@ -590,7 +593,6 @@ pub fn generate_changer_bar(
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-                .hexpand(true)
                 .halign(Align::Start)
                 .valign(Align::Center)
                 .build();
@@ -606,10 +608,7 @@ pub fn generate_changer_bar(
 
             transition_position_entry.connect_changed(move |e| {
                 let text = e.text().to_string();
-                match SWWWTransitionPosition::new(&text) {
-                    Ok(_) => transition_position_entry_text_buffer.set_text(&text),
-                    Err(_) => {}
-                }
+                if SWWWTransitionPosition::new(&text).is_ok() { transition_position_entry_text_buffer.set_text(&text) }
             });
 
             let invert_y_label = Label::builder()
@@ -708,6 +707,7 @@ pub fn generate_changer_bar(
             let transition_bezier_p0_spinbutton = SpinButton::builder()
                 .adjustment(&transition_bezier_adjustments)
                 .numeric(true)
+                .digits(2)
                 .halign(Align::Center)
                 .valign(Align::Center)
                 .margin_top(12)
@@ -718,6 +718,7 @@ pub fn generate_changer_bar(
             settings.bind("swww-transition-bezier-p0", &transition_bezier_p0_spinbutton, "value").build();
             let transition_bezier_p1_spinbutton = SpinButton::builder()
                 .adjustment(&transition_bezier_adjustments)
+                .digits(2)
                 .numeric(true)
                 .halign(Align::Center)
                 .valign(Align::Center)
@@ -730,6 +731,7 @@ pub fn generate_changer_bar(
             let transition_bezier_p2_spinbutton = SpinButton::builder()
                 .adjustment(&transition_bezier_adjustments)
                 .numeric(true)
+                .digits(2)
                 .halign(Align::Center)
                 .valign(Align::Center)
                 .margin_top(12)
@@ -741,6 +743,7 @@ pub fn generate_changer_bar(
             let transition_bezier_p3_spinbutton = SpinButton::builder()
                 .adjustment(&transition_bezier_adjustments)
                 .numeric(true)
+                .digits(2)
                 .halign(Align::Center)
                 .valign(Align::Center)
                 .margin_top(12)
@@ -794,6 +797,35 @@ pub fn generate_changer_bar(
             transition_bezier_fps_box.append(&transition_frames_per_second_label);
             transition_bezier_fps_box.append(&transition_frames_per_second_spinbutton);
             advanced_settings_window_box.append(&transition_bezier_fps_box);
+
+		    let window_hide_button = Button::builder().label("Ok").
+                margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+                .label("Confirm")
+                .halign(Align::End)
+                .valign(Align::Center)
+                .build();
+		    let window_control_box = Box::builder()
+                .orientation(gtk::Orientation::Horizontal)
+                .margin_top(12)
+                .margin_start(12)
+                .margin_bottom(12)
+                .margin_end(12)
+			.halign(Align::End)
+.valign(Align::Center)
+                .hexpand(true)
+                .vexpand(true)
+                .build();
+		    window_hide_button.connect_clicked(clone!(
+			#[weak]
+			advanced_settings_window,
+			move |_| {
+			advanced_settings_window.set_visible(false);
+		    }));
+		    window_control_box.append(&window_hide_button);
+		    advanced_settings_window_box.append(&window_control_box);
                 }
             );
         }
@@ -846,21 +878,40 @@ pub fn get_selected_changer(
             let resize = SWWWResizeMode::from_u32(settings.uint("swww-resize"));
             let fill_color = RGB::from_str(settings.string("swww-fill-color").as_str()).unwrap();
             let scaling_filter = SWWWScallingFilter::from_u32(settings.uint("swww-scaling-filter"));
-            let transition_type = SWWWTransitionType::from_u32(settings.uint("swww-transition-type"));
+            let transition_type =
+                SWWWTransitionType::from_u32(settings.uint("swww-transition-type"));
             let transition_step = settings.double("swww-transition-step") as u8;
             let transition_duration = settings.double("swww-transition-duration") as u32;
             let transition_angle = settings.double("swww-transition-angle") as u16;
-            let transition_position = SWWWTransitionPosition::new(settings.string("swww-transition-position").as_str()).unwrap();
+            let transition_position =
+                SWWWTransitionPosition::new(settings.string("swww-transition-position").as_str())
+                    .unwrap();
             let invert_y = settings.boolean("swww-invert-y");
-            let transition_wave = SWWWTransitionWave { width: settings.double("swww-transition-wave-width") as u32, height: settings.double("swww-transition-wave-height") as u32};
-            let transition_bezier = SWWWTransitionBezier{ 
+            let transition_wave = SWWWTransitionWave {
+                width: settings.double("swww-transition-wave-width") as u32,
+                height: settings.double("swww-transition-wave-height") as u32,
+            };
+            let transition_bezier = SWWWTransitionBezier {
                 p0: settings.double("swww-transition-bezier-p0"),
                 p1: settings.double("swww-transition-bezier-p1"),
                 p2: settings.double("swww-transition-bezier-p2"),
                 p3: settings.double("swww-transition-bezier-p3"),
             };
             let transition_fps = settings.uint("swww-transition-fps");
-            WallpaperChangers::Swww(resize, fill_color, scaling_filter, transition_type, transition_step, transition_duration, transition_fps, transition_angle, transition_position, invert_y, transition_bezier, transition_wave)
+            WallpaperChangers::Swww(
+                resize,
+                fill_color,
+                scaling_filter,
+                transition_type,
+                transition_step,
+                transition_duration,
+                transition_fps,
+                transition_angle,
+                transition_position,
+                invert_y,
+                transition_bezier,
+                transition_wave,
+            )
         }
         _ => WallpaperChangers::Hyprpaper,
     }
