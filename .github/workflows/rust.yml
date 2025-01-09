@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Install Dependencies
+      run: sudo apt install meson ninja-build git build-essential fontconfig pkg-config libglib2.0-0 libgdk-pixbuf-2.0-0 gir1.2-pango-1.0 gobject-introspection libc6 gettext libcairo2-dev libepoxy-dev gir1.2-graphene-1.0 shared-mime-info libxkbcommon-dev xorg libgstreamer-plugins-bad1.0-dev x11-xserver-utils -y && wget https://download.gnome.org/sources/gtk/4.16/gtk-4.16.12.tar.xz && tar -xf gtk-4.16.12.tar.xz && cd gtk-4.16.12 && meson setup --prefix /opt/gtk builddir && cd builddir && meson compile && meson install && LD_LIBRARY_PATH="/opt/gtk/lib" && PATH="/opt/gtk/bin:$PATH" && export LD_LIBRARY_PATH PATH 
     - uses: actions/checkout@v4
     - name: Build
       run: cargo build --verbose
