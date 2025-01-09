@@ -9,7 +9,7 @@ authors = ["nikolaizombie1 <fabio.matos999@gmail.com>"]
 homepage = "https://github.com/nikolaizombie1/waytrogen"
 repository = "https://github.com/nikolaizombie1/waytrogen"
 keywords = ["gui", "themeing", "wallpaper", "linux", "wayland"]
-categories = ["graphical-user-interface", "linux", "wayland"]
+categories = ["graphical-user-interface"]
 
 [dependencies]
 walkdir = "2"
