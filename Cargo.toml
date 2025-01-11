@@ -13,7 +13,7 @@ categories = ["gui"]
 
 [dependencies]
 walkdir = "2"
-gtk = { version = "0.9.5", package = "gtk4", features = ["v4_16"] }
+gtk = { version = "0.9.5", package = "gtk4", features = ["v4_12"] }
 anyhow = "1.0.95"
 sqlite = "0.36.1"
 xdg = "2.5.2"
