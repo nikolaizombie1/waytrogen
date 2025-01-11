@@ -16,7 +16,9 @@ A GUI wallpaper setter for Wayland that is a spiritual successor for the minimal
     - `swaybg` if using `sway` and only using `png`, `jpeg`, `tiff`, `tga` or `gif` images.
     - `mpvpaper` if using any kind of video or image format, but requires command line arguments to be passed to `mpv` for additional configuration.
     - `swww` for displaying `jpeg`, `png`, `gif`, `pnm`, `tga`, `tiff`, `webp`, `bmp` or `farbfeld` images and want transitions between images.
-2. Install `waytrogen` using `cargo install waytrogen`.
+2. Install `waytrogen` using:
+    - If on Arch Linux, `waytrogen` is on the `AUR`
+    - On any other linux distro, install from `crates.io` using `cargo install waytrogen`
 ## Dependencies
 - `hyprpaper`, `swaybg`, `mpvpaper` or `swww`
 - `ffmpeg`
