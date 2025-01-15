@@ -5,3 +5,4 @@ Type=Application
 Terminal=false
 Exec=waytrogen
 Name=waytrogen
+Icon=WaytrogenLogo.svg
