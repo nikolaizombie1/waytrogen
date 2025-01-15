@@ -18,7 +18,7 @@ A GUI wallpaper setter for Wayland that is a spiritual successor for the minimal
     - `swww` for displaying `jpeg`, `png`, `gif`, `pnm`, `tga`, `tiff`, `webp`, `bmp` or `farbfeld` images and want transitions between images.
 2. Install `waytrogen` using:
     - If on Arch Linux, `waytrogen` is on the `AUR`
-    - On any other linux distro, install from `crates.io` using `cargo install waytrogen`
+    - If on NixOS, `waytrogen` is on the `NUR` at `github:nikolaizombie1/nur-packages`
 ## Dependencies
 - `hyprpaper`, `swaybg`, `mpvpaper` or `swww`
 - `ffmpeg`
