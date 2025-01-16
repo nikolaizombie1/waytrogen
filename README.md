@@ -1,7 +1,10 @@
 # Waytrogen
 A GUI wallpaper setter for Wayland that is a spiritual successor for the minimalistic wallpaper changer for `X11` [nitrogen](https://github.com/l3ib/nitrogen). Written purely in the `Rust` 🦀 programming language. Supports `hyprpaper`, `swaybg`, `mpvpaper` and `swww` wallpaper changers.
 ---
-![preview](./README-Assets/preview.gif)
+<div align="center">
+<img src="README-Assets/preview.webp" width="100%"/>
+</div>
+
 ---
 ## Features
 - Recursive file searching
