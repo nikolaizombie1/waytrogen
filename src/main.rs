@@ -373,7 +373,6 @@ fn build_ui(app: &Application) {
         #[weak]
         invert_sort_switch,
         move |_| {
-            WallpaperChangers::killall_changers();
             change_image_button_handlers(
                 image_list_store.clone(),
                 wallpaper_changers_dropdown.clone(),
