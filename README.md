@@ -40,3 +40,6 @@
 The `waytrogen` command can be used the terminal to launch the application or be launched using an application launcher.
 
 The `waytrogen --restore` command can be used to restore previously set wallpapers.
+
+## Credits
+The logo shape is from [Inconify Tabler](https://icon-sets.iconify.design/tabler/) atom.

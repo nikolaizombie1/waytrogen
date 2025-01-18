@@ -103,11 +103,7 @@ fn build_ui(app: &Application) {
             false,
         )
         .to_string();
-    if path.is_empty() {
-        settings
-            .set_string("wallpaper-folder", glib::home_dir().to_str().unwrap())
-            .unwrap();
-    }
+
     log::trace!("Wallpaper Folder: {}", path);
 
     let (sender_cache_images, receiver_cache_images): (
