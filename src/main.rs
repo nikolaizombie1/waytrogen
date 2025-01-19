@@ -1,6 +1,7 @@
 use std::{
     cell::{Ref, RefCell},
-    path::PathBuf,
+    path::{Path, PathBuf},
+    process::Command,
 };
 
 use async_channel::{Receiver, Sender};
@@ -17,7 +18,9 @@ use gtk::{
 };
 use log::debug;
 use waytrogen::{
-    common::{CacheImageFile, Cli, GtkPictureFile, Wallpaper, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH, APP_ID},
+    common::{
+        CacheImageFile, Cli, GtkPictureFile, Wallpaper, APP_ID, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH,
+    },
     ui_common::{
         change_image_button_handlers, generate_changer_bar, generate_image_files,
         get_available_wallpaper_changers, get_selected_changer, gschema_string_to_string,
@@ -28,7 +31,6 @@ use waytrogen::{
 
 use gettextrs::*;
 
-
 fn main() -> glib::ExitCode {
     let args = Cli::parse();
     stderrlog::new()
@@ -38,7 +40,7 @@ fn main() -> glib::ExitCode {
         .unwrap();
     // Create a new application
 
-        let settings = Settings::new(APP_ID);
+    let settings = Settings::new(APP_ID);
     if args.restore {
         let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
             &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
@@ -52,7 +54,10 @@ fn main() -> glib::ExitCode {
         }
         glib::ExitCode::SUCCESS
     } else if args.list_current_wallpapers {
-	println!("{}", gschema_string_to_string(&settings.string("saved-wallpapers")));
+        println!(
+            "{}",
+            gschema_string_to_string(&settings.string("saved-wallpapers"))
+        );
         glib::ExitCode::SUCCESS
     } else {
         let app = Application::builder().application_id(APP_ID).build();
@@ -60,7 +65,9 @@ fn main() -> glib::ExitCode {
         bind_textdomain_codeset("waytrogen", "UTF-8").unwrap();
         bindtextdomain("waytrogen", "/usr/share/locale/").unwrap();
 
-        app.connect_activate(build_ui);
+        app.connect_activate(move |app| {
+            build_ui(app, args.clone());
+        });
 
         let empty: Vec<String> = vec![];
         // Run the application
@@ -68,7 +75,7 @@ fn main() -> glib::ExitCode {
     }
 }
 
-fn build_ui(app: &Application) {
+fn build_ui(app: &Application, args: Cli) {
     let window = ApplicationWindow::builder()
         .application(app)
         .title("Waytrogen")
@@ -238,6 +245,7 @@ fn build_ui(app: &Application) {
         .build();
 
     let previous_wallpapers_text_buffer = previous_wallpapers_text_buffer.clone();
+    let args = args.clone();
     image_signal_list_item_factory.connect_bind(clone!(
         #[weak]
         monitors_dropdown,
@@ -251,13 +259,15 @@ fn build_ui(app: &Application) {
             let entry = item.item().and_downcast::<BoxedAnyObject>().unwrap();
             let image: Ref<GtkPictureFile> = entry.borrow();
             let path = &image.chache_image_file.path;
+            let args = args.clone();
             button.set_size_request(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
             let previous_wallpapers_text_buffer = previous_wallpapers_text_buffer.clone();
             let handler = image.button_signal_handler.take();
             match handler {
                 Some(h) => image.button_signal_handler.replace(Some(h)),
-                None => image.button_signal_handler.replace(Some(
-                    button.connect_clicked(clone!(
+                None => image
+                    .button_signal_handler
+                    .replace(Some(button.connect_clicked(clone!(
                         #[strong]
                         path,
                         move |_| {
@@ -316,10 +326,28 @@ fn build_ui(app: &Application) {
                             debug!("{}: {}", gettext("Stored Text"), saved_wallpapers);
                             selected_changer
                                 .clone()
-                                .change(PathBuf::from(&path.clone()), selected_monitor.clone())
+                                .change(PathBuf::from(&path.clone()), selected_monitor.clone());
+                            if args.external_script != "".to_owned() {
+                                match Command::new(
+                                    args.external_script.clone()
+                                )
+                                .arg(selected_monitor)
+                                .arg(path)
+                                .arg(gschema_string_to_string(&gschema_string_to_string(
+                                    settings.string("saved-wallpapers").as_ref(),
+                                )))
+                                .spawn()
+                                {
+                                    Ok(_) => {
+                                        log::debug!("External Script Executed Successfully")
+                                    }
+                                    Err(e) => {
+                                        log::warn!("External Script Failed to Execute: {e}")
+                                    }
+                                }
+                            }
                         }
-                    ))),
-                ),
+                    )))),
             };
             button.set_tooltip_text(Some(&image.chache_image_file.name));
             button.set_child(Some(&image.picture));

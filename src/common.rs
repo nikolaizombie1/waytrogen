@@ -12,7 +12,8 @@ use std::{
     process::Command,
     str::FromStr,
     time::UNIX_EPOCH,
-    cell::RefCell
+    cell::RefCell,
+    os::unix::fs::PermissionsExt
 };
 
 use crate::wallpaper_changers::WallpaperChangers;
@@ -158,7 +159,7 @@ pub struct Wallpaper {
     pub changer: WallpaperChangers,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub struct Cli {
     #[arg(short, long)]
     /// Restore previously set wallpapers
@@ -168,5 +169,22 @@ pub struct Cli {
     pub verbosity: u8,
     #[arg(short, long, default_value_t = false)]
     /// Get the current wallpaper settings in JSON format.
-    pub list_current_wallpapers: bool
+    pub list_current_wallpapers: bool,
+    #[arg(short, long, value_parser = parse_executable_script, default_value_t = ("".to_owned()))]
+    /// Path to external script.
+    pub external_script: String
+}
+
+fn parse_executable_script(s: &str) -> anyhow::Result<String> {
+    if s == "" {
+	return Ok("".to_owned());
+    }
+    let path = s.parse::<PathBuf>()?;
+    if !path.metadata()?.is_file() {
+	return Err(anyhow::anyhow!("Input is not a file"));
+    }
+    if path.metadata()?.permissions().mode() & 0o111 == 0 {
+	return Err(anyhow::anyhow!("File is not executable"));
+    }
+    Ok(s.to_owned())
 }
