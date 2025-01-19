@@ -38,8 +38,8 @@ fn main() -> glib::ExitCode {
         .unwrap();
     // Create a new application
 
-    if args.restore {
         let settings = Settings::new(APP_ID);
+    if args.restore {
         let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
             &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
         )
@@ -50,6 +50,9 @@ fn main() -> glib::ExitCode {
                 .changer
                 .change(PathBuf::from(wallpaper.path), wallpaper.monitor);
         }
+        glib::ExitCode::SUCCESS
+    } else if args.list_current_wallpapers {
+	println!("{}", gschema_string_to_string(&settings.string("saved-wallpapers")));
         glib::ExitCode::SUCCESS
     } else {
         let app = Application::builder().application_id(APP_ID).build();
