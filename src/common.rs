@@ -172,7 +172,10 @@ pub struct Cli {
     pub list_current_wallpapers: bool,
     #[arg(short, long, value_parser = parse_executable_script, default_value_t = ("".to_owned()))]
     /// Path to external script.
-    pub external_script: String
+    pub external_script: String,
+    #[arg(long)]
+    /// Set random wallpapers based on last set changer.
+    pub random: bool
 }
 
 fn parse_executable_script(s: &str) -> anyhow::Result<String> {

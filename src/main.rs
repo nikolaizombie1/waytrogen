@@ -4,6 +4,7 @@ use std::{
     process::Command,
 };
 
+use rand::Rng;
 use async_channel::{Receiver, Sender};
 use clap::Parser;
 use gtk::{
@@ -60,6 +61,37 @@ fn main() -> glib::ExitCode {
             gschema_string_to_string(&settings.string("saved-wallpapers"))
         );
         glib::ExitCode::SUCCESS
+    } else if args.random {
+	WallpaperChangers::killall_changers();
+        let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
+            &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
+        )
+        .unwrap();
+	let wallpaper = previous_wallpapers[0].clone();
+	let path = Path::new(&wallpaper.path).parent().unwrap_or_else(|| Path::new(""));
+        let mut files = walkdir::WalkDir::new(path)
+            .into_iter()
+            .filter_map(|f| f.ok())
+            .filter(|f| f.file_type().is_file())
+            .map(|d| d.path().to_path_buf())
+            .filter(|p| {
+                WallpaperChangers::all_accepted_formats().iter().any(|f| {
+                    f == p
+                        .extension()
+                        .unwrap_or_default()
+                        .to_str()
+                        .unwrap_or_default()
+                })
+            })
+            .collect::<Vec<_>>();
+	previous_wallpapers.iter().for_each(|w| {
+	    let mut rng = rand::thread_rng();
+	    let index = rng.gen_range(0..files.len());
+	    log::debug!("{index}");
+	    w.changer.clone().change(files[index].clone(), w.monitor.clone());
+	});
+        glib::ExitCode::SUCCESS
+	
     } else {
         let app = Application::builder().application_id(APP_ID).build();
         textdomain("waytrogen").unwrap();
