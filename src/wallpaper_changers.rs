@@ -3,28 +3,20 @@ use lazy_static::lazy_static;
 use log::debug;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::{
-    fmt::Display,
-    path::PathBuf,
-    process::{Command, ExitStatus},
-    str::FromStr,
-    thread,
-    time::Duration,
-};
+use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, thread, time::Duration};
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr, VariantArray};
 
 pub trait WallpaperChanger {
     fn change(self, image: PathBuf, monitor: String);
     fn accepted_formats(&self) -> Vec<String>;
-    fn kill(&self) -> anyhow::Result<ExitStatus>;
 }
 pub trait U32Enum {
     fn from_u32(i: u32) -> Self;
     fn to_u32(&self) -> u32;
 }
 
-#[derive(Debug, EnumIter, Clone, Default, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, EnumIter, Clone, Default, Serialize, Deserialize)]
 pub enum WallpaperChangers {
     #[default]
     Hyprpaper,
@@ -47,73 +39,52 @@ pub enum WallpaperChangers {
 }
 
 impl WallpaperChangers {
-    fn kill_process(process_name: &str) -> anyhow::Result<ExitStatus> {
-        Ok(Command::new("pkill")
-            .arg(process_name)
-            .spawn()?
-            .wait()?)
-    }
-    fn is_process_active(process_name: &str) -> bool {
-        Command::new("pidof")
-            .arg(process_name)
-            .spawn()
-            .unwrap()
-            .wait()
-            .unwrap()
-            .success()
-    }
-    fn get_active_changer() -> Option<WallpaperChangers> {
-        for changer in WallpaperChangers::iter() {
-            match changer {
-                WallpaperChangers::Hyprpaper => {
-                    if Self::is_process_active("hyprpaper") {
-                        return Some(Self::Hyprpaper);
+    pub fn killall_changers() {
+        thread::spawn(|| {
+            for changer in WallpaperChangers::iter() {
+                match changer {
+                    Self::Hyprpaper => {
+                        Command::new("pkill")
+                            .arg("hyprpaper")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
+                    }
+                    Self::Swaybg(_, _) => {
+                        Command::new("pkill")
+                            .arg("swaybg")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
+                    }
+                    Self::MpvPaper(_, _, _) => {
+                        Command::new("pkill")
+                            .arg("mpvpaper")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
+                    }
+                    Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+                        Command::new("pkill")
+                            .arg("swww-daemon")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
+                        Command::new("pkill")
+                            .arg("swww")
+                            .spawn()
+                            .unwrap()
+                            .wait()
+                            .unwrap();
                     }
                 }
-                WallpaperChangers::Swaybg(_, _) => {
-                    if Self::is_process_active("swaybg") {
-                        return Some(Self::Swaybg(SwaybgModes::default(), "FFFFFF".to_owned()));
-                    }
-                }
-                WallpaperChangers::MpvPaper(_, _, _) => {
-                    if Self::is_process_active("mpvpaper") {
-                        return Some(Self::MpvPaper(
-                            MpvPaperPauseModes::default(),
-                            MpvPaperSlideshowSettings::default(),
-                            "FFFFFF".to_owned(),
-                        ))
-                    }
-                }
-                WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
-                    if Self::is_process_active("swww-daemon") {
-                        return Some(Self::Swww(
-                            SWWWResizeMode::default(),
-                            RGB::default(),
-                            SWWWScallingFilter::default(),
-                            SWWWTransitionType::default(),
-                            u8::default(),
-                            u32::default(),
-                            u32::default(),
-                            u16::default(),
-                            SWWWTransitionPosition::default(),
-                            bool::default(),
-                            SWWWTransitionBezier::default(),
-                            SWWWTransitionWave::default(),
-                        ))
-                    }
-                }
-            };
-        }
-        None
+            }
+        });
     }
-
-    fn kill_all_changers() {
-	WallpaperChangers::iter().for_each(|c|  {c.kill().unwrap();});
-    }
-    fn kill_all_changers_except(changer: WallpaperChangers) {
-	WallpaperChangers::iter().for_each(|c|  {if changer != c {log::warn!("Killing {:#?}", c); c.kill().unwrap();}});
-    }
-    
     pub fn all_accepted_formats() -> Vec<String> {
         let mut accepted_formats = vec![];
         for changer in WallpaperChangers::iter() {
@@ -127,7 +98,7 @@ impl WallpaperChangers {
     }
 }
 
-#[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize)]
 pub enum SwaybgModes {
     Stretch,
     Fit,
@@ -138,7 +109,7 @@ pub enum SwaybgModes {
     SolidColor,
 }
 
-#[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize)]
 pub enum MpvPaperPauseModes {
     None,
     #[default]
@@ -146,13 +117,13 @@ pub enum MpvPaperPauseModes {
     AutoStop,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct MpvPaperSlideshowSettings {
     pub enable: bool,
     pub seconds: u32,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray, PartialEq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray)]
 pub enum SWWWResizeMode {
     No,
     #[default]
@@ -190,7 +161,7 @@ impl Display for SWWWResizeMode {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray, PartialEq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray)]
 pub enum SWWWScallingFilter {
     Nearest,
     Bilinear,
@@ -236,7 +207,7 @@ impl Display for SWWWScallingFilter {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray, PartialEq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray)]
 pub enum SWWWTransitionType {
     None,
     #[default]
@@ -318,7 +289,7 @@ impl Display for SWWWTransitionType {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct SWWWTransitionPosition {
     pub position: String,
 }
@@ -345,7 +316,7 @@ impl SWWWTransitionPosition {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SWWWTransitionBezier {
     pub p0: f64,
     pub p1: f64,
@@ -370,7 +341,7 @@ impl Default for SWWWTransitionBezier {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SWWWTransitionWave {
     pub width: u32,
     pub height: u32,
@@ -491,39 +462,41 @@ impl Display for MpvPaperPauseModes {
 
 impl WallpaperChanger for WallpaperChangers {
     fn change(self, image: PathBuf, monitor: String) {
-        thread::spawn(move || {
-	    // match Self::get_active_changer() {
-	    // 	Some(c) =>
-	    // 	    if self != c {
-	    // 		Self::kill_all_changers();
-	    // 	    },
-	    // 	None => {}
-    	    // }
-	    match self {
+	match self {
             Self::Hyprpaper => {
-		Self::kill_all_changers_except(WallpaperChangers::Hyprpaper);
                 debug!("Starting hyprpaper");
-		if !Self::is_process_active("hyprpaper") {
+		if !Command::new("pgrep").arg("hyprpaper").spawn().unwrap().wait().unwrap().success() {
                     Command::new("hyprpaper").spawn().unwrap();
 		}
-                Command::new("bash")
-                    .arg("-c")
-                    .arg("hyprctl hyprpaper unload all")
+                thread::sleep(Duration::from_millis(200));
+                Command::new("hyprctl")
+                    .arg("hyprpaper")
+                    .arg("unload")
+                    .arg("all")
                     .spawn()
-                    .unwrap().wait_with_output().unwrap();
-                Command::new("bash")
-                    .arg("-c")
-                    .arg(format!("hyprctl hyprpaper preload '{}'", image.to_str().unwrap_or_default()))
+                    .unwrap()
+                    .wait()
+                    .unwrap();
+                thread::sleep(Duration::from_millis(200));
+                Command::new("hyprctl")
+                    .arg("hyprpaper")
+                    .arg("preload")
+                    .arg(image.as_os_str())
                     .spawn()
-                    .unwrap().wait_with_output().unwrap();
-                Command::new("bash")
-                    .arg("-c")
-                    .arg(format!("hyprctl hyprpaper wallpaper '{monitor},{}'", image.to_str().unwrap_or_default()))
+                    .unwrap()
+                    .wait()
+                    .unwrap();
+                thread::sleep(Duration::from_millis(200));
+                Command::new("hyprctl")
+                    .arg("hyprpaper")
+                    .arg("wallpaper")
+                    .arg(format!("{},{}", monitor, image.to_str().unwrap()))
                     .spawn()
-                    .unwrap().wait_with_output().unwrap();
+                    .unwrap()
+                    .wait()
+                    .unwrap();
             }
             Self::Swaybg(mode, rgb) => {
-		Self::kill_all_changers_except(WallpaperChangers::Swaybg(SwaybgModes::default(), String::default()));
                 Command::new("swaybg")
                     .arg("-o")
                     .arg(monitor)
@@ -539,11 +512,9 @@ impl WallpaperChanger for WallpaperChangers {
                     .unwrap();
             }
             Self::MpvPaper(pause_mode, slideshow, mpv_options) => {
-		Self::kill_all_changers_except(WallpaperChangers::MpvPaper(MpvPaperPauseModes::default(), MpvPaperSlideshowSettings::default(), String::default()));
                 log::debug!("{}", image.display());
-		Command::new("mpvpaper").arg("--fork").spawn().unwrap().wait().unwrap();
                 let mut command = Command::new("mpvpaper");
-                command.arg("-o").arg(format!("{} input-ipc-server=/tmp/mpv-socket-{}", mpv_options, monitor));
+                command.arg("-o").arg(mpv_options);
                 match pause_mode {
                     MpvPaperPauseModes::None => {}
                     MpvPaperPauseModes::AutoPause => {
@@ -559,10 +530,10 @@ impl WallpaperChanger for WallpaperChangers {
                 command
                     .arg(monitor)
                     .arg(image)
-                    .arg("--fork")
                     .spawn()
                     .unwrap()
-                    .wait().unwrap();
+                    .wait()
+                    .unwrap();
             }
             Self::Swww(
                 resize_modes,
@@ -579,10 +550,7 @@ impl WallpaperChanger for WallpaperChangers {
                 transition_wave,
             ) => {
                 log::debug!("Starting swww daemon");
-		Self::kill_all_changers_except(Self::Swww(SWWWResizeMode::default(), RGB::default(), SWWWScallingFilter::default(), SWWWTransitionType::default(), u8::default(), u32::default(), u32::default(), u16::default(), SWWWTransitionPosition::default(), bool::default(), SWWWTransitionBezier::default(), SWWWTransitionWave::default()));
-		if !Self::is_process_active("swww-daemon") {
-                    Command::new("swww-daemon").spawn().unwrap().wait().unwrap();
-		}
+                Command::new("swww-daemon").spawn().unwrap().wait().unwrap();
                 let mut command = Command::new("swww");
                 command
                     .arg("img")
@@ -620,7 +588,7 @@ impl WallpaperChanger for WallpaperChangers {
                     .wait()
                     .unwrap();
             }
-        }});
+    }
     }
 
     fn accepted_formats(&self) -> Vec<String> {
@@ -982,16 +950,6 @@ impl WallpaperChanger for WallpaperChangers {
             }
         }
     }
-
-    fn kill(&self) -> anyhow::Result<ExitStatus>{
-        match self {
-            WallpaperChangers::Hyprpaper => Self::kill_process("hyprpaper"),
-            WallpaperChangers::Swaybg(_,_) => Self::kill_process("swaybg"),
-            WallpaperChangers::MpvPaper(_,_,_) => Self::kill_process("mpvpaper"),
-            WallpaperChangers::Swww(_,_,_,_,_,_,_,_,_,_,_,_) => Self::kill_process("swww-daemon"),
-        }
-    }
-    
 }
 
 lazy_static! {

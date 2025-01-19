@@ -42,6 +42,7 @@ fn main() -> glib::ExitCode {
 
     let settings = Settings::new(APP_ID);
     if args.restore {
+	WallpaperChangers::killall_changers();
         let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
             &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
         )
