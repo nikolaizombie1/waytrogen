@@ -1,5 +1,5 @@
 use clap::Parser;
-use gtk::Picture;
+use gtk::{Picture, Button, glib::SignalHandlerId};
 use image::ImageReader;
 use lazy_static::lazy_static;
 use mktemp::Temp;
@@ -12,6 +12,7 @@ use std::{
     process::Command,
     str::FromStr,
     time::UNIX_EPOCH,
+    cell::RefCell
 };
 
 use crate::wallpaper_changers::WallpaperChangers;
@@ -19,11 +20,12 @@ use gettextrs::*;
 
 pub const THUMBNAIL_HEIGHT: i32 = 200;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
+pub const APP_ID: &str = "org.Waytrogen.Waytrogen";
 
-#[derive(Clone)]
 pub struct GtkPictureFile {
     pub picture: Picture,
     pub chache_image_file: CacheImageFile,
+    pub button_signal_handler: RefCell<Option<SignalHandlerId>>
 }
 
 #[derive(Clone, Default, PartialEq)]
@@ -108,7 +110,7 @@ impl CacheImageFile {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
 pub struct RGB {
     pub red: f32,
     pub green: f32,
