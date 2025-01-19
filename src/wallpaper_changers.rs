@@ -462,12 +462,20 @@ impl Display for MpvPaperPauseModes {
 
 impl WallpaperChanger for WallpaperChangers {
     fn change(self, image: PathBuf, monitor: String) {
+        thread::spawn(move || {
 	match self {
             Self::Hyprpaper => {
                 debug!("Starting hyprpaper");
-		if !Command::new("pgrep").arg("hyprpaper").spawn().unwrap().wait().unwrap().success() {
+                if !Command::new("pgrep")
+                    .arg("hyprpaper")
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap()
+                    .success()
+                {
                     Command::new("hyprpaper").spawn().unwrap();
-		}
+                }
                 thread::sleep(Duration::from_millis(200));
                 Command::new("hyprctl")
                     .arg("hyprpaper")
@@ -588,7 +596,7 @@ impl WallpaperChanger for WallpaperChangers {
                     .wait()
                     .unwrap();
             }
-    }
+        }});
     }
 
     fn accepted_formats(&self) -> Vec<String> {
