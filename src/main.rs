@@ -2,6 +2,8 @@ use std::{
     cell::{Ref, RefCell},
     path::{Path, PathBuf},
     process::Command,
+    thread,
+    time::Duration
 };
 
 use async_channel::{Receiver, Sender};
@@ -50,9 +52,15 @@ fn main() -> glib::ExitCode {
         .unwrap();
         for wallpaper in previous_wallpapers {
             debug!("Restoring: {:?}", wallpaper);
-            wallpaper
+            wallpaper.clone()
                 .changer
-                .change(PathBuf::from(wallpaper.path), wallpaper.monitor);
+                .change(PathBuf::from(wallpaper.clone().path), wallpaper.clone().monitor);
+	    match wallpaper.clone().changer {
+		WallpaperChangers::Hyprpaper => {thread::sleep(Duration::from_millis(1000));},
+		WallpaperChangers::Swaybg(_,_) => {},
+		WallpaperChangers::MpvPaper(_,_,_) => {},
+		WallpaperChangers::Swww(_,_,_,_,_,_,_,_,_,_,_,_) => {},
+    	    }
         }
         glib::ExitCode::SUCCESS
     } else if args.list_current_wallpapers {
