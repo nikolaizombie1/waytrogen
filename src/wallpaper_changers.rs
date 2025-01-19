@@ -525,14 +525,14 @@ impl WallpaperChanger for WallpaperChangers {
             Self::Swaybg(mode, rgb) => {
 		Self::kill_all_changers_except(WallpaperChangers::Swaybg(SwaybgModes::default(), String::default()));
                 Command::new("swaybg")
-                    .arg("-c")
-                    .arg(rgb)
+                    .arg("-o")
+                    .arg(monitor)
                     .arg("-i")
                     .arg(image.to_str().unwrap())
                     .arg("-m")
                     .arg(mode.to_string())
-                    .arg("-o")
-                    .arg(monitor)
+                    .arg("-c")
+                    .arg(rgb)
                     .spawn()
                     .unwrap()
                     .wait()
