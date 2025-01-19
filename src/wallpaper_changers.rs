@@ -43,7 +43,7 @@ impl WallpaperChangers {
     pub fn killall_changers() {
         thread::spawn(|| {
             for changer in WallpaperChangers::iter() {
-		changer.kill();
+                changer.kill();
             }
         });
     }
@@ -71,11 +71,11 @@ impl WallpaperChangers {
                 SWWWTransitionWave::default(),
             ),
         };
-	WallpaperChangers::iter().for_each(|w| {
-	    if w != varient {
-		w.kill();
-	    }
-	});
+        WallpaperChangers::iter().for_each(|w| {
+            if w != varient {
+                w.kill();
+            }
+        });
     }
     pub fn all_accepted_formats() -> Vec<String> {
         let mut accepted_formats = vec![];
@@ -454,9 +454,8 @@ impl Display for MpvPaperPauseModes {
 
 impl WallpaperChanger for WallpaperChangers {
     fn change(self, image: PathBuf, monitor: String) {
-	Self::kill_all_changers_except(self.clone());
-        thread::spawn(move || 
-	    match self {
+        Self::kill_all_changers_except(self.clone());
+        thread::spawn(move || match self {
             Self::Hyprpaper => {
                 debug!("Starting hyprpaper");
                 if !Command::new("pgrep")

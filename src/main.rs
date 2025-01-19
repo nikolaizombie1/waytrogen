@@ -2,22 +2,24 @@ use std::{
     cell::{Ref, RefCell},
     path::{Path, PathBuf},
     process::Command,
+    thread,
+    time::Duration
 };
 
-use rand::Rng;
 use async_channel::{Receiver, Sender};
 use clap::Parser;
 use gtk::{
     self,
     gdk::{Display, Texture},
     gio::{spawn_blocking, Cancellable, ListStore, Settings},
-    glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes, SignalHandlerId},
+    glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
     Orientation, Picture, ProgressBar, ScrolledWindow, SignalListItemFactory, SingleSelection,
     StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
+use rand::Rng;
 use waytrogen::{
     common::{
         CacheImageFile, Cli, GtkPictureFile, Wallpaper, APP_ID, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH,
@@ -43,16 +45,22 @@ fn main() -> glib::ExitCode {
 
     let settings = Settings::new(APP_ID);
     if args.restore {
-	WallpaperChangers::killall_changers();
+        WallpaperChangers::killall_changers();
         let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
             &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
         )
         .unwrap();
         for wallpaper in previous_wallpapers {
             debug!("Restoring: {:?}", wallpaper);
-            wallpaper
+            wallpaper.clone()
                 .changer
-                .change(PathBuf::from(wallpaper.path), wallpaper.monitor);
+                .change(PathBuf::from(wallpaper.clone().path), wallpaper.clone().monitor);
+	    match wallpaper.clone().changer {
+		WallpaperChangers::Hyprpaper => {thread::sleep(Duration::from_millis(1000));},
+		WallpaperChangers::Swaybg(_,_) => {},
+		WallpaperChangers::MpvPaper(_,_,_) => {},
+		WallpaperChangers::Swww(_,_,_,_,_,_,_,_,_,_,_,_) => {},
+    	    }
         }
         glib::ExitCode::SUCCESS
     } else if args.list_current_wallpapers {
@@ -62,14 +70,16 @@ fn main() -> glib::ExitCode {
         );
         glib::ExitCode::SUCCESS
     } else if args.random {
-	WallpaperChangers::killall_changers();
+        WallpaperChangers::killall_changers();
         let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
             &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
         )
         .unwrap();
-	let wallpaper = previous_wallpapers[0].clone();
-	let path = Path::new(&wallpaper.path).parent().unwrap_or_else(|| Path::new(""));
-        let mut files = walkdir::WalkDir::new(path)
+        let wallpaper = previous_wallpapers[0].clone();
+        let path = Path::new(&wallpaper.path)
+            .parent()
+            .unwrap_or_else(|| Path::new(""));
+        let files = walkdir::WalkDir::new(path)
             .into_iter()
             .filter_map(|f| f.ok())
             .filter(|f| f.file_type().is_file())
@@ -84,14 +94,15 @@ fn main() -> glib::ExitCode {
                 })
             })
             .collect::<Vec<_>>();
-	previous_wallpapers.iter().for_each(|w| {
-	    let mut rng = rand::thread_rng();
-	    let index = rng.gen_range(0..files.len());
-	    log::debug!("{index}");
-	    w.changer.clone().change(files[index].clone(), w.monitor.clone());
-	});
+        previous_wallpapers.iter().for_each(|w| {
+            let mut rng = rand::thread_rng();
+            let index = rng.gen_range(0..files.len());
+            log::debug!("{index}");
+            w.changer
+                .clone()
+                .change(files[index].clone(), w.monitor.clone());
+        });
         glib::ExitCode::SUCCESS
-	
     } else {
         let app = Application::builder().application_id(APP_ID).build();
         textdomain("waytrogen").unwrap();
@@ -189,7 +200,7 @@ fn build_ui(app: &Application, args: Cli) {
         .margin_end(12)
         .halign(Align::End)
         .valign(Align::Center)
-        .label(&ngettext("Image Folder", "Images Folder", 2))
+        .label(ngettext("Image Folder", "Images Folder", 2))
         .build();
     let folder_path_buffer_copy = folder_path_buffer.clone();
     open_folder_button.connect_clicked(clone!(
@@ -360,16 +371,14 @@ fn build_ui(app: &Application, args: Cli) {
                             selected_changer
                                 .clone()
                                 .change(PathBuf::from(&path.clone()), selected_monitor.clone());
-                            if args.external_script != "".to_owned() {
-                                match Command::new(
-                                    args.external_script.clone()
-                                )
-                                .arg(selected_monitor)
-                                .arg(path)
-                                .arg(gschema_string_to_string(&gschema_string_to_string(
-                                    settings.string("saved-wallpapers").as_ref(),
-                                )))
-                                .spawn()
+                            if args.external_script != *"" {
+                                match Command::new(args.external_script.clone())
+                                    .arg(selected_monitor)
+                                    .arg(path)
+                                    .arg(gschema_string_to_string(&gschema_string_to_string(
+                                        settings.string("saved-wallpapers").as_ref(),
+                                    )))
+                                    .spawn()
                                 {
                                     Ok(_) => {
                                         log::debug!("External Script Executed Successfully")
@@ -399,7 +408,7 @@ fn build_ui(app: &Application, args: Cli) {
         .valign(Align::Center)
         .build();
     let invert_sort_switch_label = Text::builder()
-        .text(&gettext("Invert Sort"))
+        .text(gettext("Invert Sort"))
         .margin_start(3)
         .margin_top(12)
         .margin_bottom(12)

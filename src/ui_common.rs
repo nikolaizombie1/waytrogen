@@ -39,7 +39,7 @@ pub fn generate_image_files(
     spawn_blocking(move || {
         sender_changer_options
             .send_blocking(false)
-            .expect(&gettext("The channel must be open"));
+            .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
         let mut files = walkdir::WalkDir::new(path)
             .into_iter()
             .filter_map(|f| f.ok())
@@ -90,16 +90,16 @@ pub fn generate_image_files(
         for (index, file) in files.iter().enumerate() {
             sender_images_loading_progress_bar
                 .send_blocking((index as f64) / (files.len() as f64))
-                .expect(&gettext("The channel must be open"));
+                .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
             if let Ok(i) = DatabaseConnection::check_cache(file) {
                 sender_cache_images
                     .send_blocking(i)
-                    .expect(&gettext("The channel must be open"))
+                    .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
             }
         }
         sender_changer_options
             .send_blocking(true)
-            .expect(&gettext("The channel must be open"));
+            .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
     });
 }
 
@@ -225,7 +225,7 @@ pub fn generate_changer_bar(
                 .build();
             changer_specific_options_box.append(&pause_options_dropdown);
             let slideshow_enable_switch = Switch::builder()
-                .tooltip_text(&gettext("Enable slideshow for the current folder."))
+                .tooltip_text(gettext("Enable slideshow for the current folder."))
                 .has_tooltip(true)
                 .margin_top(12)
                 .margin_start(12)
@@ -239,7 +239,7 @@ pub fn generate_changer_bar(
                 .adjustment(&adjustment)
                 .numeric(true)
                 .has_tooltip(true)
-                .tooltip_text(&gettext("Slideshow change interval"))
+                .tooltip_text(gettext("Slideshow change interval"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -262,7 +262,7 @@ pub fn generate_changer_bar(
             let mpv_options = Entry::builder()
                 .placeholder_text("Additional mpv options")
                 .has_tooltip(true)
-                .tooltip_text(&gettext(
+                .tooltip_text(gettext(
                     "Additional command line options to be sent to mpv.",
                 ))
                 .margin_top(12)
@@ -383,7 +383,7 @@ pub fn generate_changer_bar(
             );
             changer_specific_options_box.append(&color_picker);
             let advanced_settings_window = Window::builder()
-                .title(&gettext("SWWW Advanced Image Settings"))
+                .title(gettext("SWWW Advanced Image Settings"))
                 .hide_on_close(true)
                 .build();
             let advanced_settings_button = Button::builder()
@@ -391,7 +391,7 @@ pub fn generate_changer_bar(
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-                .label(&gettext("Advanced Settings"))
+                .label(gettext("Advanced Settings"))
                 .halign(Align::Start)
                 .valign(Align::Center)
                 .build();
@@ -410,7 +410,7 @@ pub fn generate_changer_bar(
             advanced_settings_window.present();
             advanced_settings_window.set_child(Some(&advanced_settings_window_box));
             let filter_options_label = Label::builder()
-                .label(&gettext("Scalling filter"))
+                .label(gettext("Scalling filter"))
                 .halign(Align::Center)
                 .valign(Align::Center)
                 .margin_top(12)
@@ -435,7 +435,7 @@ pub fn generate_changer_bar(
                 .bind("swww-scaling-filter", &filter_dropdown, "selected")
                 .build();
             let transition_type_label = Label::builder()
-                .label(&gettext("Transition type"))
+                .label(gettext("Transition type"))
                 .halign(Align::Center)
                 .valign(Align::Center)
                 .margin_top(12)
@@ -478,7 +478,7 @@ pub fn generate_changer_bar(
             advanced_settings_window_box.append(&filter_and_transition_box);
 
             let transition_step_label = Label::builder()
-                .label(&gettext("Transition step"))
+                .label(gettext("Transition step"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -505,7 +505,7 @@ pub fn generate_changer_bar(
                 .build();
 
             let transition_duration_label = Label::builder()
-                .label(&gettext("Transition duration"))
+                .label(gettext("Transition duration"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -537,7 +537,7 @@ pub fn generate_changer_bar(
 
 
             let transition_angle_label = Label::builder()
-                .label(&gettext("Transition angle"))
+                .label(gettext("Transition angle"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -583,7 +583,7 @@ pub fn generate_changer_bar(
             advanced_settings_window_box.append(&transition_step_duration_angle_box);
 
             let transition_position_label = Label::builder()
-                .label(&gettext("Transition position"))
+                .label(gettext("Transition position"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -593,9 +593,9 @@ pub fn generate_changer_bar(
                 .build();
 
             let transition_position_entry = Entry::builder()
-                .placeholder_text(&gettext("Transition position"))
+                .placeholder_text(gettext("Transition position"))
                 .has_tooltip(true)
-                .tooltip_text(&gettext("Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."))
+                .tooltip_text(gettext("Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -614,7 +614,7 @@ pub fn generate_changer_bar(
                 .build();
 
             transition_position_entry.set_text(
-                &transition_position_entry_text_buffer.text(&transition_position_entry_text_buffer.start_iter(), &transition_position_entry_text_buffer.end_iter(), false).to_string()
+                transition_position_entry_text_buffer.text(&transition_position_entry_text_buffer.start_iter(), &transition_position_entry_text_buffer.end_iter(), false).as_ref()
             );
 
             transition_position_entry.connect_changed(move |e| {
@@ -623,7 +623,7 @@ pub fn generate_changer_bar(
             });
 
             let invert_y_label = Label::builder()
-                .label(&gettext("Invert Y"))
+                .label(gettext("Invert Y"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -633,7 +633,7 @@ pub fn generate_changer_bar(
                 .build();
 
             let invert_y_switch = Switch::builder()
-                .tooltip_text(&gettext("Invert y position in transition position flag"))
+                .tooltip_text(gettext("Invert y position in transition position flag"))
                 .has_tooltip(true)
                 .margin_top(12)
                 .margin_start(12)
@@ -646,7 +646,7 @@ pub fn generate_changer_bar(
             settings.bind("swww-invert-y", &invert_y_switch, "active").build();
 
             let transition_wave_label = Label::builder()
-                .label(&gettext("Transition wave"))
+                .label(gettext("Transition wave"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -705,7 +705,7 @@ pub fn generate_changer_bar(
             advanced_settings_window_box.append(&transition_position_invert_y_wave_box);
 
             let transition_bezier_label = Label::builder()
-                .label(&gettext("Transition bezier"))
+                .label(gettext("Transition bezier"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -775,7 +775,7 @@ pub fn generate_changer_bar(
                 .build();
 
             let transition_frames_per_second_label = Label::builder()
-                .label(&gettext("Transition FPS"))
+                .label(gettext("Transition FPS"))
                 .margin_top(12)
                 .margin_start(12)
                 .margin_bottom(12)
@@ -814,7 +814,7 @@ pub fn generate_changer_bar(
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-                .label(&gettext("Confirm"))
+                .label(gettext("Confirm"))
                 .halign(Align::End)
                 .valign(Align::Center)
                 .build();
@@ -824,7 +824,7 @@ pub fn generate_changer_bar(
                 .margin_start(12)
                 .margin_bottom(12)
                 .margin_end(12)
-                .label(&gettext("Restore Defaults"))
+                .label(gettext("Restore Defaults"))
                 .halign(Align::End)
                 .valign(Align::Center)
                 .build();
