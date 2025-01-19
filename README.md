@@ -15,12 +15,14 @@
 ---
 
 ## Features
-- Recursive file searching
-- Lightning fast file searching
-- Can load thousands of wallpapers with ease
+- Recursive file searching.
+- Lightning fast file searching.
+- Can load thousands of wallpapers with ease.
 - Fully supports `hyprpaper`, `swaybg`, `mpvpaper` and `swww`.
-- Responsive design
-- Supports images, GIFs and videos
+- Responsive design.
+- Supports images, GIFs and videos.
+- Supports external scripts when changing wallpapers.
+- Can list full wallpaper state in JSON format.
 
 ## Installation
 1. Install one or more of the following depending on what kind of wallpapers and desktop environment/window manager you are using:
@@ -39,7 +41,14 @@
 ## Usage
 The `waytrogen` command can be used the terminal to launch the application or be launched using an application launcher.
 
-The `waytrogen --restore` command can be used to restore previously set wallpapers.
+The `waytrogen --restore` or `waytrogen -r` command can be used to restore previously set wallpapers.
+
+The `waytrogen --list` or `waytrogen -l` command prints, to standard output, the current state of wallpaper changers in JSON format 
+
+The `waytrogen --external_script` or `waytrogen -e` command passes an external executable script to `waytrogen`. It executes after a wallpaper has changed and is passed the following arguments:
+1. The `monitor` that the wallpaper was set to.
+2. The `path` of the wallpaper.
+3. The `complete state` of the currently set wallpapers.
 
 ## Credits
 The logo shape is from [Inconify Tabler](https://icon-sets.iconify.design/tabler/) atom.
