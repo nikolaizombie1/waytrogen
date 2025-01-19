@@ -1,5 +1,5 @@
 use clap::Parser;
-use gtk::Picture;
+use gtk::{Picture, Button, glib::SignalHandlerId};
 use image::ImageReader;
 use lazy_static::lazy_static;
 use mktemp::Temp;
@@ -12,6 +12,8 @@ use std::{
     process::Command,
     str::FromStr,
     time::UNIX_EPOCH,
+    cell::RefCell,
+    os::unix::fs::PermissionsExt
 };
 
 use crate::wallpaper_changers::WallpaperChangers;
@@ -19,11 +21,12 @@ use gettextrs::*;
 
 pub const THUMBNAIL_HEIGHT: i32 = 200;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
+pub const APP_ID: &str = "org.Waytrogen.Waytrogen";
 
-#[derive(Clone)]
 pub struct GtkPictureFile {
     pub picture: Picture,
     pub chache_image_file: CacheImageFile,
+    pub button_signal_handler: RefCell<Option<SignalHandlerId>>
 }
 
 #[derive(Clone, Default, PartialEq)]
@@ -108,7 +111,7 @@ impl CacheImageFile {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
 pub struct RGB {
     pub red: f32,
     pub green: f32,
@@ -156,7 +159,7 @@ pub struct Wallpaper {
     pub changer: WallpaperChangers,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub struct Cli {
     #[arg(short, long)]
     /// Restore previously set wallpapers
@@ -164,4 +167,27 @@ pub struct Cli {
     #[arg(short, long, default_value_t = 0)]
     /// How many error, warning, info, debug or trace logs will be shown. 0 for error, 1 for warning, 2 for info, 3 for debug, 4 or higher for trace.
     pub verbosity: u8,
+    #[arg(short, long, default_value_t = false)]
+    /// Get the current wallpaper settings in JSON format.
+    pub list_current_wallpapers: bool,
+    #[arg(short, long, value_parser = parse_executable_script, default_value_t = ("".to_owned()))]
+    /// Path to external script.
+    pub external_script: String,
+    #[arg(long)]
+    /// Set random wallpapers based on last set changer.
+    pub random: bool
+}
+
+fn parse_executable_script(s: &str) -> anyhow::Result<String> {
+    if s == "" {
+	return Ok("".to_owned());
+    }
+    let path = s.parse::<PathBuf>()?;
+    if !path.metadata()?.is_file() {
+	return Err(anyhow::anyhow!("Input is not a file"));
+    }
+    if path.metadata()?.permissions().mode() & 0o111 == 0 {
+	return Err(anyhow::anyhow!("File is not executable"));
+    }
+    Ok(s.to_owned())
 }
