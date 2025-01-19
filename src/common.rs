@@ -1,19 +1,19 @@
 use clap::Parser;
-use gtk::{Picture, Button, glib::SignalHandlerId};
+use gtk::{glib::SignalHandlerId, Picture};
 use image::ImageReader;
 use lazy_static::lazy_static;
 use mktemp::Temp;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
+    cell::RefCell,
     fmt::Display,
     io::Cursor,
+    os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     process::Command,
     str::FromStr,
     time::UNIX_EPOCH,
-    cell::RefCell,
-    os::unix::fs::PermissionsExt
 };
 
 use crate::wallpaper_changers::WallpaperChangers;
@@ -26,7 +26,7 @@ pub const APP_ID: &str = "org.Waytrogen.Waytrogen";
 pub struct GtkPictureFile {
     pub picture: Picture,
     pub chache_image_file: CacheImageFile,
-    pub button_signal_handler: RefCell<Option<SignalHandlerId>>
+    pub button_signal_handler: RefCell<Option<SignalHandlerId>>,
 }
 
 #[derive(Clone, Default, PartialEq)]
@@ -170,24 +170,24 @@ pub struct Cli {
     #[arg(short, long, default_value_t = false)]
     /// Get the current wallpaper settings in JSON format.
     pub list_current_wallpapers: bool,
-    #[arg(short, long, value_parser = parse_executable_script, default_value_t = ("".to_owned()))]
+    #[arg(short, long, value_parser = parse_executable_script, default_value_t = String::from(""))]
     /// Path to external script.
     pub external_script: String,
     #[arg(long)]
     /// Set random wallpapers based on last set changer.
-    pub random: bool
+    pub random: bool,
 }
 
 fn parse_executable_script(s: &str) -> anyhow::Result<String> {
-    if s == "" {
-	return Ok("".to_owned());
+    if s.is_empty() {
+        return Ok("".to_owned());
     }
     let path = s.parse::<PathBuf>()?;
     if !path.metadata()?.is_file() {
-	return Err(anyhow::anyhow!("Input is not a file"));
+        return Err(anyhow::anyhow!("Input is not a file"));
     }
     if path.metadata()?.permissions().mode() & 0o111 == 0 {
-	return Err(anyhow::anyhow!("File is not executable"));
+        return Err(anyhow::anyhow!("File is not executable"));
     }
     Ok(s.to_owned())
 }
