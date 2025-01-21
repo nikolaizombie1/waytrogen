@@ -677,5 +677,6 @@ fn build_ui(app: &Application, args: Cli) {
         get_selected_changer(&wallpaper_changers_dropdown, &settings),
         settings,
     );
+    window.set_size_request(800, 800);
     window.set_child(Some(&application_box));
 }
