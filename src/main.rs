@@ -122,7 +122,7 @@ fn main() -> glib::ExitCode {
 fn build_ui(app: &Application, args: Cli) {
     let window = ApplicationWindow::builder()
         .application(app)
-        .title("Waytrogen")
+        .title("Watering")
         .build();
 
     window.present();
@@ -567,7 +567,6 @@ fn build_ui(app: &Application, args: Cli) {
             let path = f.text(&f.start_iter(), &f.end_iter(), false).to_string();
             image_list_store.remove_all();
             let state = invert_sort_switch.state();
-            changer_options_box.set_sensitive(false);
             let sender_images_loading_progress_bar_copy =
                 sender_images_loading_progress_bar_copy.clone();
             spawn_blocking(clone!(
@@ -639,11 +638,19 @@ fn build_ui(app: &Application, args: Cli) {
         images_loading_progress_bar,
         #[weak]
         image_grid,
+	#[weak]
+	changer_specific_options_box,
         async move {
             while let Ok(b) = receiver_changer_options_bar.recv().await {
                 debug!("{}", gettext("Finished loading images"));
-                changer_options_box.set_sensitive(b);
                 images_loading_progress_bar.set_visible(!b);
+		monitors_dropdown.set_sensitive(b);
+		sort_dropdown.set_sensitive(b);
+		invert_sort_switch.set_sensitive(b);
+		invert_sort_switch_label.set_sensitive(b);
+		wallpaper_changers_dropdown.set_sensitive(b);
+		changer_specific_options_box.set_sensitive(b);
+		
                 image_grid.set_sensitive(b);
                 if b {
                     debug!("{}", gettext("Hiding unsupported images"));
@@ -670,5 +677,6 @@ fn build_ui(app: &Application, args: Cli) {
         get_selected_changer(&wallpaper_changers_dropdown, &settings),
         settings,
     );
+    window.set_size_request(800, 800);
     window.set_child(Some(&application_box));
 }
