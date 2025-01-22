@@ -950,13 +950,15 @@ impl WallpaperChanger for WallpaperChangers {
     }
     fn kill(&self) {
         match self {
-            Self::Hyprpaper => Command::new("killall")
+            Self::Hyprpaper => Command::new("pkill")
+                .arg("-9")
                 .arg("hyprpaper")
                 .spawn()
                 .unwrap()
                 .wait()
                 .unwrap(),
-            Self::Swaybg(_, _) => Command::new("killall")
+            Self::Swaybg(_, _) => Command::new("pkill")
+                .arg("-9")
                 .arg("swaybg")
                 .spawn()
                 .unwrap()
@@ -968,7 +970,8 @@ impl WallpaperChanger for WallpaperChangers {
                 .unwrap()
                 .wait()
                 .unwrap(),
-            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => Command::new("killall")
+            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => Command::new("pkill")
+                .arg("-9")
                 .arg("swww-daemon")
                 .spawn()
                 .unwrap()
