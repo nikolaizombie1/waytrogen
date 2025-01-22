@@ -41,11 +41,9 @@ pub enum WallpaperChangers {
 
 impl WallpaperChangers {
     pub fn killall_changers() {
-        thread::spawn(|| {
             for changer in WallpaperChangers::iter() {
                 changer.kill();
             }
-        });
     }
     fn kill_all_changers_except(changer: WallpaperChangers) {
         let varient = match changer {
@@ -952,13 +950,13 @@ impl WallpaperChanger for WallpaperChangers {
     }
     fn kill(&self) {
         match self {
-            Self::Hyprpaper => Command::new("pkill")
+            Self::Hyprpaper => Command::new("killall")
                 .arg("hyprpaper")
                 .spawn()
                 .unwrap()
                 .wait()
                 .unwrap(),
-            Self::Swaybg(_, _) => Command::new("pkill")
+            Self::Swaybg(_, _) => Command::new("killall")
                 .arg("swaybg")
                 .spawn()
                 .unwrap()
@@ -970,7 +968,7 @@ impl WallpaperChanger for WallpaperChangers {
                 .unwrap()
                 .wait()
                 .unwrap(),
-            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => Command::new("pkill")
+            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => Command::new("killall")
                 .arg("swww-daemon")
                 .spawn()
                 .unwrap()

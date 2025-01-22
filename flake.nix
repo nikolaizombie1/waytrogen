@@ -27,6 +27,7 @@
             sqlite
             openssl
             gsettings-desktop-schemas
+            killall
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };
@@ -67,6 +68,7 @@
             sqlite
             openssl
             gsettings-desktop-schemas
+            killall
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };
