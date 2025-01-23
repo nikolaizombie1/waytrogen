@@ -31,13 +31,15 @@
             gsettings-desktop-schemas
           ];
 
+
           env = { OPENSSL_NO_VENDOR = 1; };
 
           postInstall = ''
             mkdir -p $out/share/glib-2.0/schemas && cp org.Waytrogen.Waytrogen.gschema.xml $out/share/glib-2.0/schemas/
             glib-compile-schemas $out/share/glib-2.0/schemas
-            mkdir -p $out/share/locale/en/LC_MESSAGES && msgfmt locales/en/LC_MESSAGES/waytrogen.po -o waytrogen.mo && cp locales/en/LC_MESSAGES/waytrogen.mo $out/share/locale/en/LC_MESSAGES
-            mkdir -p $out/share/locale/es/LC_MESSAGES && msgfmt locales/es/LC_MESSAGES/waytrogen.po -o waytrogen.mo && cp locales/es/LC_MESSAGES/waytrogen.mo $out/share/locale/es/LC_MESSAGES
+            while IFS= read -r lang; do
+                  mkdir -p $out/share/locale/$lang/LC_MESSAGES && msgfmt locales/$lang/LC_MESSAGES/waytrogen.po -o locales/$lang/LC_MESSAGES/waytrogen.mo && cp locales/$lang/LC_MESSAGES/waytrogen.mo $out/share/locale/$lang/LC_MESSAGES
+            done < locales/LINGUAS
             mkdir -p $out/share/applications && cp waytrogen.desktop $out/share/applications/
             mkdir -p $out/share/icons/hicolor/scalable/apps && cp README-Assets/WaytrogenLogo.svg $out/share/icons/hicolor/scalable/apps/waytrogen.svg
           '';
@@ -52,6 +54,7 @@
 
         devShell = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
+            glibcLocales
             pkg-config
             glib
             wrapGAppsHook4
@@ -71,6 +74,8 @@
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };
+
+          LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
         };
       });
 }
