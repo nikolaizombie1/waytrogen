@@ -560,8 +560,6 @@ fn build_ui(app: &Application, args: Cli) {
         image_list_store,
         #[weak]
         invert_sort_switch,
-        #[weak]
-        changer_options_box,
         #[strong]
         sender_enable_changer_options_bar,
         move |f| {
@@ -625,8 +623,6 @@ fn build_ui(app: &Application, args: Cli) {
     spawn_future_local(clone!(
         #[strong]
         receiver_changer_options_bar,
-        #[weak]
-        changer_options_box,
         #[weak]
         image_list_store,
         #[weak]

@@ -464,7 +464,7 @@ impl WallpaperChanger for WallpaperChangers {
                     .unwrap()
                     .success()
                 {
-                    Command::new("hyprpaper").spawn().unwrap();
+                    Command::new("hyprpaper").spawn().unwrap().wait().unwrap();
                 }
                 thread::sleep(Duration::from_millis(200));
                 Command::new("hyprctl")
