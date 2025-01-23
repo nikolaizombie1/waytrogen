@@ -260,7 +260,7 @@ pub fn generate_changer_bar(
                 .bind("mpvpaper-slideshow-interval", &spin_button, "value")
                 .build();
             let mpv_options = Entry::builder()
-                .placeholder_text("Additional mpv options")
+                .placeholder_text(gettext("Additional mpv options"))
                 .has_tooltip(true)
                 .tooltip_text(gettext(
                     "Additional command line options to be sent to mpv.",

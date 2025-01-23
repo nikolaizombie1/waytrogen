@@ -1,6 +1,6 @@
 [package]
 name = "waytrogen"
-version = "0.5.0"
+version = "0.6.3"
 edition = "2021"
 description = "A GTK graphical user interface for changing your wallpapers on Wayland based compositors."
 license = "Unlicense"
@@ -20,7 +20,6 @@ xdg = "2.5.2"
 stderrlog = "0.6.0"
 log = "0.4.22"
 image = "0.25.5"
-sysinfo = "0.33.1"
 async-channel = "2.3.1"
 which = "7.0.1"
 strum = "0.26.3"
@@ -34,3 +33,4 @@ clap = { version = "4.5.23", features = ["derive"] }
 mktemp = "0.5.1"
 gettext-rs = { version = "0.7.2", features = ["gettext-system"] }
 rand = "0.8.5"
+fuzzy-matcher = "*"

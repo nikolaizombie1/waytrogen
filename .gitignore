@@ -77,3 +77,4 @@ flycheck_*.el
 .direnv/*
 .vscode/*
 result
+*.mo

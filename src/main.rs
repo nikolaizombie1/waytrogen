@@ -160,7 +160,7 @@ fn build_ui(app: &Application, args: Cli) {
         )
         .to_string();
 
-    log::trace!("Wallpaper Folder: {}", path);
+    log::trace!("{}: {}", gettext("Wallpaper Folder"), path);
 
     let (sender_cache_images, receiver_cache_images): (
         Sender<CacheImageFile>,
