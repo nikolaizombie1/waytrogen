@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
     thread,
-    time::Duration
+    time::Duration,
 };
 
 use async_channel::{Receiver, Sender};
@@ -52,15 +52,18 @@ fn main() -> glib::ExitCode {
         .unwrap();
         for wallpaper in previous_wallpapers {
             debug!("Restoring: {:?}", wallpaper);
-            wallpaper.clone()
-                .changer
-                .change(PathBuf::from(wallpaper.clone().path), wallpaper.clone().monitor);
-	    match wallpaper.clone().changer {
-		WallpaperChangers::Hyprpaper => {thread::sleep(Duration::from_millis(1000));},
-		WallpaperChangers::Swaybg(_,_) => {},
-		WallpaperChangers::MpvPaper(_,_,_) => {},
-		WallpaperChangers::Swww(_,_,_,_,_,_,_,_,_,_,_,_) => {},
-    	    }
+            wallpaper.clone().changer.change(
+                PathBuf::from(wallpaper.clone().path),
+                wallpaper.clone().monitor,
+            );
+            match wallpaper.clone().changer {
+                WallpaperChangers::Hyprpaper => {
+                    thread::sleep(Duration::from_millis(1000));
+                }
+                WallpaperChangers::Swaybg(_, _) => {}
+                WallpaperChangers::MpvPaper(_, _, _) => {}
+                WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {}
+            }
         }
         glib::ExitCode::SUCCESS
     } else if args.list_current_wallpapers {
@@ -638,19 +641,19 @@ fn build_ui(app: &Application, args: Cli) {
         images_loading_progress_bar,
         #[weak]
         image_grid,
-	#[weak]
-	changer_specific_options_box,
+        #[weak]
+        changer_specific_options_box,
         async move {
             while let Ok(b) = receiver_changer_options_bar.recv().await {
                 debug!("{}", gettext("Finished loading images"));
                 images_loading_progress_bar.set_visible(!b);
-		monitors_dropdown.set_sensitive(b);
-		sort_dropdown.set_sensitive(b);
-		invert_sort_switch.set_sensitive(b);
-		invert_sort_switch_label.set_sensitive(b);
-		wallpaper_changers_dropdown.set_sensitive(b);
-		changer_specific_options_box.set_sensitive(b);
-		
+                monitors_dropdown.set_sensitive(b);
+                sort_dropdown.set_sensitive(b);
+                invert_sort_switch.set_sensitive(b);
+                invert_sort_switch_label.set_sensitive(b);
+                wallpaper_changers_dropdown.set_sensitive(b);
+                changer_specific_options_box.set_sensitive(b);
+
                 image_grid.set_sensitive(b);
                 if b {
                     debug!("{}", gettext("Hiding unsupported images"));

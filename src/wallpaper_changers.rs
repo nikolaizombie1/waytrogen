@@ -41,9 +41,9 @@ pub enum WallpaperChangers {
 
 impl WallpaperChangers {
     pub fn killall_changers() {
-            for changer in WallpaperChangers::iter() {
-                changer.kill();
-            }
+        for changer in WallpaperChangers::iter() {
+            changer.kill();
+        }
     }
     fn kill_all_changers_except(changer: WallpaperChangers) {
         let varient = match changer {
