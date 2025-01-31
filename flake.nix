@@ -35,13 +35,14 @@
           env = { OPENSSL_NO_VENDOR = 1; };
 
           postInstall = ''
-            mkdir -p $out/share/glib-2.0/schemas && cp org.Waytrogen.Waytrogen.gschema.xml $out/share/glib-2.0/schemas/
-            glib-compile-schemas $out/share/glib-2.0/schemas
-            while IFS= read -r lang; do
-                  mkdir -p $out/share/locale/$lang/LC_MESSAGES && msgfmt locales/$lang/LC_MESSAGES/waytrogen.po -o locales/$lang/LC_MESSAGES/waytrogen.mo && cp locales/$lang/LC_MESSAGES/waytrogen.mo $out/share/locale/$lang/LC_MESSAGES
-            done < locales/LINGUAS
-            mkdir -p $out/share/applications && cp waytrogen.desktop $out/share/applications/
-            mkdir -p $out/share/icons/hicolor/scalable/apps && cp README-Assets/WaytrogenLogo.svg $out/share/icons/hicolor/scalable/apps/waytrogen.svg
+          install -Dm644 org.Waytrogen.Waytrogen.gschema.xml -t $out/share/gsettings-schemas/$name/glib-2.0/schemas
+          glib-compile-schemas $out/share/gsettings-schemas/$name/glib-2.0/schemas
+          install -Dm644 waytrogen.desktop $out/share/applications/waytrogen.desktop
+          install -Dm644 README-Assets/WaytrogenLogo.svg $out/share/icons/hicolor/scalable/apps/waytrogen.svg
+          while IFS= read -r lang; do
+                mkdir -p $out/share/locale/$lang/LC_MESSAGES
+                msgfmt locales/$lang/LC_MESSAGES/waytrogen.po -o $out/share/locale/$lang/LC_MESSAGES/waytrogen.mo
+          done < locales/LINGUAS
           '';
 
           meta = {
