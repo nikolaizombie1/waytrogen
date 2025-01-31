@@ -159,6 +159,8 @@ pub struct Wallpaper {
     pub changer: WallpaperChangers,
 }
 
+pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[derive(Parser, Clone)]
 pub struct Cli {
     #[arg(short, long)]
@@ -166,7 +168,7 @@ pub struct Cli {
     pub restore: bool,
     #[arg(short, long, default_value_t = 0)]
     /// How many error, warning, info, debug or trace logs will be shown. 0 for error, 1 for warning, 2 for info, 3 for debug, 4 or higher for trace.
-    pub verbosity: u8,
+    pub log_level: u8,
     #[arg(short, long, default_value_t = false)]
     /// Get the current wallpaper settings in JSON format.
     pub list_current_wallpapers: bool,
@@ -176,6 +178,9 @@ pub struct Cli {
     #[arg(long)]
     /// Set random wallpapers based on last set changer.
     pub random: bool,
+    #[arg(short, long)]
+    /// Get application version
+    pub version: bool,
 }
 
 fn parse_executable_script(s: &str) -> anyhow::Result<String> {

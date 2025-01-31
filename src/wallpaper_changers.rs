@@ -464,7 +464,7 @@ impl WallpaperChanger for WallpaperChangers {
                     .unwrap()
                     .success()
                 {
-		    #[allow(clippy::zombie_processes)]
+                    #[allow(clippy::zombie_processes)]
                     Command::new("hyprpaper").spawn().unwrap();
                 }
                 thread::sleep(Duration::from_millis(200));

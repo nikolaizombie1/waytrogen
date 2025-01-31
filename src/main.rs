@@ -22,7 +22,8 @@ use log::debug;
 use rand::Rng;
 use waytrogen::{
     common::{
-        CacheImageFile, Cli, GtkPictureFile, Wallpaper, APP_ID, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH,
+        CacheImageFile, Cli, GtkPictureFile, Wallpaper, APP_ID, APP_VERSION, THUMBNAIL_HEIGHT,
+        THUMBNAIL_WIDTH,
     },
     ui_common::{
         change_image_button_handlers, generate_changer_bar, generate_image_files,
@@ -38,7 +39,7 @@ fn main() -> glib::ExitCode {
     let args = Cli::parse();
     stderrlog::new()
         .module(module_path!())
-        .verbosity(args.verbosity as usize)
+        .verbosity(args.log_level as usize)
         .init()
         .unwrap();
     // Create a new application
@@ -106,11 +107,27 @@ fn main() -> glib::ExitCode {
                 .change(files[index].clone(), w.monitor.clone());
         });
         glib::ExitCode::SUCCESS
+    } else if args.version {
+        println!("{}", APP_VERSION);
+        glib::ExitCode::SUCCESS
     } else {
         let app = Application::builder().application_id(APP_ID).build();
         textdomain("waytrogen").unwrap();
         bind_textdomain_codeset("waytrogen", "UTF-8").unwrap();
-        bindtextdomain("waytrogen", "/usr/share/locale/").unwrap();
+        const GETTEXT_DOMAIN: &str = "waytrogen";
+        let uname_output =
+            String::from_utf8(Command::new("uname").arg("-a").output().unwrap().stdout).unwrap();
+        let domain_directory = match uname_output.to_lowercase().contains("nixos") {
+            true => {
+                let folder = std::env::args().collect::<Vec<_>>()[0].clone();
+                let folder = folder.parse::<PathBuf>().unwrap();
+                let folder = folder.parent().unwrap();
+                let folder = folder.parent().unwrap().join("share").join("locale");
+                folder
+            }
+            false => getters::domain_directory(GETTEXT_DOMAIN).unwrap(),
+        };
+        bindtextdomain(GETTEXT_DOMAIN, domain_directory).unwrap();
 
         app.connect_activate(move |app| {
             build_ui(app, args.clone());
