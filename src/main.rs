@@ -11,12 +11,12 @@ use clap::Parser;
 use gtk::{
     self,
     gdk::{Display, Texture},
-    gio::{spawn_blocking, Cancellable, ListStore, Settings},
+    gio::{spawn_blocking, Cancellable, ListStore, Menu, Settings},
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
-    Orientation, Picture, ProgressBar, ScrolledWindow, SignalListItemFactory, SingleSelection,
-    StringObject, Switch, Text, TextBuffer,
+    MenuButton, Orientation, Picture, PopoverMenu, ProgressBar, ScrolledWindow,
+    SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer, Popover
 };
 use log::debug;
 use rand::Rng;
@@ -302,6 +302,11 @@ fn build_ui(app: &Application, args: Cli) {
 
     wallpaper_changers_dropdown.set_halign(Align::End);
     wallpaper_changers_dropdown.set_halign(Align::Center);
+    wallpaper_changers_dropdown.set_margin_top(12);
+    wallpaper_changers_dropdown.set_margin_start(12);
+    wallpaper_changers_dropdown.set_margin_bottom(12);
+    wallpaper_changers_dropdown.set_margin_end(12);
+    
 
     let previous_wallpapers_text_buffer = TextBuffer::builder().build();
     settings
@@ -438,7 +443,7 @@ fn build_ui(app: &Application, args: Cli) {
         .build();
 
     sort_dropdown.connect_selected_notify(clone!(
-        #[weak]
+        #[strong]
         invert_sort_switch,
         #[weak]
         image_list_store,
@@ -473,7 +478,7 @@ fn build_ui(app: &Application, args: Cli) {
         settings,
         #[weak]
         sort_dropdown,
-        #[weak]
+        #[strong]
         invert_sort_switch,
         move |_| {
             change_image_button_handlers(
@@ -538,6 +543,24 @@ fn build_ui(app: &Application, args: Cli) {
         .bind("changer", &wallpaper_changers_dropdown, "selected")
         .build();
 
+    let options_box = Box::builder().orientation(Orientation::Vertical).build();
+    let sort_invert_box = Box::builder().orientation(Orientation::Horizontal).build();
+    sort_invert_box.append(&invert_sort_switch_label);
+    sort_invert_box.append(&invert_sort_switch);
+    options_box.append(&sort_invert_box);
+
+    let options_popover_menu = Popover::builder().margin_top(12).margin_start(12).margin_bottom(12).margin_end(12).child(&options_box).build();
+    let options_menu_button = MenuButton::builder()
+        .popover(&options_popover_menu)
+        .halign(Align::Start)
+        .valign(Align::Center)
+        .margin_start(12)
+        .margin_top(12)
+        .margin_bottom(12)
+        .margin_end(12)
+        .label("Options")
+        .build();
+
     let changer_options_box = Box::builder()
         .margin_top(12)
         .margin_start(12)
@@ -552,8 +575,7 @@ fn build_ui(app: &Application, args: Cli) {
     changer_options_box.append(&monitors_dropdown);
     changer_options_box.append(&open_folder_button);
     changer_options_box.append(&sort_dropdown);
-    changer_options_box.append(&invert_sort_switch);
-    changer_options_box.append(&invert_sort_switch_label);
+    changer_options_box.append(&options_menu_button);
     changer_options_box.append(&wallpaper_changers_dropdown);
     changer_options_box.append(&changer_specific_options_box);
 
@@ -575,7 +597,7 @@ fn build_ui(app: &Application, args: Cli) {
     folder_path_buffer.connect_changed(clone!(
         #[weak]
         image_list_store,
-        #[weak]
+        #[strong]
         invert_sort_switch,
         #[strong]
         sender_enable_changer_options_bar,
