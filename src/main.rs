@@ -125,7 +125,7 @@ fn main() -> glib::ExitCode {
                 // the path is known at compile time when using nix to build waytrogen
                 {
                     let path = env!("OUT_PATH").parse::<PathBuf>().unwrap();
-                    path.join("share").join("local")                    
+                    path.join("share").join("locale")                    
                 }
 
                 #[cfg(not(feature = "nixos"))]
