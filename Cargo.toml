@@ -34,3 +34,6 @@ mktemp = "0.5.1"
 gettext-rs = { version = "0.7.2", features = ["gettext-system"] }
 rand = "0.8.5"
 fuzzy-matcher = "*"
+
+[features]
+nixos = []

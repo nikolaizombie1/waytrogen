@@ -1,5 +1,8 @@
 use std::{
     cell::{Ref, RefCell},
+    env::{self, current_exe},
+    fs::File,
+    io::{self, BufRead},
     path::{Path, PathBuf},
     process::Command,
     thread,
@@ -15,8 +18,8 @@ use gtk::{
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
-    MenuButton, Orientation, Picture, PopoverMenu, ProgressBar, ScrolledWindow,
-    SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer, Popover
+    MenuButton, Orientation, Picture, Popover, PopoverMenu, ProgressBar, ScrolledWindow,
+    SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
 use rand::Rng;
@@ -115,17 +118,31 @@ fn main() -> glib::ExitCode {
         textdomain("waytrogen").unwrap();
         bind_textdomain_codeset("waytrogen", "UTF-8").unwrap();
         const GETTEXT_DOMAIN: &str = "waytrogen";
-        let uname_output =
-            String::from_utf8(Command::new("uname").arg("-a").output().unwrap().stdout).unwrap();
-        let domain_directory = match uname_output.to_lowercase().contains("nixos") {
-            true => {
-                let folder = std::env::args().collect::<Vec<_>>()[0].clone();
-                let folder = folder.parse::<PathBuf>().unwrap();
-                let folder = folder.parent().unwrap();
-                let folder = folder.parent().unwrap().join("share").join("locale");
-                folder
+        let os_id = get_os_id().unwrap().unwrap_or_default();
+        let domain_directory = match os_id.as_str() {
+            "nixos" => {
+                #[cfg(feature = "nixos")]
+                // the path is known at compile time when using nix to build waytrogen
+                {
+                    let path = env!("OUT_PATH").parse::<PathBuf>().unwrap();
+                    path.join("share").join("local")                    
+                }
+
+                #[cfg(not(feature = "nixos"))]
+                {
+                    let exe_path = current_exe().unwrap();
+                    exe_path
+                        .parent()
+                        .unwrap()
+                        .parent()
+                        .unwrap()
+                        .parent()
+                        .unwrap()
+                        .join("share")
+                        .join("locale")
+                }
             }
-            false => getters::domain_directory(GETTEXT_DOMAIN).unwrap(),
+            _ => getters::domain_directory(GETTEXT_DOMAIN).unwrap(),
         };
         bindtextdomain(GETTEXT_DOMAIN, domain_directory).unwrap();
 
@@ -306,7 +323,6 @@ fn build_ui(app: &Application, args: Cli) {
     wallpaper_changers_dropdown.set_margin_start(12);
     wallpaper_changers_dropdown.set_margin_bottom(12);
     wallpaper_changers_dropdown.set_margin_end(12);
-    
 
     let previous_wallpapers_text_buffer = TextBuffer::builder().build();
     settings
@@ -549,7 +565,13 @@ fn build_ui(app: &Application, args: Cli) {
     sort_invert_box.append(&invert_sort_switch);
     options_box.append(&sort_invert_box);
 
-    let options_popover_menu = Popover::builder().margin_top(12).margin_start(12).margin_bottom(12).margin_end(12).child(&options_box).build();
+    let options_popover_menu = Popover::builder()
+        .margin_top(12)
+        .margin_start(12)
+        .margin_bottom(12)
+        .margin_end(12)
+        .child(&options_box)
+        .build();
     let options_menu_button = MenuButton::builder()
         .popover(&options_popover_menu)
         .halign(Align::Start)
@@ -717,4 +739,20 @@ fn build_ui(app: &Application, args: Cli) {
     );
     window.set_default_size(1024, 600);
     window.set_child(Some(&application_box));
+}
+
+/// os id is the ID="nixos" parameter in `/etc/os-release`
+/// If ID parameter is not found this returns None
+fn get_os_id() -> io::Result<Option<String>> {
+    let file = File::open("/etc/os-release")?;
+    let reader = io::BufReader::new(file);
+
+    for line in reader.lines() {
+        let line = line?;
+        if line.starts_with("ID=") {
+            let id = line[3..].trim_matches('"');
+            return Ok(Some(id.to_string()));
+        }
+    }
+    Ok(None)
 }

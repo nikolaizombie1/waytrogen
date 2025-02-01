@@ -15,6 +15,7 @@
         packages = rec {
           waytrogen = naersk'.buildPackage {
             src = ./.;
+
             nativeBuildInputs = with pkgs; [
               pkg-config
               glib
@@ -30,6 +31,9 @@
               openssl
               gsettings-desktop-schemas
             ];
+
+            preBuild = "export OUT_PATH=$out";
+            cargoBuildOptions = p: p ++ [ "--features nixos" ];
 
             env = { OPENSSL_NO_VENDOR = 1; };
 
