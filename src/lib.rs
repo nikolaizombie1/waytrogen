@@ -1,4 +1,11 @@
+pub mod cli;
 pub mod common;
 pub mod database;
+pub mod fs;
+pub mod hyprpaper;
+pub mod main_window;
+pub mod mpvpaper;
+pub mod swaybg;
+pub mod swww;
 pub mod ui_common;
 pub mod wallpaper_changers;

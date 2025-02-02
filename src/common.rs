@@ -17,11 +17,12 @@ use std::{
 };
 
 use crate::wallpaper_changers::WallpaperChangers;
-use gettextrs::*;
+use gettextrs::gettext;
 
 pub const THUMBNAIL_HEIGHT: i32 = 200;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
 pub const APP_ID: &str = "org.Waytrogen.Waytrogen";
+pub const GETTEXT_DOMAIN: &str = "waytrogen";
 
 pub struct GtkPictureFile {
     pub picture: Picture,
@@ -117,6 +118,7 @@ pub struct RGB {
     pub green: f32,
     pub blue: f32,
 }
+
 impl Display for RGB {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -140,11 +142,11 @@ impl FromStr for RGB {
         if rgb_regex.is_match(s) {
             let s = s.to_lowercase().chars().collect::<Vec<_>>();
             let red = hex::decode(s[0..=1].iter().collect::<String>()).unwrap();
-            let red = (red[0] as f32) / 255.0;
+            let red = f32::from(red[0]) / 255.0;
             let green = hex::decode(s[2..=3].iter().collect::<String>()).unwrap();
-            let green = (green[0] as f32) / 255.0;
+            let green = f32::from(green[0]) / 255.0;
             let blue = hex::decode(s[4..=5].iter().collect::<String>()).unwrap();
-            let blue = (blue[0] as f32) / 255.0;
+            let blue = f32::from(blue[0]) / 255.0;
             Ok(Self { red, green, blue })
         } else {
             Err(gettext("Invalid string"))
@@ -185,7 +187,7 @@ pub struct Cli {
 
 fn parse_executable_script(s: &str) -> anyhow::Result<String> {
     if s.is_empty() {
-        return Ok("".to_owned());
+        return Ok(String::new());
     }
     let path = s.parse::<PathBuf>()?;
     if !path.metadata()?.is_file() {

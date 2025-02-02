@@ -1,5 +1,5 @@
 use crate::common::CacheImageFile;
-use gettextrs::*;
+use gettextrs::gettext;
 use log::{debug, trace, warn};
 use sqlite::{Connection, Value};
 use std::path::Path;
