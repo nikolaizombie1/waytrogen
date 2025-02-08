@@ -1,9 +1,10 @@
 use crate::{
     common::{Wallpaper, APP_ID, APP_VERSION, GETTEXT_DOMAIN},
     main_window::build_ui,
-    ui_common::gschema_string_to_string,
+    ui_common::{get_available_monitors, gschema_string_to_string, SORT_DROPDOWN_STRINGS},
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
+use anyhow::anyhow;
 use clap::Parser;
 use gettextrs::{bind_textdomain_codeset, bindtextdomain, getters, textdomain};
 use gtk::{gio::Settings, glib, prelude::*, Application};
@@ -55,13 +56,16 @@ pub fn print_wallpaper_state() -> glib::ExitCode {
     glib::ExitCode::SUCCESS
 }
 
-pub fn set_random_wallpapers() -> glib::ExitCode {
-    let settings = Settings::new(APP_ID);
-    WallpaperChangers::killall_changers();
+fn get_previous_wallpapers(settings: &Settings) -> Vec<Wallpaper> {
     let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(&gschema_string_to_string(
         settings.string("saved-wallpapers").as_ref(),
     ))
     .unwrap();
+    previous_wallpapers
+}
+
+fn get_previous_supported_wallpapers(settings: &Settings) -> Vec<PathBuf> {
+    let previous_wallpapers = get_previous_wallpapers(settings);
     let wallpaper = previous_wallpapers[0].clone();
     let path = Path::new(&wallpaper.path)
         .parent()
@@ -86,6 +90,14 @@ pub fn set_random_wallpapers() -> glib::ExitCode {
                 })
         })
         .collect::<Vec<_>>();
+    files
+}
+
+pub fn set_random_wallpapers() -> glib::ExitCode {
+    let settings = Settings::new(APP_ID);
+    let previous_wallpapers = get_previous_wallpapers(&settings);
+    let files = get_previous_supported_wallpapers(&settings);
+    WallpaperChangers::killall_changers();
     for w in &previous_wallpapers {
         let mut rng = rand::thread_rng();
         let index = rng.gen_range(0..files.len());
@@ -100,6 +112,15 @@ pub fn set_random_wallpapers() -> glib::ExitCode {
 #[must_use]
 pub fn print_app_version() -> glib::ExitCode {
     println!("{APP_VERSION}");
+    glib::ExitCode::SUCCESS
+}
+
+pub fn cycle_next_wallpaper(args: &Cli) -> glib::ExitCode {
+    let settings = Settings::new(APP_ID);
+    let mut previous_wallpapers = get_previous_wallpapers(&settings);
+    let wallpapers = get_previous_supported_wallpapers(&settings);
+    let sort_dropdown_string = (SORT_DROPDOWN_STRINGS)[settings.uint("sort-by") as usize];
+    let mut files = get_previous_supported_wallpapers(&settings);
     glib::ExitCode::SUCCESS
 }
 
@@ -181,6 +202,9 @@ pub struct Cli {
     #[arg(short, long)]
     /// Get application version
     pub version: bool,
+    #[arg(short, long, default_value_t = String::from("All"), value_parser = parse_monitor)]
+    /// Cycle wallaper(s) the next on based on the previously set wallpaper(s) and sort settings on a given monitor.
+    pub next: String,
 }
 
 fn parse_executable_script(s: &str) -> anyhow::Result<String> {
@@ -195,4 +219,15 @@ fn parse_executable_script(s: &str) -> anyhow::Result<String> {
         return Err(anyhow::anyhow!("File is not executable"));
     }
     Ok(s.to_owned())
+}
+
+fn parse_monitor(s: &str) -> anyhow::Result<String> {
+    if s == "All" {
+        return Ok(s.to_owned());
+    }
+    let available_monitors = get_available_monitors();
+    if available_monitors.into_iter().any(|m| m == s) {
+        return Ok(s.to_owned());
+    };
+    Err(anyhow!("Unknown monitor {s}"))
 }

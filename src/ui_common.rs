@@ -30,6 +30,8 @@ use std::{
 use strum::IntoEnumIterator;
 use which::which;
 
+pub const SORT_DROPDOWN_STRINGS: [&str; 2] = ["Date", "Name"];
+
 pub fn generate_image_files(
     path: String,
     sender_cache_images: Sender<CacheImageFile>,

@@ -7,6 +7,7 @@ use crate::{
         change_image_button_handlers, generate_changer_bar, generate_image_files,
         get_available_monitors, get_available_wallpaper_changers, get_selected_changer,
         gschema_string_to_string, hide_unsupported_files, sort_images, string_to_gschema_string,
+        SORT_DROPDOWN_STRINGS,
     },
     wallpaper_changers::WallpaperChanger,
 };
@@ -83,7 +84,7 @@ pub fn build_ui(app: &Application, args: &Cli) {
 
     let sort_dropdown = create_sort_dropdown(&settings);
 
-    let (invert_sort_switch, invert_sort_switch_label) = create_invert_sort_switch();
+    let (invert_sort_switch, invert_sort_switch_label) = create_invert_sort_switch(&settings);
     connect_sorting_signals(
         &sort_dropdown,
         &invert_sort_switch,
@@ -384,6 +385,10 @@ fn create_monitors_dropdown(settings: &Settings) -> DropDown {
     );
     monitors_dropdown.set_halign(Align::End);
     monitors_dropdown.set_valign(Align::Center);
+    monitors_dropdown.set_margin_top(12);
+    monitors_dropdown.set_margin_start(12);
+    monitors_dropdown.set_margin_bottom(12);
+    monitors_dropdown.set_margin_end(12);
     settings
         .bind("monitor", &monitors_dropdown, "selected")
         .build();
@@ -472,7 +477,12 @@ fn create_image_grid_scrolled_window(image_grid: &GridView) -> ScrolledWindow {
 }
 
 fn create_sort_dropdown(settings: &Settings) -> DropDown {
-    let sort_dropdown = DropDown::from_strings(&[&gettext("Date"), &gettext("Name")]);
+    let strings = SORT_DROPDOWN_STRINGS
+        .into_iter()
+        .map(|s| gettext(s))
+        .collect::<Vec<_>>();
+    let strings = strings.iter().map(String::as_str).collect::<Vec<_>>();
+    let sort_dropdown = DropDown::from_strings(&strings);
     sort_dropdown.set_halign(Align::End);
     sort_dropdown.set_valign(Align::Center);
     sort_dropdown.set_margin_top(12);
@@ -483,17 +493,16 @@ fn create_sort_dropdown(settings: &Settings) -> DropDown {
     sort_dropdown
 }
 
-fn create_invert_sort_switch() -> (Switch, Text) {
-    (
-        Switch::builder()
+fn create_invert_sort_switch(settings: &Settings) -> (Switch, Text) {
+        let switch = Switch::builder()
             .margin_top(12)
             .margin_bottom(12)
             .margin_start(12)
             .margin_end(12)
             .halign(Align::End)
             .valign(Align::Center)
-            .build(),
-        Text::builder()
+            .build();
+        let text = Text::builder()
             .text(gettext("Invert Sort"))
             .margin_start(3)
             .margin_top(12)
@@ -501,8 +510,9 @@ fn create_invert_sort_switch() -> (Switch, Text) {
             .margin_end(12)
             .halign(Align::End)
             .valign(Align::Center)
-            .build(),
-    )
+            .build();
+    settings.bind("invert-sort", &switch, "active");
+    (switch, text)
 }
 
 fn connect_sorting_signals(
