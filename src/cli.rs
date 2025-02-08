@@ -72,13 +72,18 @@ pub fn set_random_wallpapers() -> glib::ExitCode {
         .filter(|f| f.file_type().is_file())
         .map(|d| d.path().to_path_buf())
         .filter(|p| {
-            WallpaperChangers::all_accepted_formats().iter().any(|f| {
-                f == p
-                    .extension()
-                    .unwrap_or_default()
-                    .to_str()
-                    .unwrap_or_default()
-            })
+            previous_wallpapers
+                .iter()
+                .map(|w| w.changer.clone())
+                .all(|c| {
+                    c.accepted_formats().iter().any(|f| {
+                        f == p
+                            .extension()
+                            .unwrap_or_default()
+                            .to_str()
+                            .unwrap_or_default()
+                    })
+                })
         })
         .collect::<Vec<_>>();
     for w in &previous_wallpapers {

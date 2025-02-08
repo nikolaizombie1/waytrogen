@@ -5,8 +5,8 @@ use crate::{
     },
     ui_common::{
         change_image_button_handlers, generate_changer_bar, generate_image_files,
-        get_available_wallpaper_changers, get_selected_changer, gschema_string_to_string,
-        hide_unsupported_files, sort_images, string_to_gschema_string,
+        get_available_monitors, get_available_wallpaper_changers, get_selected_changer,
+        gschema_string_to_string, hide_unsupported_files, sort_images, string_to_gschema_string,
     },
     wallpaper_changers::WallpaperChanger,
 };
@@ -14,7 +14,7 @@ use async_channel::{Receiver, Sender};
 use gettextrs::{gettext, ngettext};
 use gtk::{
     self,
-    gdk::{Display, Texture},
+    gdk::Texture,
     gio::{spawn_blocking, Cancellable, ListStore, Settings},
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
@@ -363,14 +363,7 @@ pub fn create_open_folder_button(
 }
 
 fn create_monitors_dropdown(settings: &Settings) -> DropDown {
-    let monitors = Display::default().unwrap().monitors();
-    let mut monitors = monitors
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-        .filter_map(|o| o.downcast::<gtk::gdk::Monitor>().ok())
-        .filter_map(|m| m.connector())
-        .map(|s| s.to_string())
-        .collect::<Vec<_>>();
+    let mut monitors = get_available_monitors();
     monitors.insert(0, gettext("All"));
     let selected_monitor_text_buffer = TextBuffer::builder().build();
     debug!("{:?}", monitors);

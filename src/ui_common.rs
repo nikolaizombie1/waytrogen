@@ -15,6 +15,7 @@ use async_channel::Sender;
 use gettextrs::gettext;
 use gtk::{
     self,
+    gdk::Display,
     gio::{spawn_blocking, ListStore, Settings},
     glib::{BoxedAnyObject, Object},
     prelude::*,
@@ -338,4 +339,15 @@ pub fn compare_image_list_items_by_date_comparitor(
                 .unwrap()
         }
     }
+}
+
+pub fn get_available_monitors() -> Vec<String> {
+    let monitors = Display::default().unwrap().monitors();
+    monitors
+        .into_iter()
+        .filter_map(std::result::Result::ok)
+        .filter_map(|o| o.downcast::<gtk::gdk::Monitor>().ok())
+        .filter_map(|m| m.connector())
+        .map(|s| s.to_string())
+        .collect::<Vec<_>>()
 }
