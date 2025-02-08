@@ -8,9 +8,9 @@ use gtk::{
     Align, Box, ColorDialog, ColorDialogButton, DropDown, TextBuffer,
 };
 use log::debug;
-use std::{path::PathBuf, process::Command};
+use std::{path::Path, process::Command};
 
-pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: PathBuf, monitor: String) {
+pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, monitor: &str) {
     if let WallpaperChangers::Swaybg(mode, rgb) = swaybg_changer {
         let mut command = Command::new("swaybg");
         if monitor != gettext("All") {
@@ -30,7 +30,7 @@ pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: PathBuf
     }
 }
 
-pub fn generate_swaybg_changer_bar(changer_specific_options_box: &Box, settings: Settings) {
+pub fn generate_swaybg_changer_bar(changer_specific_options_box: &Box, settings: &Settings) {
     let dropdown = DropDown::from_strings(&[
         &gettext("stretch"),
         &gettext("fit"),

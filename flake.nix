@@ -80,8 +80,6 @@
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };
-
-          LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
         };
       });
 }

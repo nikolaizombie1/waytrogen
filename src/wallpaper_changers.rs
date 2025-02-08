@@ -460,13 +460,13 @@ impl WallpaperChanger for WallpaperChangers {
         Self::kill_all_changers_except(&self);
         thread::spawn(move || match self {
             Self::Hyprpaper => {
-                change_hyprpaper_wallpaper(image, monitor);
+                change_hyprpaper_wallpaper(&image, &monitor);
             }
             Self::Swaybg(_, _) => {
-                change_swaybg_wallpaper(self, image, monitor);
+                change_swaybg_wallpaper(self, &image, &monitor);
             }
             Self::MpvPaper(_, _, _) => {
-                change_mpvpaper_wallpaper(self, image, monitor);
+                change_mpvpaper_wallpaper(self, image, &monitor);
             }
             Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
                 change_swww_wallpaper(self, image, monitor);

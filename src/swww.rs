@@ -251,7 +251,7 @@ fn connect_advanced_settings_window_signals(
         transition_position_entry.connect_changed(move |e| {
             let text = e.text().to_string();
             if SWWWTransitionPosition::new(&text).is_ok() {
-                transition_position_entry_text_buffer.set_text(&text)
+                transition_position_entry_text_buffer.set_text(&text);
             }
         });
 

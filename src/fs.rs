@@ -1,4 +1,4 @@
-use crate::wallpaper_changers::WallpaperChangers;
+use crate::{common::sort_by_sort_dropdown_string, wallpaper_changers::WallpaperChangers};
 use std::path::PathBuf;
 #[must_use]
 pub fn get_image_files(
@@ -21,36 +21,6 @@ pub fn get_image_files(
             })
         })
         .collect::<Vec<_>>();
-    match &sort_dropdown.to_lowercase()[..] {
-        "name" => {
-            files.sort_by(|f1, f2| {
-                if invert_sort_switch_state {
-                    f1.file_name().partial_cmp(&f2.file_name()).unwrap()
-                } else {
-                    f2.file_name().partial_cmp(&f1.file_name()).unwrap()
-                }
-            });
-        }
-        "date" => {
-            files.sort_by(|f1, f2| {
-                if invert_sort_switch_state {
-                    f1.metadata()
-                        .unwrap()
-                        .created()
-                        .unwrap()
-                        .partial_cmp(&f2.metadata().unwrap().created().unwrap())
-                        .unwrap()
-                } else {
-                    f2.metadata()
-                        .unwrap()
-                        .created()
-                        .unwrap()
-                        .partial_cmp(&f1.metadata().unwrap().created().unwrap())
-                        .unwrap()
-                }
-            });
-        }
-        _ => {}
-    }
+    sort_by_sort_dropdown_string(&mut files, sort_dropdown, invert_sort_switch_state);
     files
 }

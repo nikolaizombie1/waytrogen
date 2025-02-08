@@ -1,7 +1,7 @@
 use clap::Parser;
 use waytrogen::cli::{
-    launch_application, print_app_version, print_wallpaper_state, restore_wallpapers,
-    set_random_wallpapers, Cli,
+    cycle_next_wallpaper, launch_application, print_app_version, print_wallpaper_state,
+    restore_wallpapers, set_random_wallpapers, Cli,
 };
 
 use gtk::glib;
@@ -23,6 +23,8 @@ fn main() -> glib::ExitCode {
         set_random_wallpapers()
     } else if args.version {
         print_app_version()
+    } else if args.next.is_some() {
+        cycle_next_wallpaper(&args)
     } else {
         launch_application(args)
     }

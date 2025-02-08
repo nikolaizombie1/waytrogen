@@ -13,7 +13,7 @@ use std::{
 pub fn change_mpvpaper_wallpaper(
     mpvpaper_changer: WallpaperChangers,
     image: PathBuf,
-    monitor: String,
+    monitor: &str,
 ) {
     if let WallpaperChangers::MpvPaper(pause_mode, slideshow, mpv_options) = mpvpaper_changer {
         log::debug!("{}", image.display());
@@ -21,7 +21,7 @@ pub fn change_mpvpaper_wallpaper(
         let monitor = if monitor == gettext("All") {
             "*"
         } else {
-            &monitor
+            monitor
         };
         command.arg("-o").arg(mpv_options);
         match pause_mode {

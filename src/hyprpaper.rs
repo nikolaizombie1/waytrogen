@@ -1,8 +1,8 @@
 use gettextrs::gettext;
 use log::debug;
-use std::{path::PathBuf, process::Command, thread, time::Duration};
+use std::{path::Path, process::Command, thread, time::Duration};
 
-pub fn change_hyprpaper_wallpaper(image: PathBuf, monitor: String) {
+pub fn change_hyprpaper_wallpaper(image: &Path, monitor: &str) {
     debug!("Starting hyprpaper");
     if !Command::new("pgrep")
         .arg("hyprpaper")
@@ -37,7 +37,7 @@ pub fn change_hyprpaper_wallpaper(image: PathBuf, monitor: String) {
     let monitor = if monitor == gettext("All") {
         ""
     } else {
-        &monitor
+        monitor
     };
     Command::new("hyprctl")
         .arg("hyprpaper")

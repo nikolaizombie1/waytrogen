@@ -16,6 +16,10 @@
             <default>0</default>
             <summary>Last set sort by option</summary>
         </key>
+        <key name="invert-sort" type="b">
+            <default>false</default>
+            <summary>Last set switch state for inverting main window sort</summary>
+        </key>
         <key name="changer" type="u">
             <default>0</default>
             <summary>Last set wallpaper changer</summary>
@@ -34,7 +38,7 @@
         </key>
         <key name="mpvpaper-slideshow-enable" type="b">
             <default>false</default>
-            <summary>Last set switch swtting for mpvpaper slideshow</summary>
+            <summary>Last set switch setting for mpvpaper slideshow</summary>
         </key>
         <key name="mpvpaper-slideshow-interval" type="d">
             <default>1.0</default>
@@ -58,7 +62,7 @@
         </key>
         <key name="swww-scaling-filter" type="u">
             <default>0</default>
-            <summary>Last set swww scalling filter</summary>
+            <summary>Last set swww scaling filter</summary>
         </key>
         <key name="swww-transition-type" type="u">
             <default>1</default>

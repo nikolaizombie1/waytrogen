@@ -4,9 +4,10 @@ use crate::{
         CacheImageFile, GtkPictureFile, Wallpaper, APP_ID, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH,
     },
     ui_common::{
-        change_image_button_handlers, generate_changer_bar, generate_image_files,
-        get_available_monitors, get_available_wallpaper_changers, get_selected_changer,
-        gschema_string_to_string, hide_unsupported_files, sort_images, string_to_gschema_string,
+        change_image_button_handlers, compare_image_list_items_by_sort_selection_comparitor,
+        generate_changer_bar, generate_image_files, get_available_monitors,
+        get_available_wallpaper_changers, get_selected_changer, gschema_string_to_string,
+        hide_unsupported_files, sort_images, string_to_gschema_string, SORT_DROPDOWN_STRINGS,
     },
     wallpaper_changers::WallpaperChanger,
 };
@@ -20,7 +21,7 @@ use gtk::{
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
     MenuButton, Orientation, Picture, Popover, ProgressBar, ScrolledWindow, SignalListItemFactory,
-    SingleSelection, StringObject, Switch, Text, TextBuffer,
+    SingleSelection, StringObject, Switch, Text, TextBuffer, ListScrollFlags
 };
 use log::debug;
 use std::{
@@ -29,6 +30,7 @@ use std::{
     process::Command,
 };
 
+#[derive(Clone)]
 struct SensitiveWidgetsHelper {
     receiver_changer_options_bar: Receiver<bool>,
     image_list_store: ListStore,
@@ -49,7 +51,7 @@ pub fn build_ui(app: &Application, args: &Cli) {
     let image_list_store = ListStore::new::<BoxedAnyObject>();
     let removed_images_list_store = ListStore::new::<BoxedAnyObject>();
     let folder_path_buffer = create_folder_path_buffer(&settings);
-    let path = textbuffer_to_string(folder_path_buffer.clone());
+    let path = textbuffer_to_string(&folder_path_buffer);
 
     log::trace!("{}: {}", gettext("Wallpaper Folder"), path);
 
@@ -66,7 +68,7 @@ pub fn build_ui(app: &Application, args: &Cli) {
         Receiver<f64>,
     ) = async_channel::bounded(1);
 
-    let open_folder_button = create_open_folder_button(folder_path_buffer.clone(), &window);
+    let open_folder_button = create_open_folder_button(&folder_path_buffer, &window);
     let monitors_dropdown = create_monitors_dropdown(&settings);
 
     let wallpaper_changers_dropdown = create_wallpaper_changers_dropdown();
@@ -83,7 +85,7 @@ pub fn build_ui(app: &Application, args: &Cli) {
 
     let sort_dropdown = create_sort_dropdown(&settings);
 
-    let (invert_sort_switch, invert_sort_switch_label) = create_invert_sort_switch();
+    let (invert_sort_switch, invert_sort_switch_label) = create_invert_sort_switch(&settings);
     connect_sorting_signals(
         &sort_dropdown,
         &invert_sort_switch,
@@ -126,14 +128,14 @@ pub fn build_ui(app: &Application, args: &Cli) {
     changer_options_box.append(&changer_specific_options_box);
 
     connect_folder_path_buffer_signals(
-        folder_path_buffer,
+        &folder_path_buffer,
         &image_list_store,
         &invert_sort_switch,
         (
             sender_enable_changer_options_bar,
             sender_images_loading_progress_bar,
         ),
-        selected_sort_method,
+        &selected_sort_method,
         sender_cache_images,
     );
 
@@ -330,7 +332,7 @@ fn execute_external_script(args: &Cli, path: &str, selected_monitor: &str, setti
 
 #[must_use]
 pub fn create_open_folder_button(
-    folder_path_buffer: TextBuffer,
+    folder_path_buffer: &TextBuffer,
     window: &ApplicationWindow,
 ) -> Button {
     let open_folder_button = Button::builder()
@@ -384,6 +386,10 @@ fn create_monitors_dropdown(settings: &Settings) -> DropDown {
     );
     monitors_dropdown.set_halign(Align::End);
     monitors_dropdown.set_valign(Align::Center);
+    monitors_dropdown.set_margin_top(12);
+    monitors_dropdown.set_margin_start(12);
+    monitors_dropdown.set_margin_bottom(12);
+    monitors_dropdown.set_margin_end(12);
     settings
         .bind("monitor", &monitors_dropdown, "selected")
         .build();
@@ -472,7 +478,12 @@ fn create_image_grid_scrolled_window(image_grid: &GridView) -> ScrolledWindow {
 }
 
 fn create_sort_dropdown(settings: &Settings) -> DropDown {
-    let sort_dropdown = DropDown::from_strings(&[&gettext("Date"), &gettext("Name")]);
+    let strings = SORT_DROPDOWN_STRINGS
+        .into_iter()
+        .map(gettext)
+        .collect::<Vec<_>>();
+    let strings = strings.iter().map(String::as_str).collect::<Vec<_>>();
+    let sort_dropdown = DropDown::from_strings(&strings);
     sort_dropdown.set_halign(Align::End);
     sort_dropdown.set_valign(Align::Center);
     sort_dropdown.set_margin_top(12);
@@ -483,26 +494,26 @@ fn create_sort_dropdown(settings: &Settings) -> DropDown {
     sort_dropdown
 }
 
-fn create_invert_sort_switch() -> (Switch, Text) {
-    (
-        Switch::builder()
-            .margin_top(12)
-            .margin_bottom(12)
-            .margin_start(12)
-            .margin_end(12)
-            .halign(Align::End)
-            .valign(Align::Center)
-            .build(),
-        Text::builder()
-            .text(gettext("Invert Sort"))
-            .margin_start(3)
-            .margin_top(12)
-            .margin_bottom(12)
-            .margin_end(12)
-            .halign(Align::End)
-            .valign(Align::Center)
-            .build(),
-    )
+fn create_invert_sort_switch(settings: &Settings) -> (Switch, Text) {
+    let switch = Switch::builder()
+        .margin_top(12)
+        .margin_bottom(12)
+        .margin_start(12)
+        .margin_end(12)
+        .halign(Align::End)
+        .valign(Align::Center)
+        .build();
+    let text = Text::builder()
+        .text(gettext("Invert Sort"))
+        .margin_start(3)
+        .margin_top(12)
+        .margin_bottom(12)
+        .margin_end(12)
+        .halign(Align::End)
+        .valign(Align::Center)
+        .build();
+    settings.bind("invert-sort", &switch, "active").build();
+    (switch, text)
 }
 
 fn connect_sorting_signals(
@@ -623,16 +634,17 @@ fn create_changer_options_box() -> Box {
 }
 
 fn connect_folder_path_buffer_signals(
-    folder_path_buffer: TextBuffer,
+    folder_path_buffer: &TextBuffer,
     image_list_store: &ListStore,
     invert_sort_switch: &Switch,
     (sender_enable_changer_options_bar, sender_images_loading_progress_bar): (
         Sender<bool>,
         Sender<f64>,
     ),
-    selected_sort_method: String,
+    selected_sort_method: &str,
     sender_cache_images: Sender<CacheImageFile>,
 ) {
+    let selected_sort_method = selected_sort_method.to_string();
     folder_path_buffer.connect_changed(clone!(
         #[weak]
         image_list_store,
@@ -648,6 +660,7 @@ fn connect_folder_path_buffer_signals(
             let path = f.text(&f.start_iter(), &f.end_iter(), false).to_string();
             image_list_store.remove_all();
             let state = invert_sort_switch.state();
+            let selected_sort_method = selected_sort_method.to_string();
             spawn_blocking(clone!(
                 #[strong]
                 sender_enable_changer_options_bar,
@@ -752,8 +765,14 @@ fn create_disable_ui_future(sensitive_widgets_helper: SensitiveWidgetsHelper) {
                 .images_loading_progress_bar
                 .set_visible(!b);
             sensitive_widgets_helper.monitors_dropdown.set_sensitive(b);
-            sensitive_widgets_helper.sort_dropdown.set_sensitive(b);
-            sensitive_widgets_helper.invert_sort_switch.set_sensitive(b);
+            sensitive_widgets_helper
+                .clone()
+                .sort_dropdown
+                .set_sensitive(b);
+            sensitive_widgets_helper
+                .clone()
+                .invert_sort_switch
+                .set_sensitive(b);
             sensitive_widgets_helper
                 .wallpaper_changers_dropdown
                 .set_sensitive(b);
@@ -764,15 +783,22 @@ fn create_disable_ui_future(sensitive_widgets_helper: SensitiveWidgetsHelper) {
             if b {
                 debug!("{}", gettext("Hiding unsupported images"));
                 hide_unsupported_files(
-                    &sensitive_widgets_helper.image_list_store,
+                    &sensitive_widgets_helper.clone().image_list_store,
                     &get_selected_changer(
                         &sensitive_widgets_helper.wallpaper_changers_dropdown,
                         &sensitive_widgets_helper.settings,
                     ),
-                    &sensitive_widgets_helper.removed_images_list_store,
-                    &sensitive_widgets_helper.sort_dropdown,
-                    &sensitive_widgets_helper.invert_sort_switch,
+                    &sensitive_widgets_helper.clone().removed_images_list_store,
+                    &sensitive_widgets_helper.clone().sort_dropdown,
+                    &sensitive_widgets_helper.clone().invert_sort_switch,
                 );
+                sensitive_widgets_helper.image_list_store.sort(
+                    compare_image_list_items_by_sort_selection_comparitor(
+                        sensitive_widgets_helper.sort_dropdown.clone(),
+                        sensitive_widgets_helper.invert_sort_switch.clone(),
+                    ),
+                );
+		sensitive_widgets_helper.image_grid.scroll_to(0, ListScrollFlags::NONE, None);
             }
         }
     }));
@@ -799,7 +825,7 @@ fn create_application_window(app: &Application) -> ApplicationWindow {
     window
 }
 
-fn textbuffer_to_string(text_buffer: TextBuffer) -> String {
+fn textbuffer_to_string(text_buffer: &TextBuffer) -> String {
     text_buffer
         .text(&text_buffer.start_iter(), &text_buffer.end_iter(), false)
         .to_string()

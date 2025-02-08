@@ -1,11 +1,11 @@
 use crate::{
-    common::{Wallpaper, APP_ID, APP_VERSION, GETTEXT_DOMAIN},
+    common::{sort_by_sort_dropdown_string, Wallpaper, APP_ID, APP_VERSION, GETTEXT_DOMAIN},
     main_window::build_ui,
-    ui_common::gschema_string_to_string,
+    ui_common::{gschema_string_to_string, string_to_gschema_string, SORT_DROPDOWN_STRINGS},
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
 use clap::Parser;
-use gettextrs::{bind_textdomain_codeset, bindtextdomain, getters, textdomain};
+use gettextrs::{bind_textdomain_codeset, bindtextdomain, getters, gettext, textdomain};
 use gtk::{gio::Settings, glib, prelude::*, Application};
 use log::debug;
 use rand::Rng;
@@ -18,6 +18,8 @@ use std::{
     thread,
     time::Duration,
 };
+
+use log::{error, warn};
 
 #[must_use]
 pub fn restore_wallpapers() -> glib::ExitCode {
@@ -55,13 +57,16 @@ pub fn print_wallpaper_state() -> glib::ExitCode {
     glib::ExitCode::SUCCESS
 }
 
-pub fn set_random_wallpapers() -> glib::ExitCode {
-    let settings = Settings::new(APP_ID);
-    WallpaperChangers::killall_changers();
+fn get_previous_wallpapers(settings: &Settings) -> Vec<Wallpaper> {
     let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(&gschema_string_to_string(
         settings.string("saved-wallpapers").as_ref(),
     ))
     .unwrap();
+    previous_wallpapers
+}
+
+fn get_previous_supported_wallpapers(settings: &Settings) -> Vec<PathBuf> {
+    let previous_wallpapers = get_previous_wallpapers(settings);
     let wallpaper = previous_wallpapers[0].clone();
     let path = Path::new(&wallpaper.path)
         .parent()
@@ -86,6 +91,15 @@ pub fn set_random_wallpapers() -> glib::ExitCode {
                 })
         })
         .collect::<Vec<_>>();
+    files
+}
+
+#[must_use]
+pub fn set_random_wallpapers() -> glib::ExitCode {
+    let settings = Settings::new(APP_ID);
+    let previous_wallpapers = get_previous_wallpapers(&settings);
+    let files = get_previous_supported_wallpapers(&settings);
+    WallpaperChangers::killall_changers();
     for w in &previous_wallpapers {
         let mut rng = rand::thread_rng();
         let index = rng.gen_range(0..files.len());
@@ -101,6 +115,95 @@ pub fn set_random_wallpapers() -> glib::ExitCode {
 pub fn print_app_version() -> glib::ExitCode {
     println!("{APP_VERSION}");
     glib::ExitCode::SUCCESS
+}
+
+#[must_use]
+pub fn cycle_next_wallpaper(args: &Cli) -> glib::ExitCode {
+    let settings = Settings::new(APP_ID);
+    let mut previous_wallpapers = get_previous_wallpapers(&settings);
+    let sort_dropdown_string = SORT_DROPDOWN_STRINGS[settings.uint("sort-by") as usize];
+    let mut files = get_previous_supported_wallpapers(&settings);
+    let invert_sort_state = settings.boolean("invert-sort");
+    sort_by_sort_dropdown_string(&mut files, sort_dropdown_string, invert_sort_state);
+    if args.next.clone().unwrap_or_default() == "All" {
+        for previous_wallpaper in &mut previous_wallpapers {
+            let wallpaper_index = files.iter().position(|p| {
+                p.clone()
+                    == previous_wallpaper
+                        .path
+                        .parse::<PathBuf>()
+                        .unwrap_or_default()
+            });
+            try_set_next_wallpaper(&files, wallpaper_index, previous_wallpaper);
+        }
+    } else {
+        let previous_wallpaper = previous_wallpapers
+            .iter()
+            .find(|w| *w.monitor == args.next.clone().unwrap_or_default());
+        if previous_wallpaper.is_none() {
+            error!("Display \"{}\" does not exist.", args.next.clone().unwrap_or_default());
+            return glib::ExitCode::FAILURE;
+        }
+        let mut previous_wallpaper = previous_wallpaper.unwrap().clone();
+        try_set_next_wallpaper(
+            &files,
+            files.iter().position(|f| {
+                *f == previous_wallpaper
+                    .path
+                    .parse::<PathBuf>()
+                    .unwrap_or_default()
+            }),
+            &mut previous_wallpaper,
+        );
+	let index = previous_wallpapers.iter().position(|w| w.monitor == previous_wallpaper.monitor).unwrap();
+	previous_wallpapers[index] = previous_wallpaper;
+    }
+    match settings.set_string(
+        "saved-wallpapers",
+        &string_to_gschema_string(&serde_json::to_string(&previous_wallpapers).unwrap_or_default()),
+    ) {
+        Ok(_) => {}
+        Err(e) => {
+            error!("{} {e}", gettext("Unable to save \"next\" wallpapers"));
+        }
+    }
+    glib::ExitCode::SUCCESS
+}
+
+fn try_set_next_wallpaper(
+    files: &[PathBuf],
+    position: Option<usize>,
+    previous_wallpaper: &mut Wallpaper,
+) {
+    if let Some(i) = position {
+        let path = &files[(i + 1) % files.len()];
+        previous_wallpaper
+            .changer
+            .clone()
+            .change(path.clone(), previous_wallpaper.monitor.clone());
+        previous_wallpaper.path = path.to_str().unwrap_or_default().to_owned();
+    } else {
+        warn!(
+            "Wallpaper {} could not be found. Using first wallpaper",
+            previous_wallpaper
+                .path
+                .parse::<PathBuf>()
+                .unwrap_or_default()
+                .display()
+        );
+        match files.first() {
+            Some(p) => {
+                previous_wallpaper
+                    .changer
+                    .clone()
+                    .change(p.clone(), previous_wallpaper.monitor.clone());
+                previous_wallpaper.path = p.to_str().unwrap_or_default().to_owned();
+            }
+            None => {
+                error!("Wallpaper directory is empty. Please set a wallpaper folder before using --next.");
+            }
+        }
+    }
 }
 
 #[must_use]
@@ -181,6 +284,9 @@ pub struct Cli {
     #[arg(short, long)]
     /// Get application version
     pub version: bool,
+    #[arg(short, long)]
+    /// Cycle wallaper(s) the next on based on the previously set wallpaper(s) and sort settings on a given monitor. "All" cycles wallpapers on all monitors.
+    pub next: Option<String>,
 }
 
 fn parse_executable_script(s: &str) -> anyhow::Result<String> {

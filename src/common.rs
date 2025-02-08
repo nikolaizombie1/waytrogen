@@ -160,3 +160,37 @@ pub struct Wallpaper {
 }
 
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+pub fn sort_by_sort_dropdown_string(files: &mut [PathBuf], sort_by: &str, invert_sort: bool) {
+    match sort_by {
+        "name" => {
+            files.sort_by(|f1, f2| {
+                if invert_sort {
+                    f1.file_name().partial_cmp(&f2.file_name()).unwrap()
+                } else {
+                    f2.file_name().partial_cmp(&f1.file_name()).unwrap()
+                }
+            });
+        }
+        "date" => {
+            files.sort_by(|f1, f2| {
+                if invert_sort {
+                    f1.metadata()
+                        .unwrap()
+                        .created()
+                        .unwrap()
+                        .partial_cmp(&f2.metadata().unwrap().created().unwrap())
+                        .unwrap()
+                } else {
+                    f2.metadata()
+                        .unwrap()
+                        .created()
+                        .unwrap()
+                        .partial_cmp(&f1.metadata().unwrap().created().unwrap())
+                        .unwrap()
+                }
+            });
+        }
+        _ => {}
+    }
+}

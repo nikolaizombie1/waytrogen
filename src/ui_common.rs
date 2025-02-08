@@ -30,6 +30,8 @@ use std::{
 use strum::IntoEnumIterator;
 use which::which;
 
+pub const SORT_DROPDOWN_STRINGS: [&str; 2] = ["Date", "Name"];
+
 pub fn generate_image_files(
     path: String,
     sender_cache_images: Sender<CacheImageFile>,
@@ -107,7 +109,7 @@ pub fn generate_changer_bar(
     match selected_changer {
         WallpaperChangers::Hyprpaper => {}
         WallpaperChangers::Swaybg(_, _) => {
-            generate_swaybg_changer_bar(changer_specific_options_box, settings);
+            generate_swaybg_changer_bar(changer_specific_options_box, &settings);
         }
         WallpaperChangers::MpvPaper(_, _, _) => {
             generate_mpvpaper_changer_bar(changer_specific_options_box, settings);
