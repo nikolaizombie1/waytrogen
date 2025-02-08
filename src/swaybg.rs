@@ -12,9 +12,11 @@ use std::{path::PathBuf, process::Command};
 
 pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: PathBuf, monitor: String) {
     if let WallpaperChangers::Swaybg(mode, rgb) = swaybg_changer {
-        Command::new("swaybg")
-            .arg("-o")
-            .arg(monitor)
+        let mut command = Command::new("swaybg");
+        if monitor != gettext("All") {
+            command.arg("-o").arg(monitor);
+        }
+        command
             .arg("-i")
             .arg(image.to_str().unwrap())
             .arg("-m")

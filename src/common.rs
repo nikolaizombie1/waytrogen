@@ -1,4 +1,3 @@
-use clap::Parser;
 use gtk::{glib::SignalHandlerId, Picture};
 use image::ImageReader;
 use lazy_static::lazy_static;
@@ -9,7 +8,6 @@ use std::{
     cell::RefCell,
     fmt::Display,
     io::Cursor,
-    os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     process::Command,
     str::FromStr,
@@ -162,39 +160,3 @@ pub struct Wallpaper {
 }
 
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-#[derive(Parser, Clone)]
-pub struct Cli {
-    #[arg(short, long)]
-    /// Restore previously set wallpapers
-    pub restore: bool,
-    #[arg(short, long, default_value_t = 0)]
-    /// How many error, warning, info, debug or trace logs will be shown. 0 for error, 1 for warning, 2 for info, 3 for debug, 4 or higher for trace.
-    pub log_level: u8,
-    #[arg(short, long, default_value_t = false)]
-    /// Get the current wallpaper settings in JSON format.
-    pub list_current_wallpapers: bool,
-    #[arg(short, long, value_parser = parse_executable_script, default_value_t = String::from(""))]
-    /// Path to external script.
-    pub external_script: String,
-    #[arg(long)]
-    /// Set random wallpapers based on last set changer.
-    pub random: bool,
-    #[arg(short, long)]
-    /// Get application version
-    pub version: bool,
-}
-
-fn parse_executable_script(s: &str) -> anyhow::Result<String> {
-    if s.is_empty() {
-        return Ok(String::new());
-    }
-    let path = s.parse::<PathBuf>()?;
-    if !path.metadata()?.is_file() {
-        return Err(anyhow::anyhow!("Input is not a file"));
-    }
-    if path.metadata()?.permissions().mode() & 0o111 == 0 {
-        return Err(anyhow::anyhow!("File is not executable"));
-    }
-    Ok(s.to_owned())
-}

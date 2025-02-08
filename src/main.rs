@@ -1,10 +1,7 @@
 use clap::Parser;
-use waytrogen::{
-    cli::{
-        launch_application, print_app_version, print_wallpaper_state, restore_wallpapers,
-        set_random_wallpapers,
-    },
-    common::Cli,
+use waytrogen::cli::{
+    launch_application, print_app_version, print_wallpaper_state, restore_wallpapers,
+    set_random_wallpapers, Cli,
 };
 
 use gtk::glib;

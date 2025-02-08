@@ -18,6 +18,11 @@ pub fn change_mpvpaper_wallpaper(
     if let WallpaperChangers::MpvPaper(pause_mode, slideshow, mpv_options) = mpvpaper_changer {
         log::debug!("{}", image.display());
         let mut command = Command::new("mpvpaper");
+        let monitor = if monitor == gettext("All") {
+            "*"
+        } else {
+            &monitor
+        };
         command.arg("-o").arg(mpv_options);
         match pause_mode {
             MpvPaperPauseModes::None => {}

@@ -1,9 +1,10 @@
 use crate::{
-    common::{Cli, Wallpaper, APP_ID, APP_VERSION, GETTEXT_DOMAIN},
+    common::{Wallpaper, APP_ID, APP_VERSION, GETTEXT_DOMAIN},
     main_window::build_ui,
     ui_common::gschema_string_to_string,
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
+use clap::Parser;
 use gettextrs::{bind_textdomain_codeset, bindtextdomain, getters, textdomain};
 use gtk::{gio::Settings, glib, prelude::*, Application};
 use log::debug;
@@ -12,6 +13,7 @@ use std::{
     env::current_exe,
     fs::File,
     io::{BufRead, BufReader},
+    os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     thread,
     time::Duration,
@@ -152,4 +154,40 @@ fn get_os_id() -> anyhow::Result<Option<String>> {
         }
     }
     Ok(None)
+}
+
+#[derive(Parser, Clone)]
+pub struct Cli {
+    #[arg(short, long)]
+    /// Restore previously set wallpapers
+    pub restore: bool,
+    #[arg(short, long, default_value_t = 0)]
+    /// How many error, warning, info, debug or trace logs will be shown. 0 for error, 1 for warning, 2 for info, 3 for debug, 4 or higher for trace.
+    pub log_level: u8,
+    #[arg(short, long, default_value_t = false)]
+    /// Get the current wallpaper settings in JSON format.
+    pub list_current_wallpapers: bool,
+    #[arg(short, long, value_parser = parse_executable_script, default_value_t = String::from(""))]
+    /// Path to external script.
+    pub external_script: String,
+    #[arg(long)]
+    /// Set random wallpapers based on last set changer.
+    pub random: bool,
+    #[arg(short, long)]
+    /// Get application version
+    pub version: bool,
+}
+
+fn parse_executable_script(s: &str) -> anyhow::Result<String> {
+    if s.is_empty() {
+        return Ok(String::new());
+    }
+    let path = s.parse::<PathBuf>()?;
+    if !path.metadata()?.is_file() {
+        return Err(anyhow::anyhow!("Input is not a file"));
+    }
+    if path.metadata()?.permissions().mode() & 0o111 == 0 {
+        return Err(anyhow::anyhow!("File is not executable"));
+    }
+    Ok(s.to_owned())
 }

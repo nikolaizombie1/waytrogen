@@ -41,9 +41,11 @@ pub fn change_swww_wallpaper(swww_changer: WallpaperChangers, image: PathBuf, mo
             .arg("--resize")
             .arg(resize_modes.to_string())
             .arg("--fill-color")
-            .arg(fill_color.to_string())
-            .arg("--outputs")
-            .arg(monitor)
+            .arg(fill_color.to_string());
+        if monitor != gettext("All") {
+            command.arg("--outputs").arg(monitor);
+        }
+        command
             .arg("--filter")
             .arg(scalling_filter.to_string())
             .arg("--transition-type")

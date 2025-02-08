@@ -1,6 +1,7 @@
 use crate::{
+    cli::Cli,
     common::{
-        CacheImageFile, Cli, GtkPictureFile, Wallpaper, APP_ID, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH,
+        CacheImageFile, GtkPictureFile, Wallpaper, APP_ID, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH,
     },
     ui_common::{
         change_image_button_handlers, generate_changer_bar, generate_image_files,
@@ -363,13 +364,14 @@ pub fn create_open_folder_button(
 
 fn create_monitors_dropdown(settings: &Settings) -> DropDown {
     let monitors = Display::default().unwrap().monitors();
-    let monitors = monitors
+    let mut monitors = monitors
         .into_iter()
         .filter_map(std::result::Result::ok)
         .filter_map(|o| o.downcast::<gtk::gdk::Monitor>().ok())
         .filter_map(|m| m.connector())
         .map(|s| s.to_string())
         .collect::<Vec<_>>();
+    monitors.insert(0, gettext("All"));
     let selected_monitor_text_buffer = TextBuffer::builder().build();
     debug!("{:?}", monitors);
     settings
@@ -480,6 +482,10 @@ fn create_sort_dropdown(settings: &Settings) -> DropDown {
     let sort_dropdown = DropDown::from_strings(&[&gettext("Date"), &gettext("Name")]);
     sort_dropdown.set_halign(Align::End);
     sort_dropdown.set_valign(Align::Center);
+    sort_dropdown.set_margin_top(12);
+    sort_dropdown.set_margin_start(12);
+    sort_dropdown.set_margin_bottom(12);
+    sort_dropdown.set_margin_end(12);
     settings.bind("sort-by", &sort_dropdown, "selected").build();
     sort_dropdown
 }
@@ -605,7 +611,7 @@ fn create_options_menu_button(
         .margin_top(12)
         .margin_bottom(12)
         .margin_end(12)
-        .label("Options")
+        .label(gettext("Options"))
         .build()
 }
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-23 18:34+0000\n"
+"POT-Creation-Date: 2025-02-08 14:37+0000\n"
 "PO-Revision-Date: 2025-01-08 18:00+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,208 +17,235 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/common.rs:74
+#: src/common.rs:73
 msgid "Failed to create thumbnail for"
 msgstr "Failed to create thumbnail for"
 
-#: ../src/common.rs:97
+#: src/common.rs:96
 msgid "Thumbnail could not be generated using ffmpg."
 msgstr "Thumbnail could not be generated using ffmpg."
 
-#: ../src/common.rs:150
+#: src/common.rs:150
 msgid "Invalid string"
 msgstr "Invalid string"
 
-#: ../src/database.rs:63
+#: src/database.rs:63
 msgid "Cache Hit"
 msgstr "Cache Hit"
 
-#: ../src/database.rs:69
+#: src/database.rs:69
 msgid "Cache Miss"
 msgstr "Cache Miss"
 
-#: ../src/database.rs:77
+#: src/database.rs:77
 msgid "GTK Picture created successfully."
 msgstr "GTK Picture created successfully."
 
-#: ../src/database.rs:87
+#: src/database.rs:87
 msgid "File could not be converted to a GTK Picture"
 msgstr "File could not be converted to a GTK Picture"
 
-#: ../src/ui_common.rs:42 ../src/ui_common.rs:93 ../src/ui_common.rs:97
-#: ../src/ui_common.rs:102
-msgid "The channel must be open"
-msgstr "The channel must be open"
+#: src/hyprpaper.rs:37 src/main_window.rs:374 src/mpvpaper.rs:21
+#: src/swaybg.rs:16 src/swww.rs:45
+msgid "All"
+msgstr "All"
 
-#: ../src/ui_common.rs:153
-msgid "stretch"
-msgstr "stretch"
+#: src/main_window.rs:54
+#, fuzzy
+msgid "Wallpaper Folder"
+msgstr "Image Folder"
 
-#: ../src/ui_common.rs:154 ../src/ui_common.rs:333
-msgid "fit"
-msgstr "fit"
+#: src/main_window.rs:289
+msgid "Saved wallpapers"
+msgstr "Saved wallpapers"
 
-#: ../src/ui_common.rs:155
-msgid "fill"
-msgstr "fill"
+#: src/main_window.rs:297
+msgid "Stored Text"
+msgstr "Stored Text"
 
-#: ../src/ui_common.rs:156 ../src/ui_common.rs:448
-msgid "center"
-msgstr "center"
+#: src/main_window.rs:343
+msgid "Image Folder"
+msgid_plural "Images Folder"
+msgstr[0] "Image Folder"
+msgstr[1] "Images Folder"
 
-#: ../src/ui_common.rs:157
-msgid "tile"
-msgstr "tile"
+#: src/main_window.rs:482
+msgid "Date"
+msgstr "Date"
 
-#: ../src/ui_common.rs:158
-msgid "solid_color"
-msgstr "solid_color"
+#: src/main_window.rs:482
+msgid "Name"
+msgstr "Name"
 
-#: ../src/ui_common.rs:191
-msgid "Serialized RGB"
-msgstr "Serialized RGB"
+#: src/main_window.rs:500
+msgid "Invert Sort"
+msgstr "Invert Sort"
 
-#: ../src/ui_common.rs:213 ../src/ui_common.rs:447
+#: src/main_window.rs:610
+msgid "Options"
+msgstr "Options"
+
+#: src/main_window.rs:739
+msgid "Images are loading, please wait"
+msgstr "Images are loading, please wait"
+
+#: src/main_window.rs:753
+msgid "Finished loading images"
+msgstr "Finished loading images"
+
+#: src/main_window.rs:768
+msgid "Hiding unsupported images"
+msgstr "Hiding unsupported images"
+
+#: src/mpvpaper.rs:51 src/swww.rs:430
 msgid "none"
 msgstr "none"
 
-#: ../src/ui_common.rs:214
+#: src/mpvpaper.rs:52
 msgid "auto-pause"
 msgstr "auto-pause"
 
-#: ../src/ui_common.rs:215
+#: src/mpvpaper.rs:53
 msgid "auto-stop"
 msgstr "auto-stop"
 
-#: ../src/ui_common.rs:228
+#: src/mpvpaper.rs:66
 msgid "Enable slideshow for the current folder."
 msgstr "Enable slideshow for the current folder."
 
-#: ../src/ui_common.rs:242
+#: src/mpvpaper.rs:80
 msgid "Slideshow change interval"
 msgstr "Slideshow change interval"
 
-#: ../src/ui_common.rs:263
-msgid "Additional mpv options"
-msgstr "Additional mpv options"
-
-#: ../src/ui_common.rs:266
-msgid "Additional command line options to be sent to mpv."
-msgstr "Additional command line options to be sent to mpv."
-
-#: ../src/ui_common.rs:321
+#: src/mpvpaper.rs:125
 msgid "Entered switch callback"
 msgstr "Entered switch callback"
 
-#: ../src/ui_common.rs:333
+#: src/mpvpaper.rs:138
+msgid "Additional mpv options"
+msgstr "Additional mpv options"
+
+#: src/mpvpaper.rs:141
+msgid "Additional command line options to be sent to mpv."
+msgstr "Additional command line options to be sent to mpv."
+
+#: src/swaybg.rs:35
+msgid "stretch"
+msgstr "stretch"
+
+#: src/swaybg.rs:36 src/swww.rs:81
+msgid "fit"
+msgstr "fit"
+
+#: src/swaybg.rs:37
+msgid "fill"
+msgstr "fill"
+
+#: src/swaybg.rs:38 src/swww.rs:440
+msgid "center"
+msgstr "center"
+
+#: src/swaybg.rs:39
+msgid "tile"
+msgstr "tile"
+
+#: src/swaybg.rs:40
+msgid "solid_color"
+msgstr "solid_color"
+
+#: src/swaybg.rs:73
+msgid "Serialized RGB"
+msgstr "Serialized RGB"
+
+#: src/swww.rs:81
 msgid "no"
 msgstr "no"
 
-#: ../src/ui_common.rs:333
+#: src/swww.rs:81
 msgid "crop"
 msgstr "crop"
 
-#: ../src/ui_common.rs:386
+#: src/swww.rs:134
 msgid "SWWW Advanced Image Settings"
 msgstr "SWWW Advanced Image Settings"
 
-#: ../src/ui_common.rs:394
+#: src/swww.rs:142
 msgid "Advanced Settings"
 msgstr "Advanced Settings"
 
-#: ../src/ui_common.rs:413
-msgid "Scalling filter"
-msgstr "Scalling filter"
-
-#: ../src/ui_common.rs:422
+#: src/swww.rs:409
 msgid "nearest"
 msgstr "nearest"
 
-#: ../src/ui_common.rs:423
+#: src/swww.rs:410
 msgid "bilinear"
 msgstr "bilinear"
 
-#: ../src/ui_common.rs:424
+#: src/swww.rs:411
 msgid "catmullrom"
 msgstr "catmullrom"
 
-#: ../src/ui_common.rs:425
+#: src/swww.rs:412
 msgid "mitchell"
 msgstr "mitchell"
 
-#: ../src/ui_common.rs:426
+#: src/swww.rs:413
 msgid "lanczos3"
 msgstr "lanczos3"
 
-#: ../src/ui_common.rs:438
-msgid "Transition type"
-msgstr "Transition type"
-
-#: ../src/ui_common.rs:447
+#: src/swww.rs:431
 msgid "simple"
 msgstr "simple"
 
-#: ../src/ui_common.rs:447
+#: src/swww.rs:432
 msgid "fade"
 msgstr "fade"
 
-#: ../src/ui_common.rs:447
+#: src/swww.rs:433
 msgid "left"
 msgstr "left"
 
-#: ../src/ui_common.rs:447
+#: src/swww.rs:434
 msgid "right"
 msgstr "right"
 
-#: ../src/ui_common.rs:447
+#: src/swww.rs:435
 msgid "top"
 msgstr "top"
 
-#: ../src/ui_common.rs:447
+#: src/swww.rs:436
 msgid "bottom"
 msgstr "bottom"
 
-#: ../src/ui_common.rs:447
+#: src/swww.rs:437
 msgid "wipe"
 msgstr "wipe"
 
-#: ../src/ui_common.rs:447
+#: src/swww.rs:438
 msgid "wave"
 msgstr "wave"
 
-#: ../src/ui_common.rs:447
+#: src/swww.rs:439
 msgid "grow"
 msgstr "grow"
 
-#: ../src/ui_common.rs:448
+#: src/swww.rs:441
 msgid "any"
 msgstr "any"
 
-#: ../src/ui_common.rs:448
+#: src/swww.rs:442
 msgid "outer"
 msgstr "outer"
 
-#: ../src/ui_common.rs:448
+#: src/swww.rs:443
 msgid "random"
 msgstr "random"
 
-#: ../src/ui_common.rs:481
-msgid "Transition step"
-msgstr "Transition step"
-
-#: ../src/ui_common.rs:508
-msgid "Transition duration"
-msgstr "Transition duration"
-
-#: ../src/ui_common.rs:540
-msgid "Transition angle"
-msgstr "Transition angle"
-
-#: ../src/ui_common.rs:586 ../src/ui_common.rs:596
+#: src/swww.rs:552
 msgid "Transition position"
 msgstr "Transition position"
 
-#: ../src/ui_common.rs:598
+#: src/swww.rs:554
 msgid ""
 "Can either be floating point number between 0 and 0.99, integer coordinate "
 "like 200,200 or one of the following: center, top, left, right, bottom, top-"
@@ -228,77 +255,47 @@ msgstr ""
 "like 200,200 or one of the following: center, top, left, right, bottom, top-"
 "left, top-right, bottom-left or bottom-right."
 
-#: ../src/ui_common.rs:626
-msgid "Invert Y"
-msgstr "Invert Y"
+#: src/ui_common.rs:43 src/ui_common.rs:49 src/ui_common.rs:53
+#: src/ui_common.rs:58
+msgid "The channel must be open"
+msgstr "The channel must be open"
 
-#: ../src/ui_common.rs:636
-msgid "Invert y position in transition position flag"
-msgstr "Invert y position in transition position flag"
-
-#: ../src/ui_common.rs:649
-msgid "Transition wave"
-msgstr "Transition wave"
-
-#: ../src/ui_common.rs:708
-msgid "Transition bezier"
-msgstr "Transition bezier"
-
-#: ../src/ui_common.rs:778
-msgid "Transition FPS"
-msgstr "Transition FPS"
-
-#: ../src/ui_common.rs:817
-msgid "Confirm"
-msgstr "Confirm"
-
-#: ../src/ui_common.rs:827
-msgid "Restore Defaults"
-msgstr "Restore Defaults"
-
-#: ../src/ui_common.rs:911
+#: src/ui_common.rs:154
 msgid "Selected changer"
 msgstr "Selected changer"
 
-#: ../src/main.rs:163
-#, fuzzy
-msgid "Wallpaper Folder"
-msgstr "Image Folder"
+#~ msgid "Scalling filter"
+#~ msgstr "Scalling filter"
 
-#: ../src/main.rs:203
-msgid "Image Folder"
-msgid_plural "Images Folder"
-msgstr[0] "Image Folder"
-msgstr[1] "Images Folder"
+#~ msgid "Transition type"
+#~ msgstr "Transition type"
 
-#: ../src/main.rs:362
-msgid "Saved wallpapers"
-msgstr "Saved wallpapers"
+#~ msgid "Transition step"
+#~ msgstr "Transition step"
 
-#: ../src/main.rs:370
-msgid "Stored Text"
-msgstr "Stored Text"
+#~ msgid "Transition duration"
+#~ msgstr "Transition duration"
 
-#: ../src/main.rs:399
-msgid "Date"
-msgstr "Date"
+#~ msgid "Transition angle"
+#~ msgstr "Transition angle"
 
-#: ../src/main.rs:399
-msgid "Name"
-msgstr "Name"
+#~ msgid "Invert Y"
+#~ msgstr "Invert Y"
 
-#: ../src/main.rs:411
-msgid "Invert Sort"
-msgstr "Invert Sort"
+#~ msgid "Invert y position in transition position flag"
+#~ msgstr "Invert y position in transition position flag"
 
-#: ../src/main.rs:613
-msgid "Images are loading, please wait"
-msgstr "Images are loading, please wait"
+#~ msgid "Transition wave"
+#~ msgstr "Transition wave"
 
-#: ../src/main.rs:645
-msgid "Finished loading images"
-msgstr "Finished loading images"
+#~ msgid "Transition bezier"
+#~ msgstr "Transition bezier"
 
-#: ../src/main.rs:656
-msgid "Hiding unsupported images"
-msgstr "Hiding unsupported images"
+#~ msgid "Transition FPS"
+#~ msgstr "Transition FPS"
+
+#~ msgid "Confirm"
+#~ msgstr "Confirm"
+
+#~ msgid "Restore Defaults"
+#~ msgstr "Restore Defaults"
