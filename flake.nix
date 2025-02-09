@@ -44,8 +44,8 @@
               install -Dm644 README-Assets/WaytrogenLogo.svg $out/share/icons/hicolor/scalable/apps/waytrogen.svg
               while IFS= read -r lang; do
                     mkdir -p $out/share/locale/$lang/LC_MESSAGES
-                    msgfmt locales/$lang/LC_MESSAGES/waytrogen.po -o $out/share/locale/$lang/LC_MESSAGES/waytrogen.mo
-              done < locales/LINGUAS
+                    msgfmt po/$lang.po -o $out/share/locale/$lang/LC_MESSAGES/waytrogen.mo
+              done < po/LINGUAS
             '';
 
             meta = {
@@ -77,6 +77,8 @@
             openssl
             gsettings-desktop-schemas
             killall
+            meson
+            ninja
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };
