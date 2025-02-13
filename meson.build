@@ -24,4 +24,4 @@ install_data('org.Waytrogen.Waytrogen.gschema.xml', install_dir: join_paths(get_
 gnome.post_install(glib_compile_schemas: true)
 
 install_data('waytrogen.desktop', install_dir: join_paths(get_option('prefix'), 'share', 'applications'))
-install_data('README-Assets/WaytrogenLogo.svg', install_dir: join_paths(get_option('prefix'), 'share', 'icons', 'hicolor', 'scalable', 'apps'))
+install_data('README-Assets/WaytrogenLogo.svg', rename: 'waytrogen.svg', install_dir: join_paths(get_option('prefix'), 'share', 'icons', 'hicolor', 'scalable', 'apps'))
