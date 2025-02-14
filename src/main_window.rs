@@ -19,9 +19,9 @@ use gtk::{
     gio::{spawn_blocking, Cancellable, ListStore, Settings},
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
-    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
-    ListScrollFlags, MenuButton, Orientation, Picture, Popover, ProgressBar, ScrolledWindow,
-    SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer,
+    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, Label,
+    ListItem, ListScrollFlags, MenuButton, Orientation, Picture, Popover, ProgressBar,
+    ScrolledWindow, SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
 use std::{
@@ -47,6 +47,10 @@ struct SensitiveWidgetsHelper {
 
 pub fn build_ui(app: &Application, args: &Cli) {
     let window = create_application_window(app);
+    if get_available_wallpaper_changers().is_empty() {
+        create_no_changers_window(&window);
+        return;
+    }
     let settings = Settings::new(APP_ID);
     let image_list_store = ListStore::new::<BoxedAnyObject>();
     let removed_images_list_store = ListStore::new::<BoxedAnyObject>();
@@ -831,4 +835,54 @@ fn textbuffer_to_string(text_buffer: &TextBuffer) -> String {
     text_buffer
         .text(&text_buffer.start_iter(), &text_buffer.end_iter(), false)
         .to_string()
+}
+
+fn create_no_changers_window(window: &ApplicationWindow) {
+    let application_box = create_application_box();
+    let text_box = Box::builder()
+        .halign(Align::Center)
+        .valign(Align::Center)
+        .orientation(Orientation::Horizontal)
+        .build();
+    let confirm_button = Button::builder()
+        .label(gettext("Ok"))
+        .vexpand(true)
+        .hexpand(true)
+        .can_shrink(true)
+        .has_tooltip(true)
+        .tooltip_text(gettext("Close waytrogen"))
+        .valign(Align::End)
+        .halign(Align::Center)
+        .hexpand(true)
+        .build();
+    let error_message_label = Label::builder()
+        .margin_top(12)
+        .margin_start(12)
+        .margin_bottom(12)
+        .margin_end(12)
+        .label(gettext(
+            "No wallpaper changers detected.\n
+Please install one or more of the following:\n\n
+- Hyprpaper\n
+- Swaybg\n
+- Mpvpaper\n
+- SWWW\n\n
+If waytrogen continues failing to detect an installed changer,\n
+please feel free open issue on the GitHub repository:\n
+https://github.com/nikolaizombie1/waytrogen/issues",
+        ))
+        .halign(Align::Center)
+        .valign(Align::Center)
+        .build();
+    confirm_button.connect_clicked(clone!(
+        #[strong]
+        window,
+        move |_| {
+            window.close();
+        }
+    ));
+    text_box.append(&error_message_label);
+    application_box.append(&text_box);
+    application_box.append(&confirm_button);
+    window.set_child(Some(&application_box));
 }
