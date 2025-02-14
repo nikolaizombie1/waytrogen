@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-08 14:37+0000\n"
+"POT-Creation-Date: 2025-02-14 14:13+0000\n"
 "PO-Revision-Date: 2025-01-08 18:00+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -16,6 +16,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/cli.rs:173
+msgid "Unable to save \"next\" wallpapers"
+msgstr "No se pudo guardar la siguiente imagen de fondo"
 
 #: src/common.rs:73
 msgid "Failed to create thumbnail for"
@@ -45,57 +49,99 @@ msgstr "Imagen GTK fue creada"
 msgid "File could not be converted to a GTK Picture"
 msgstr "Archivo no se pudo convertir a una imagen GTK"
 
-#: src/hyprpaper.rs:37 src/main_window.rs:374 src/mpvpaper.rs:21
+#: src/hyprpaper.rs:57 src/main_window.rs:373 src/mpvpaper.rs:21
 #: src/swaybg.rs:16 src/swww.rs:45
 msgid "All"
 msgstr "Todos"
 
-#: src/main_window.rs:54
+#: src/main_window.rs:60
 #, fuzzy
 msgid "Wallpaper Folder"
 msgstr "Carpeta de imagen"
 
-#: src/main_window.rs:289
+#: src/main_window.rs:295
 msgid "Saved wallpapers"
 msgstr "Imágenes salvados"
 
-#: src/main_window.rs:297
+#: src/main_window.rs:303
 msgid "Stored Text"
 msgstr "Text almacenado"
 
-#: src/main_window.rs:343
+#: src/main_window.rs:349
 msgid "Image Folder"
 msgid_plural "Images Folder"
 msgstr[0] "Carpeta de imagen"
 msgstr[1] "Carpeta de imágenes"
 
-#: src/main_window.rs:482
-msgid "Date"
-msgstr "Fecha"
-
-#: src/main_window.rs:482
-msgid "Name"
-msgstr "Nombre"
-
-#: src/main_window.rs:500
+#: src/main_window.rs:511
 msgid "Invert Sort"
 msgstr "Invertir ordenamiento"
 
-#: src/main_window.rs:610
+#: src/main_window.rs:622
 msgid "Options"
 msgstr "Opciones"
 
-#: src/main_window.rs:739
+#: src/main_window.rs:753
 msgid "Images are loading, please wait"
 msgstr "Las imágenes están cargando. Espera, por favor."
 
-#: src/main_window.rs:753
+#: src/main_window.rs:767
 msgid "Finished loading images"
 msgstr "Las imágenes terminaron de cargar."
 
-#: src/main_window.rs:768
+#: src/main_window.rs:788
 msgid "Hiding unsupported images"
 msgstr "Escondiendo imágenes que no son compatibles."
+
+#: src/main_window.rs:848
+msgid "Ok"
+msgstr "De Acuerdo"
+
+#: src/main_window.rs:853
+msgid "Close waytrogen"
+msgstr "Cerrar waytrogen"
+
+#: src/main_window.rs:864
+msgid ""
+"No wallpaper changers detected.\n"
+"\n"
+"Please install one or more of the following:\n"
+"\n"
+"\n"
+"- Hyprpaper\n"
+"\n"
+"- Swaybg\n"
+"\n"
+"- Mpvpaper\n"
+"\n"
+"- SWWW\n"
+"\n"
+"\n"
+"If waytrogen continues failing to detect an installed changer,\n"
+"\n"
+"please feel free open issue on the GitHub repository:\n"
+"\n"
+"https://github.com/nikolaizombie1/waytrogen/issues"
+msgstr ""
+"Cambiador de imagen de fondo no fue detectado.\n"
+"\n"
+"Por favor instalar uno o mas de los siguientes programas.:\n"
+"\n"
+"\n"
+"- Hyprpaper\n"
+"\n"
+"- Swaybg\n"
+"\n"
+"- Mpvpaper\n"
+"\n"
+"- SWWW\n"
+"\n"
+"\n"
+"Si waytrogen continua fallar en detectar un cambiador de imagen de fondo,\n"
+"\n"
+"por favor somete su problema en el repositorio de GitHub:\n"
+"\n"
+"https://github.com/nikolaizombie1/waytrogen/issues"
 
 #: src/mpvpaper.rs:51 src/swww.rs:430
 msgid "none"
@@ -255,14 +301,20 @@ msgstr ""
 "tal como 200,200 o uno de las siguientes opciones: izquierda, derecha, tope, "
 "piso, tope-izquierdo, tope-derecho, piso-izquierdo, o piso-derecho"
 
-#: src/ui_common.rs:43 src/ui_common.rs:49 src/ui_common.rs:53
-#: src/ui_common.rs:58
+#: src/ui_common.rs:44 src/ui_common.rs:50 src/ui_common.rs:54
+#: src/ui_common.rs:59
 msgid "The channel must be open"
 msgstr "El canal tiene que estar abierto"
 
-#: src/ui_common.rs:154
+#: src/ui_common.rs:144
 msgid "Selected changer"
 msgstr "Cambiador elegido"
+
+#~ msgid "Date"
+#~ msgstr "Fecha"
+
+#~ msgid "Name"
+#~ msgstr "Nombre"
 
 #~ msgid "Scalling filter"
 #~ msgstr "Filtro de escalada"

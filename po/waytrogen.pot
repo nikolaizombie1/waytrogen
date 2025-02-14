@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-08 14:37+0000\n"
+"POT-Creation-Date: 2025-02-14 14:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,10 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: src/cli.rs:173 src/cli.rs:173
+msgid "Unable to save \"next\" wallpapers"
+msgstr ""
 
 #: src/common.rs:73 src/common.rs:73
 msgid "Failed to create thumbnail for"
@@ -45,54 +49,76 @@ msgstr ""
 msgid "File could not be converted to a GTK Picture"
 msgstr ""
 
-#: src/hyprpaper.rs:37 src/hyprpaper.rs:37 src/main_window.rs:374 src/mpvpaper.rs:21 src/swaybg.rs:16 src/swww.rs:45 src/main_window.rs:374 src/mpvpaper.rs:21 src/swaybg.rs:16 src/swww.rs:45
+#: src/hyprpaper.rs:57 src/hyprpaper.rs:57 src/main_window.rs:373 src/mpvpaper.rs:21 src/swaybg.rs:16 src/swww.rs:45 src/main_window.rs:373 src/mpvpaper.rs:21 src/swaybg.rs:16 src/swww.rs:45
 msgid "All"
 msgstr ""
 
-#: src/main_window.rs:54 src/main_window.rs:54
+#: src/main_window.rs:60 src/main_window.rs:60
 msgid "Wallpaper Folder"
 msgstr ""
 
-#: src/main_window.rs:289 src/main_window.rs:289
+#: src/main_window.rs:295 src/main_window.rs:295
 msgid "Saved wallpapers"
 msgstr ""
 
-#: src/main_window.rs:297 src/main_window.rs:297
+#: src/main_window.rs:303 src/main_window.rs:303
 msgid "Stored Text"
 msgstr ""
 
-#: src/main_window.rs:343 src/main_window.rs:343
+#: src/main_window.rs:349 src/main_window.rs:349
 msgid "Image Folder"
 msgid_plural "Images Folder"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/main_window.rs:482 src/main_window.rs:482
-msgid "Date"
-msgstr ""
-
-#: src/main_window.rs:482 src/main_window.rs:482
-msgid "Name"
-msgstr ""
-
-#: src/main_window.rs:500 src/main_window.rs:500
+#: src/main_window.rs:511 src/main_window.rs:511
 msgid "Invert Sort"
 msgstr ""
 
-#: src/main_window.rs:610 src/main_window.rs:610
+#: src/main_window.rs:622 src/main_window.rs:622
 msgid "Options"
 msgstr ""
 
-#: src/main_window.rs:739 src/main_window.rs:739
+#: src/main_window.rs:753 src/main_window.rs:753
 msgid "Images are loading, please wait"
 msgstr ""
 
-#: src/main_window.rs:753 src/main_window.rs:753
+#: src/main_window.rs:767 src/main_window.rs:767
 msgid "Finished loading images"
 msgstr ""
 
-#: src/main_window.rs:768 src/main_window.rs:768
+#: src/main_window.rs:788 src/main_window.rs:788
 msgid "Hiding unsupported images"
+msgstr ""
+
+#: src/main_window.rs:848 src/main_window.rs:848
+msgid "Ok"
+msgstr ""
+
+#: src/main_window.rs:853 src/main_window.rs:853
+msgid "Close waytrogen"
+msgstr ""
+
+#: src/main_window.rs:864 src/main_window.rs:864
+msgid "No wallpaper changers detected.\n"
+"\n"
+"Please install one or more of the following:\n"
+"\n"
+"\n"
+"- Hyprpaper\n"
+"\n"
+"- Swaybg\n"
+"\n"
+"- Mpvpaper\n"
+"\n"
+"- SWWW\n"
+"\n"
+"\n"
+"If waytrogen continues failing to detect an installed changer,\n"
+"\n"
+"please feel free open issue on the GitHub repository:\n"
+"\n"
+"https://github.com/nikolaizombie1/waytrogen/issues"
 msgstr ""
 
 #: src/mpvpaper.rs:51 src/swww.rs:430 src/mpvpaper.rs:51 src/swww.rs:430
@@ -247,10 +273,10 @@ msgstr ""
 msgid "Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."
 msgstr ""
 
-#: src/ui_common.rs:43 src/ui_common.rs:49 src/ui_common.rs:53 src/ui_common.rs:58 src/ui_common.rs:43 src/ui_common.rs:49 src/ui_common.rs:53 src/ui_common.rs:58
+#: src/ui_common.rs:44 src/ui_common.rs:50 src/ui_common.rs:54 src/ui_common.rs:59 src/ui_common.rs:44 src/ui_common.rs:50 src/ui_common.rs:54 src/ui_common.rs:59
 msgid "The channel must be open"
 msgstr ""
 
-#: src/ui_common.rs:154 src/ui_common.rs:154
+#: src/ui_common.rs:144 src/ui_common.rs:144
 msgid "Selected changer"
 msgstr ""
