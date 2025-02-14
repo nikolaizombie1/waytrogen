@@ -10,6 +10,7 @@ homepage = "https://github.com/nikolaizombie1/waytrogen"
 repository = "https://github.com/nikolaizombie1/waytrogen"
 keywords = ["gui", "themeing", "wallpaper", "linux", "wayland"]
 categories = ["gui"]
+exclude = ["README-Assets/preview.webp"]
 
 [dependencies]
 walkdir = "2"
@@ -33,7 +34,7 @@ clap = { version = "4.5.23", features = ["derive"] }
 mktemp = "0.5.1"
 gettext-rs = { version = "0.7.2", features = ["gettext-system"] }
 rand = "0.8.5"
-fuzzy-matcher = "*"
+fuzzy-matcher = ">= 0.3.7"
 
 [features]
 nixos = []
