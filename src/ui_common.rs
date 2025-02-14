@@ -27,8 +27,6 @@ use std::{
     path::{Path, PathBuf},
     str::FromStr,
 };
-use strum::IntoEnumIterator;
-use which::which;
 
 pub const SORT_DROPDOWN_STRINGS: [&str; 2] = ["Date", "Name"];
 
@@ -60,17 +58,6 @@ pub fn generate_image_files(
             .send_blocking(true)
             .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
     });
-}
-
-#[must_use]
-pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
-    let mut available_changers = vec![];
-    for changer in WallpaperChangers::iter() {
-        if which(changer.to_string().to_lowercase()).is_ok() {
-            available_changers.push(changer);
-        }
-    }
-    available_changers
 }
 
 pub fn change_image_button_handlers(

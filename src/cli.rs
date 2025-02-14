@@ -141,7 +141,10 @@ pub fn cycle_next_wallpaper(args: &Cli) -> glib::ExitCode {
             .iter()
             .find(|w| *w.monitor == args.next.clone().unwrap_or_default());
         if previous_wallpaper.is_none() {
-            error!("Display \"{}\" does not exist.", args.next.clone().unwrap_or_default());
+            error!(
+                "Display \"{}\" does not exist.",
+                args.next.clone().unwrap_or_default()
+            );
             return glib::ExitCode::FAILURE;
         }
         let mut previous_wallpaper = previous_wallpaper.unwrap().clone();
@@ -155,8 +158,11 @@ pub fn cycle_next_wallpaper(args: &Cli) -> glib::ExitCode {
             }),
             &mut previous_wallpaper,
         );
-	let index = previous_wallpapers.iter().position(|w| w.monitor == previous_wallpaper.monitor).unwrap();
-	previous_wallpapers[index] = previous_wallpaper;
+        let index = previous_wallpapers
+            .iter()
+            .position(|w| w.monitor == previous_wallpaper.monitor)
+            .unwrap();
+        previous_wallpapers[index] = previous_wallpaper;
     }
     match settings.set_string(
         "saved-wallpapers",

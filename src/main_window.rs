@@ -5,11 +5,11 @@ use crate::{
     },
     ui_common::{
         change_image_button_handlers, compare_image_list_items_by_sort_selection_comparitor,
-        generate_changer_bar, generate_image_files, get_available_monitors,
-        get_available_wallpaper_changers, get_selected_changer, gschema_string_to_string,
-        hide_unsupported_files, sort_images, string_to_gschema_string, SORT_DROPDOWN_STRINGS,
+        generate_changer_bar, generate_image_files, get_available_monitors, get_selected_changer,
+        gschema_string_to_string, hide_unsupported_files, sort_images, string_to_gschema_string,
+        SORT_DROPDOWN_STRINGS,
     },
-    wallpaper_changers::WallpaperChanger,
+    wallpaper_changers::{get_available_wallpaper_changers, WallpaperChanger},
 };
 use async_channel::{Receiver, Sender};
 use gettextrs::{gettext, ngettext};
@@ -20,8 +20,8 @@ use gtk::{
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, ListItem,
-    MenuButton, Orientation, Picture, Popover, ProgressBar, ScrolledWindow, SignalListItemFactory,
-    SingleSelection, StringObject, Switch, Text, TextBuffer, ListScrollFlags
+    ListScrollFlags, MenuButton, Orientation, Picture, Popover, ProgressBar, ScrolledWindow,
+    SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
 use std::{
@@ -798,7 +798,9 @@ fn create_disable_ui_future(sensitive_widgets_helper: SensitiveWidgetsHelper) {
                         sensitive_widgets_helper.invert_sort_switch.clone(),
                     ),
                 );
-		sensitive_widgets_helper.image_grid.scroll_to(0, ListScrollFlags::NONE, None);
+                sensitive_widgets_helper
+                    .image_grid
+                    .scroll_to(0, ListScrollFlags::NONE, None);
             }
         }
     }));

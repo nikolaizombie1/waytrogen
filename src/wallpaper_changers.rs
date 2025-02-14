@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, thread};
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr, VariantArray};
+use which::which;
 
 pub trait WallpaperChanger {
     fn change(self, image: PathBuf, monitor: String);
@@ -879,5 +880,53 @@ impl Display for WallpaperChangers {
             Self::MpvPaper(_, _, _) => write!(f, "mpvpaper"),
             Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => write!(f, "swww"),
         }
+    }
+}
+
+pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
+    let mut available_changers = vec![];
+    for changer in WallpaperChangers::iter() {
+        match changer {
+            WallpaperChangers::Hyprpaper => match which(
+                WallpaperChangers::Hyprpaper
+                    .to_string()
+                    .to_ascii_uppercase(),
+            ) {
+                Ok(_) => available_changers.push(changer),
+                Err(_) => {
+                    if Command::new("systemctl")
+                        .arg("--user")
+                        .arg("list-unit-files")
+                        .arg("hyprpaper.service")
+                        .spawn()
+                        .unwrap()
+                        .wait()
+                        .unwrap()
+                        .success()
+                    {
+                        available_changers.push(changer);
+                    }
+                }
+            },
+            WallpaperChangers::Swaybg(_, _) => {
+                append_changer_if_in_path(&mut available_changers, changer)
+            }
+            WallpaperChangers::MpvPaper(_, _, _) => {
+                append_changer_if_in_path(&mut available_changers, changer)
+            }
+            WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+                append_changer_if_in_path(&mut available_changers, changer)
+            }
+        }
+    }
+    available_changers
+}
+
+fn append_changer_if_in_path(
+    available_changers: &mut Vec<WallpaperChangers>,
+    changer: WallpaperChangers,
+) {
+    if which(changer.to_string().to_lowercase()).is_ok() {
+        available_changers.push(changer);
     }
 }
