@@ -1,7 +1,6 @@
 use gtk::{glib::SignalHandlerId, Picture};
 use image::ImageReader;
 use lazy_static::lazy_static;
-use mktemp::Temp;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -13,6 +12,7 @@ use std::{
     str::FromStr,
     time::UNIX_EPOCH,
 };
+use log::trace;
 
 use crate::wallpaper_changers::WallpaperChangers;
 use gettextrs::gettext;
@@ -75,8 +75,9 @@ impl CacheImageFile {
         ))
     }
     fn try_create_thumbnail_with_ffmpeg(path: &Path) -> anyhow::Result<Vec<u8>> {
-        let temp_dir = Temp::new_dir()?;
-        let output_path = PathBuf::from(temp_dir.as_os_str()).join("temp.png");
+        let temp_dir = String::from_utf8(Command::new("mktemp").arg("-d").output()?.stdout)?;
+        let output_path = PathBuf::from(temp_dir.trim()).join("temp.png");
+	trace!("ffmpeg Output Path: {}", output_path.to_str().unwrap());
         let code = Command::new("ffmpeg")
             .arg("-i")
             .arg(path)
