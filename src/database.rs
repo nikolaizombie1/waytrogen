@@ -1,8 +1,9 @@
 use crate::common::CacheImageFile;
 use gettextrs::gettext;
 use log::{debug, trace, warn};
-use sqlite::{Connection, Value};
+use rusqlite::{Connection, Result};
 use std::path::Path;
+use anyhow::anyhow;
 
 pub struct DatabaseConnection {
     connetion: Connection,
@@ -12,7 +13,7 @@ impl DatabaseConnection {
     fn new() -> anyhow::Result<DatabaseConnection> {
         let xdg_dirs = xdg::BaseDirectories::with_prefix("waytrogen")?;
         let cache_path = xdg_dirs.place_cache_file("cache.db")?;
-        let conn = sqlite::open(cache_path.to_str().unwrap())?;
+        let conn = Connection::open(cache_path.to_str().unwrap())?;
         let query = "
       CREATE TABLE IF NOT EXISTS gtkimagefile
         (
@@ -22,37 +23,33 @@ impl DatabaseConnection {
            path TEXT NOT NULL
         );
      ";
-        conn.execute(query)?;
+        conn.execute(query, ())?;
         Ok(DatabaseConnection { connetion: conn })
     }
 
     pub fn select_image_file(&self, path: &Path) -> anyhow::Result<CacheImageFile> {
-        let query = "SELECT image, name, date, path FROM GtkImageFile where path = ?;";
+        let query = "SELECT image, name, date, path FROM GtkImageFile where path = ?1;";
         let mut statement = self.connetion.prepare(query)?;
 
-        statement.bind((1, path.to_str().unwrap()))?;
-        statement.next()?;
-        let pix_buf_bytes = CacheImageFile {
-            image: statement.read::<Vec<u8>, _>("image")?,
-            name: statement.read::<String, _>("name")?,
-            date: statement.read::<i64, _>("date")? as u64,
-            path: statement.read::<String, _>("path")?,
-        };
-        Ok(pix_buf_bytes)
+        let pix_buf_bytes = statement.query_map([path.to_str().unwrap_or_default()], |row| {
+            Ok(CacheImageFile {
+                image: row.get(0)?,
+                name: row.get(1)?,
+                date: row.get(2)?,
+                path: row.get(3)?,
+            })
+        })?.filter_map(|c| c.ok()).collect::<Vec<_>>();
+	if pix_buf_bytes.is_empty() {
+	    return Err(anyhow!("No result could be found"));
+	}
+        Ok(pix_buf_bytes[0].clone())
     }
 
     pub fn insert_image_file(&self, image_file: &CacheImageFile) -> anyhow::Result<()> {
         let query =
             "INSERT INTO GtkImageFile(image, name, date, path) VALUES (:image, :name, :date, :path);";
-        let mut statement = self.connetion.prepare(query)?;
+        self.connetion.execute(query, (&image_file.image, &image_file.name, &image_file.date, &image_file.path))?;
 
-        statement.bind::<&[(_, Value)]>(&[
-            (":image", image_file.image.clone().into()),
-            (":name", image_file.name[..].into()),
-            (":date", (image_file.date as i64).into()),
-            (":path", image_file.path[..].into()),
-        ])?;
-        statement.next()?;
         Ok(())
     }
 
