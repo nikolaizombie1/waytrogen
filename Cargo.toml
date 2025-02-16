@@ -1,6 +1,6 @@
 [package]
 name = "waytrogen"
-version = "0.6.12"
+version = "0.7.0"
 edition = "2021"
 description = "A GTK graphical user interface for changing your wallpapers on Wayland based compositors."
 license = "Unlicense"
@@ -33,7 +33,6 @@ hex = "0.4.3"
 clap = { version = "4.5.23", features = ["derive"] }
 gettext-rs = { version = ">= 0.7.0", features = ["gettext-system"] }
 rand = "0.8.5"
-fuzzy-matcher = ">= 0.3.7"
 
 [features]
 nixos = []

@@ -246,7 +246,7 @@ pub fn hide_unsupported_files(
                 .to_str()
                 .unwrap_or_default()
                 .to_owned(),
-        ) || !&image_file.chache_image_file.name.contains(name_filter)
+        ) || !&image_file.chache_image_file.name.to_lowercase().contains(&name_filter.to_lowercase())
         {
             debug!(
                 "Image name: {}, Name Filter: {name_filter}, Contains: {}",

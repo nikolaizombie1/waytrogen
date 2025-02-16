@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-14 14:13+0000\n"
+"POT-Creation-Date: 2025-02-16 19:45+0000\n"
 "PO-Revision-Date: 2025-01-08 18:00+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,91 +17,91 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/cli.rs:173
+#: ../src/cli.rs:173
 msgid "Unable to save \"next\" wallpapers"
 msgstr "No se pudo guardar la siguiente imagen de fondo"
 
-#: src/common.rs:73
+#: ../src/common.rs:73
 msgid "Failed to create thumbnail for"
 msgstr "Creación de imagen en miniatura fallo: "
 
-#: src/common.rs:96
+#: ../src/common.rs:97
 msgid "Thumbnail could not be generated using ffmpg."
 msgstr "No se pudo crear imagen en miniatura usando ffmpeg."
 
-#: src/common.rs:150
+#: ../src/common.rs:151
 msgid "Invalid string"
 msgstr "Cadena de caracteres invalido"
 
-#: src/database.rs:63
+#: ../src/database.rs:71
 msgid "Cache Hit"
 msgstr "Encontrado en el cache"
 
-#: src/database.rs:69
+#: ../src/database.rs:77
 msgid "Cache Miss"
 msgstr "No fue encontrado en el cache"
 
-#: src/database.rs:77
+#: ../src/database.rs:85
 msgid "GTK Picture created successfully."
 msgstr "Imagen GTK fue creada"
 
-#: src/database.rs:87
+#: ../src/database.rs:95
 msgid "File could not be converted to a GTK Picture"
 msgstr "Archivo no se pudo convertir a una imagen GTK"
 
-#: src/hyprpaper.rs:57 src/main_window.rs:373 src/mpvpaper.rs:21
-#: src/swaybg.rs:16 src/swww.rs:45
+#: ../src/hyprpaper.rs:57 ../src/main_window.rs:384 ../src/mpvpaper.rs:21
+#: ../src/swaybg.rs:16 ../src/swww.rs:45
 msgid "All"
 msgstr "Todos"
 
-#: src/main_window.rs:60
+#: ../src/main_window.rs:60
 #, fuzzy
 msgid "Wallpaper Folder"
 msgstr "Carpeta de imagen"
 
-#: src/main_window.rs:295
+#: ../src/main_window.rs:306
 msgid "Saved wallpapers"
 msgstr "Imágenes salvados"
 
-#: src/main_window.rs:303
+#: ../src/main_window.rs:314
 msgid "Stored Text"
 msgstr "Text almacenado"
 
-#: src/main_window.rs:349
+#: ../src/main_window.rs:360
 msgid "Image Folder"
 msgid_plural "Images Folder"
 msgstr[0] "Carpeta de imagen"
 msgstr[1] "Carpeta de imágenes"
 
-#: src/main_window.rs:511
+#: ../src/main_window.rs:522
 msgid "Invert Sort"
 msgstr "Invertir ordenamiento"
 
-#: src/main_window.rs:622
+#: ../src/main_window.rs:634
 msgid "Options"
 msgstr "Opciones"
 
-#: src/main_window.rs:753
+#: ../src/main_window.rs:765
 msgid "Images are loading, please wait"
 msgstr "Las imágenes están cargando. Espera, por favor."
 
-#: src/main_window.rs:767
+#: ../src/main_window.rs:779
 msgid "Finished loading images"
 msgstr "Las imágenes terminaron de cargar."
 
-#: src/main_window.rs:788
+#: ../src/main_window.rs:800
 msgid "Hiding unsupported images"
 msgstr "Escondiendo imágenes que no son compatibles."
 
-#: src/main_window.rs:848
+#: ../src/main_window.rs:864
 msgid "Ok"
 msgstr "De Acuerdo"
 
-#: src/main_window.rs:853
+#: ../src/main_window.rs:869
 msgid "Close waytrogen"
 msgstr "Cerrar waytrogen"
 
-#: src/main_window.rs:864
+#: ../src/main_window.rs:880
 msgid ""
 "No wallpaper changers detected.\n"
 "\n"
@@ -143,155 +143,164 @@ msgstr ""
 "\n"
 "https://github.com/nikolaizombie1/waytrogen/issues"
 
-#: src/mpvpaper.rs:51 src/swww.rs:430
+#: ../src/main_window.rs:920
+#, fuzzy
+msgid "Find images"
+msgstr "Las imágenes terminaron de cargar."
+
+#: ../src/main_window.rs:923
+msgid "Filter wallpapers based on the name. Fuzzy matching the name."
+msgstr "Filtar las imagenes de fondo por su nombre."
+
+#: ../src/mpvpaper.rs:51 ../src/swww.rs:430
 msgid "none"
 msgstr "nulo"
 
-#: src/mpvpaper.rs:52
+#: ../src/mpvpaper.rs:52
 msgid "auto-pause"
 msgstr "pausa-automática"
 
-#: src/mpvpaper.rs:53
+#: ../src/mpvpaper.rs:53
 msgid "auto-stop"
 msgstr "pare-automático"
 
-#: src/mpvpaper.rs:66
+#: ../src/mpvpaper.rs:66
 msgid "Enable slideshow for the current folder."
 msgstr "Comenzar presentación de imágenes en la carpeta actual."
 
-#: src/mpvpaper.rs:80
+#: ../src/mpvpaper.rs:80
 msgid "Slideshow change interval"
 msgstr "Intervalo de cambio de presentación de imágenes"
 
-#: src/mpvpaper.rs:125
+#: ../src/mpvpaper.rs:125
 msgid "Entered switch callback"
 msgstr "Entre a la llamada del interruptor"
 
-#: src/mpvpaper.rs:138
+#: ../src/mpvpaper.rs:138
 msgid "Additional mpv options"
 msgstr "Opciones addicionales para mpv"
 
-#: src/mpvpaper.rs:141
+#: ../src/mpvpaper.rs:141
 msgid "Additional command line options to be sent to mpv."
 msgstr "Argumentos adicionales de linea de comando para mpv"
 
-#: src/swaybg.rs:35
+#: ../src/swaybg.rs:35
 msgid "stretch"
 msgstr "estirar"
 
-#: src/swaybg.rs:36 src/swww.rs:81
+#: ../src/swaybg.rs:36 ../src/swww.rs:81
 msgid "fit"
 msgstr "caber"
 
-#: src/swaybg.rs:37
+#: ../src/swaybg.rs:37
 msgid "fill"
 msgstr "llenar"
 
-#: src/swaybg.rs:38 src/swww.rs:440
+#: ../src/swaybg.rs:38 ../src/swww.rs:440
 msgid "center"
 msgstr "centralizar"
 
-#: src/swaybg.rs:39
+#: ../src/swaybg.rs:39
 msgid "tile"
 msgstr "en loza"
 
-#: src/swaybg.rs:40
+#: ../src/swaybg.rs:40
 msgid "solid_color"
 msgstr "color_solido"
 
-#: src/swaybg.rs:73
+#: ../src/swaybg.rs:73
 msgid "Serialized RGB"
 msgstr "RGB serializado"
 
-#: src/swww.rs:81
+#: ../src/swww.rs:81
 msgid "no"
 msgstr "no"
 
-#: src/swww.rs:81
+#: ../src/swww.rs:81
 msgid "crop"
 msgstr "cortar"
 
-#: src/swww.rs:134
+#: ../src/swww.rs:134
 msgid "SWWW Advanced Image Settings"
 msgstr "Configuración avanzada para images con SWWW"
 
-#: src/swww.rs:142
+#: ../src/swww.rs:142
 msgid "Advanced Settings"
 msgstr "Configuración avanzada"
 
-#: src/swww.rs:409
+#: ../src/swww.rs:409
 msgid "nearest"
 msgstr "mas cerca"
 
-#: src/swww.rs:410
+#: ../src/swww.rs:410
 msgid "bilinear"
 msgstr "bilinear"
 
-#: src/swww.rs:411
+#: ../src/swww.rs:411
 msgid "catmullrom"
 msgstr "catmullrom"
 
-#: src/swww.rs:412
+#: ../src/swww.rs:412
 msgid "mitchell"
 msgstr "mitchell"
 
-#: src/swww.rs:413
+#: ../src/swww.rs:413
 msgid "lanczos3"
 msgstr "lanczos3"
 
-#: src/swww.rs:431
+#: ../src/swww.rs:431
 msgid "simple"
 msgstr "simple"
 
-#: src/swww.rs:432
+#: ../src/swww.rs:432
 msgid "fade"
 msgstr "desteñir"
 
-#: src/swww.rs:433
+#: ../src/swww.rs:433
 msgid "left"
 msgstr "izquierda"
 
-#: src/swww.rs:434
+#: ../src/swww.rs:434
 msgid "right"
 msgstr "derecha"
 
-#: src/swww.rs:435
+#: ../src/swww.rs:435
 msgid "top"
 msgstr "tope"
 
-#: src/swww.rs:436
+#: ../src/swww.rs:436
 msgid "bottom"
 msgstr "piso"
 
-#: src/swww.rs:437
+#: ../src/swww.rs:437
 msgid "wipe"
 msgstr "limpiar"
 
-#: src/swww.rs:438
+#: ../src/swww.rs:438
 msgid "wave"
 msgstr "ola"
 
-#: src/swww.rs:439
+#: ../src/swww.rs:439
 msgid "grow"
 msgstr "crecer"
 
-#: src/swww.rs:441
+#: ../src/swww.rs:441
 msgid "any"
 msgstr "cualquiera"
 
-#: src/swww.rs:442
+#: ../src/swww.rs:442
 msgid "outer"
 msgstr "externo"
 
-#: src/swww.rs:443
+#: ../src/swww.rs:443
 msgid "random"
 msgstr "aleatorio"
 
-#: src/swww.rs:552
+#: ../src/swww.rs:552
 msgid "Transition position"
 msgstr "Posición de transición"
 
-#: src/swww.rs:554
+#: ../src/swww.rs:554
 msgid ""
 "Can either be floating point number between 0 and 0.99, integer coordinate "
 "like 200,200 or one of the following: center, top, left, right, bottom, top-"
@@ -301,12 +310,12 @@ msgstr ""
 "tal como 200,200 o uno de las siguientes opciones: izquierda, derecha, tope, "
 "piso, tope-izquierdo, tope-derecho, piso-izquierdo, o piso-derecho"
 
-#: src/ui_common.rs:44 src/ui_common.rs:50 src/ui_common.rs:54
-#: src/ui_common.rs:59
+#: ../src/ui_common.rs:45 ../src/ui_common.rs:51 ../src/ui_common.rs:55
+#: ../src/ui_common.rs:60
 msgid "The channel must be open"
 msgstr "El canal tiene que estar abierto"
 
-#: src/ui_common.rs:144
+#: ../src/ui_common.rs:145
 msgid "Selected changer"
 msgstr "Cambiador elegido"
 

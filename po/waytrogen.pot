@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-14 14:13+0000\n"
+"POT-Creation-Date: 2025-02-16 19:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,89 +17,89 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/cli.rs:173 src/cli.rs:173
+#: ../src/cli.rs:173 ../src/cli.rs:173
 msgid "Unable to save \"next\" wallpapers"
 msgstr ""
 
-#: src/common.rs:73 src/common.rs:73
+#: ../src/common.rs:73 ../src/common.rs:73
 msgid "Failed to create thumbnail for"
 msgstr ""
 
-#: src/common.rs:96 src/common.rs:96
+#: ../src/common.rs:97 ../src/common.rs:97
 msgid "Thumbnail could not be generated using ffmpg."
 msgstr ""
 
-#: src/common.rs:150 src/common.rs:150
+#: ../src/common.rs:151 ../src/common.rs:151
 msgid "Invalid string"
 msgstr ""
 
-#: src/database.rs:63 src/database.rs:63
+#: ../src/database.rs:71 ../src/database.rs:71
 msgid "Cache Hit"
 msgstr ""
 
-#: src/database.rs:69 src/database.rs:69
+#: ../src/database.rs:77 ../src/database.rs:77
 msgid "Cache Miss"
 msgstr ""
 
-#: src/database.rs:77 src/database.rs:77
+#: ../src/database.rs:85 ../src/database.rs:85
 msgid "GTK Picture created successfully."
 msgstr ""
 
-#: src/database.rs:87 src/database.rs:87
+#: ../src/database.rs:95 ../src/database.rs:95
 msgid "File could not be converted to a GTK Picture"
 msgstr ""
 
-#: src/hyprpaper.rs:57 src/hyprpaper.rs:57 src/main_window.rs:373 src/mpvpaper.rs:21 src/swaybg.rs:16 src/swww.rs:45 src/main_window.rs:373 src/mpvpaper.rs:21 src/swaybg.rs:16 src/swww.rs:45
+#: ../src/hyprpaper.rs:57 ../src/hyprpaper.rs:57 ../src/main_window.rs:384 ../src/mpvpaper.rs:21 ../src/swaybg.rs:16 ../src/swww.rs:45 ../src/main_window.rs:384 ../src/mpvpaper.rs:21 ../src/swaybg.rs:16 ../src/swww.rs:45
 msgid "All"
 msgstr ""
 
-#: src/main_window.rs:60 src/main_window.rs:60
+#: ../src/main_window.rs:60 ../src/main_window.rs:60
 msgid "Wallpaper Folder"
 msgstr ""
 
-#: src/main_window.rs:295 src/main_window.rs:295
+#: ../src/main_window.rs:306 ../src/main_window.rs:306
 msgid "Saved wallpapers"
 msgstr ""
 
-#: src/main_window.rs:303 src/main_window.rs:303
+#: ../src/main_window.rs:314 ../src/main_window.rs:314
 msgid "Stored Text"
 msgstr ""
 
-#: src/main_window.rs:349 src/main_window.rs:349
+#: ../src/main_window.rs:360 ../src/main_window.rs:360
 msgid "Image Folder"
 msgid_plural "Images Folder"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/main_window.rs:511 src/main_window.rs:511
+#: ../src/main_window.rs:522 ../src/main_window.rs:522
 msgid "Invert Sort"
 msgstr ""
 
-#: src/main_window.rs:622 src/main_window.rs:622
+#: ../src/main_window.rs:634 ../src/main_window.rs:634
 msgid "Options"
 msgstr ""
 
-#: src/main_window.rs:753 src/main_window.rs:753
+#: ../src/main_window.rs:765 ../src/main_window.rs:765
 msgid "Images are loading, please wait"
 msgstr ""
 
-#: src/main_window.rs:767 src/main_window.rs:767
+#: ../src/main_window.rs:779 ../src/main_window.rs:779
 msgid "Finished loading images"
 msgstr ""
 
-#: src/main_window.rs:788 src/main_window.rs:788
+#: ../src/main_window.rs:800 ../src/main_window.rs:800
 msgid "Hiding unsupported images"
 msgstr ""
 
-#: src/main_window.rs:848 src/main_window.rs:848
+#: ../src/main_window.rs:864 ../src/main_window.rs:864
 msgid "Ok"
 msgstr ""
 
-#: src/main_window.rs:853 src/main_window.rs:853
+#: ../src/main_window.rs:869 ../src/main_window.rs:869
 msgid "Close waytrogen"
 msgstr ""
 
-#: src/main_window.rs:864 src/main_window.rs:864
+#: ../src/main_window.rs:880 ../src/main_window.rs:880
 msgid "No wallpaper changers detected.\n"
 "\n"
 "Please install one or more of the following:\n"
@@ -121,162 +121,170 @@ msgid "No wallpaper changers detected.\n"
 "https://github.com/nikolaizombie1/waytrogen/issues"
 msgstr ""
 
-#: src/mpvpaper.rs:51 src/swww.rs:430 src/mpvpaper.rs:51 src/swww.rs:430
+#: ../src/main_window.rs:920 ../src/main_window.rs:920
+msgid "Find images"
+msgstr ""
+
+#: ../src/main_window.rs:923 ../src/main_window.rs:923
+msgid "Filter wallpapers based on the name. Fuzzy matching the name."
+msgstr ""
+
+#: ../src/mpvpaper.rs:51 ../src/swww.rs:430 ../src/mpvpaper.rs:51 ../src/swww.rs:430
 msgid "none"
 msgstr ""
 
-#: src/mpvpaper.rs:52 src/mpvpaper.rs:52
+#: ../src/mpvpaper.rs:52 ../src/mpvpaper.rs:52
 msgid "auto-pause"
 msgstr ""
 
-#: src/mpvpaper.rs:53 src/mpvpaper.rs:53
+#: ../src/mpvpaper.rs:53 ../src/mpvpaper.rs:53
 msgid "auto-stop"
 msgstr ""
 
-#: src/mpvpaper.rs:66 src/mpvpaper.rs:66
+#: ../src/mpvpaper.rs:66 ../src/mpvpaper.rs:66
 msgid "Enable slideshow for the current folder."
 msgstr ""
 
-#: src/mpvpaper.rs:80 src/mpvpaper.rs:80
+#: ../src/mpvpaper.rs:80 ../src/mpvpaper.rs:80
 msgid "Slideshow change interval"
 msgstr ""
 
-#: src/mpvpaper.rs:125 src/mpvpaper.rs:125
+#: ../src/mpvpaper.rs:125 ../src/mpvpaper.rs:125
 msgid "Entered switch callback"
 msgstr ""
 
-#: src/mpvpaper.rs:138 src/mpvpaper.rs:138
+#: ../src/mpvpaper.rs:138 ../src/mpvpaper.rs:138
 msgid "Additional mpv options"
 msgstr ""
 
-#: src/mpvpaper.rs:141 src/mpvpaper.rs:141
+#: ../src/mpvpaper.rs:141 ../src/mpvpaper.rs:141
 msgid "Additional command line options to be sent to mpv."
 msgstr ""
 
-#: src/swaybg.rs:35 src/swaybg.rs:35
+#: ../src/swaybg.rs:35 ../src/swaybg.rs:35
 msgid "stretch"
 msgstr ""
 
-#: src/swaybg.rs:36 src/swww.rs:81 src/swaybg.rs:36 src/swww.rs:81
+#: ../src/swaybg.rs:36 ../src/swww.rs:81 ../src/swaybg.rs:36 ../src/swww.rs:81
 msgid "fit"
 msgstr ""
 
-#: src/swaybg.rs:37 src/swaybg.rs:37
+#: ../src/swaybg.rs:37 ../src/swaybg.rs:37
 msgid "fill"
 msgstr ""
 
-#: src/swaybg.rs:38 src/swww.rs:440 src/swaybg.rs:38 src/swww.rs:440
+#: ../src/swaybg.rs:38 ../src/swww.rs:440 ../src/swaybg.rs:38 ../src/swww.rs:440
 msgid "center"
 msgstr ""
 
-#: src/swaybg.rs:39 src/swaybg.rs:39
+#: ../src/swaybg.rs:39 ../src/swaybg.rs:39
 msgid "tile"
 msgstr ""
 
-#: src/swaybg.rs:40 src/swaybg.rs:40
+#: ../src/swaybg.rs:40 ../src/swaybg.rs:40
 msgid "solid_color"
 msgstr ""
 
-#: src/swaybg.rs:73 src/swaybg.rs:73
+#: ../src/swaybg.rs:73 ../src/swaybg.rs:73
 msgid "Serialized RGB"
 msgstr ""
 
-#: src/swww.rs:81 src/swww.rs:81
+#: ../src/swww.rs:81 ../src/swww.rs:81
 msgid "no"
 msgstr ""
 
-#: src/swww.rs:81 src/swww.rs:81
+#: ../src/swww.rs:81 ../src/swww.rs:81
 msgid "crop"
 msgstr ""
 
-#: src/swww.rs:134 src/swww.rs:134
+#: ../src/swww.rs:134 ../src/swww.rs:134
 msgid "SWWW Advanced Image Settings"
 msgstr ""
 
-#: src/swww.rs:142 src/swww.rs:142
+#: ../src/swww.rs:142 ../src/swww.rs:142
 msgid "Advanced Settings"
 msgstr ""
 
-#: src/swww.rs:409 src/swww.rs:409
+#: ../src/swww.rs:409 ../src/swww.rs:409
 msgid "nearest"
 msgstr ""
 
-#: src/swww.rs:410 src/swww.rs:410
+#: ../src/swww.rs:410 ../src/swww.rs:410
 msgid "bilinear"
 msgstr ""
 
-#: src/swww.rs:411 src/swww.rs:411
+#: ../src/swww.rs:411 ../src/swww.rs:411
 msgid "catmullrom"
 msgstr ""
 
-#: src/swww.rs:412 src/swww.rs:412
+#: ../src/swww.rs:412 ../src/swww.rs:412
 msgid "mitchell"
 msgstr ""
 
-#: src/swww.rs:413 src/swww.rs:413
+#: ../src/swww.rs:413 ../src/swww.rs:413
 msgid "lanczos3"
 msgstr ""
 
-#: src/swww.rs:431 src/swww.rs:431
+#: ../src/swww.rs:431 ../src/swww.rs:431
 msgid "simple"
 msgstr ""
 
-#: src/swww.rs:432 src/swww.rs:432
+#: ../src/swww.rs:432 ../src/swww.rs:432
 msgid "fade"
 msgstr ""
 
-#: src/swww.rs:433 src/swww.rs:433
+#: ../src/swww.rs:433 ../src/swww.rs:433
 msgid "left"
 msgstr ""
 
-#: src/swww.rs:434 src/swww.rs:434
+#: ../src/swww.rs:434 ../src/swww.rs:434
 msgid "right"
 msgstr ""
 
-#: src/swww.rs:435 src/swww.rs:435
+#: ../src/swww.rs:435 ../src/swww.rs:435
 msgid "top"
 msgstr ""
 
-#: src/swww.rs:436 src/swww.rs:436
+#: ../src/swww.rs:436 ../src/swww.rs:436
 msgid "bottom"
 msgstr ""
 
-#: src/swww.rs:437 src/swww.rs:437
+#: ../src/swww.rs:437 ../src/swww.rs:437
 msgid "wipe"
 msgstr ""
 
-#: src/swww.rs:438 src/swww.rs:438
+#: ../src/swww.rs:438 ../src/swww.rs:438
 msgid "wave"
 msgstr ""
 
-#: src/swww.rs:439 src/swww.rs:439
+#: ../src/swww.rs:439 ../src/swww.rs:439
 msgid "grow"
 msgstr ""
 
-#: src/swww.rs:441 src/swww.rs:441
+#: ../src/swww.rs:441 ../src/swww.rs:441
 msgid "any"
 msgstr ""
 
-#: src/swww.rs:442 src/swww.rs:442
+#: ../src/swww.rs:442 ../src/swww.rs:442
 msgid "outer"
 msgstr ""
 
-#: src/swww.rs:443 src/swww.rs:443
+#: ../src/swww.rs:443 ../src/swww.rs:443
 msgid "random"
 msgstr ""
 
-#: src/swww.rs:552 src/swww.rs:552
+#: ../src/swww.rs:552 ../src/swww.rs:552
 msgid "Transition position"
 msgstr ""
 
-#: src/swww.rs:554 src/swww.rs:554
+#: ../src/swww.rs:554 ../src/swww.rs:554
 msgid "Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."
 msgstr ""
 
-#: src/ui_common.rs:44 src/ui_common.rs:50 src/ui_common.rs:54 src/ui_common.rs:59 src/ui_common.rs:44 src/ui_common.rs:50 src/ui_common.rs:54 src/ui_common.rs:59
+#: ../src/ui_common.rs:45 ../src/ui_common.rs:51 ../src/ui_common.rs:55 ../src/ui_common.rs:60 ../src/ui_common.rs:45 ../src/ui_common.rs:51 ../src/ui_common.rs:55 ../src/ui_common.rs:60
 msgid "The channel must be open"
 msgstr ""
 
-#: src/ui_common.rs:144 src/ui_common.rs:144
+#: ../src/ui_common.rs:145 ../src/ui_common.rs:145
 msgid "Selected changer"
 msgstr ""
