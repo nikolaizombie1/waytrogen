@@ -21,6 +21,7 @@ use gtk::{
     prelude::*,
     Box, DropDown, GridView, ListItem, ListScrollFlags, StringObject, Switch,
 };
+use log::debug;
 use std::{
     cell::Ref,
     cmp::Ordering,
@@ -139,7 +140,7 @@ pub fn get_selected_changer(
                 },
                 options.clone(),
             );
-            log::debug!(
+            debug!(
                 "{}: {} {} {} {}",
                 gettext("Selected changer"),
                 changer,
@@ -202,7 +203,9 @@ pub fn sort_images(
         sort_dropdown.clone(),
         invert_sort_switch.clone(),
     ));
-    image_grid.scroll_to(0, ListScrollFlags::FOCUS, None);
+    if image_list_store.into_iter().len() != 0 {
+        image_grid.scroll_to(0, ListScrollFlags::FOCUS, None);
+    }
 }
 
 pub fn hide_unsupported_files(
@@ -211,6 +214,7 @@ pub fn hide_unsupported_files(
     removed_images_list_store: &ListStore,
     sort_dropdown: &DropDown,
     invert_sort_switch: &Switch,
+    name_filter: &str,
 ) {
     removed_images_list_store
         .into_iter()
@@ -226,23 +230,42 @@ pub fn hide_unsupported_files(
             );
         });
     removed_images_list_store.remove_all();
-    image_list_store
+    let ls = image_list_store
         .into_iter()
         .filter_map(std::result::Result::ok)
-        .for_each(|o| {
-            let item = o.clone().downcast::<BoxedAnyObject>().unwrap();
-            let image_file: Ref<GtkPictureFile> = item.borrow();
-            if !current_changer.accepted_formats().into_iter().any(|f| {
-                f == Path::new(&image_file.chache_image_file.path)
-                    .extension()
-                    .unwrap_or_default()
-                    .to_str()
-                    .unwrap_or_default()
-            }) {
-                removed_images_list_store.append(&item);
-                image_list_store.remove(image_list_store.find(&o).unwrap());
-            }
-        });
+        .collect::<Vec<_>>();
+    debug!("Filtered list store size: {}", ls.len());
+
+    for o in ls {
+        let item = o.clone().downcast::<BoxedAnyObject>().unwrap();
+        let image_file: Ref<GtkPictureFile> = item.borrow();
+        if !current_changer.accepted_formats().contains(
+            &Path::new(&image_file.chache_image_file.path)
+                .extension()
+                .unwrap_or_default()
+                .to_str()
+                .unwrap_or_default()
+                .to_owned(),
+        ) || !&image_file.chache_image_file.name.contains(name_filter)
+        {
+            debug!(
+                "Image name: {}, Name Filter: {name_filter}, Contains: {}",
+                &image_file.chache_image_file.name,
+                &image_file.chache_image_file.name.contains(name_filter)
+            );
+            transfer_and_remove_image(removed_images_list_store, image_list_store, &o, &item);
+        }
+    }
+}
+
+fn transfer_and_remove_image(
+    removed_images_list_store: &ListStore,
+    image_list_store: &ListStore,
+    o: &Object,
+    item: &BoxedAnyObject,
+) {
+    removed_images_list_store.append(item);
+    image_list_store.remove(image_list_store.find(o).unwrap());
 }
 
 #[must_use]

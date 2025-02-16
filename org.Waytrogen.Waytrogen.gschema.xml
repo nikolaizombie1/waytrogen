@@ -24,6 +24,10 @@
             <default>0</default>
             <summary>Last set wallpaper changer</summary>
         </key>
+	<key name="image-filter" type="s">
+	  <default>""</default>
+	  <summary>Last set image fuzzy match filter</summary>
+	</key>
         <key name="swaybg-mode" type="u">
             <default>0</default>
             <summary>Last set swaybg mode</summary>

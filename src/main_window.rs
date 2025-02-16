@@ -19,8 +19,8 @@ use gtk::{
     gio::{spawn_blocking, Cancellable, ListStore, Settings},
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
-    Align, Application, ApplicationWindow, Box, Button, DropDown, FileDialog, GridView, Label,
-    ListItem, ListScrollFlags, MenuButton, Orientation, Picture, Popover, ProgressBar,
+    Align, Application, ApplicationWindow, Box, Button, DropDown, Entry, FileDialog, GridView,
+    Label, ListItem, ListScrollFlags, MenuButton, Orientation, Picture, Popover, ProgressBar,
     ScrolledWindow, SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
@@ -120,6 +120,16 @@ pub fn build_ui(app: &Application, args: &Cli) {
         (&image_list_store, &removed_images_list_store),
     );
 
+    let image_filter_entry = create_image_filter_entry(
+        &settings,
+        &image_list_store,
+        &monitors_dropdown,
+        &sort_dropdown,
+        &invert_sort_switch,
+        &removed_images_list_store,
+	&wallpaper_changers_dropdown
+    );
+
     let options_menu_button =
         create_options_menu_button(&invert_sort_switch, &invert_sort_switch_label);
 
@@ -127,6 +137,7 @@ pub fn build_ui(app: &Application, args: &Cli) {
     changer_options_box.append(&monitors_dropdown);
     changer_options_box.append(&open_folder_button);
     changer_options_box.append(&sort_dropdown);
+    changer_options_box.append(&image_filter_entry);
     changer_options_box.append(&options_menu_button);
     changer_options_box.append(&wallpaper_changers_dropdown);
     changer_options_box.append(&changer_specific_options_box);
@@ -581,6 +592,7 @@ fn connect_wallpaper_changers_signals(
                 &removed_images_list_store,
                 &sort_dropdown,
                 &invert_sort_switch,
+                settings.string("image-filter").as_ref(),
             );
             generate_changer_bar(
                 &changer_specific_options_box,
@@ -790,11 +802,15 @@ fn create_disable_ui_future(sensitive_widgets_helper: SensitiveWidgetsHelper) {
                     &sensitive_widgets_helper.clone().image_list_store,
                     &get_selected_changer(
                         &sensitive_widgets_helper.wallpaper_changers_dropdown,
-                        &sensitive_widgets_helper.settings,
+                        &sensitive_widgets_helper.clone().settings,
                     ),
                     &sensitive_widgets_helper.clone().removed_images_list_store,
                     &sensitive_widgets_helper.clone().sort_dropdown,
                     &sensitive_widgets_helper.clone().invert_sort_switch,
+                    sensitive_widgets_helper
+                        .settings
+                        .string("image-filter")
+                        .as_ref(),
                 );
                 sensitive_widgets_helper.image_list_store.sort(
                     compare_image_list_items_by_sort_selection_comparitor(
@@ -885,4 +901,57 @@ https://github.com/nikolaizombie1/waytrogen/issues",
     application_box.append(&text_box);
     application_box.append(&confirm_button);
     window.set_child(Some(&application_box));
+}
+
+fn create_image_filter_entry(
+    settings: &Settings,
+    image_list_store: &ListStore,
+    monitors_dropdown: &DropDown,
+    sort_dropdown: &DropDown,
+    invert_sort_switch: &Switch,
+    removed_images_list_store: &ListStore,
+    wallpaper_changers_dropdown: &DropDown
+) -> Entry {
+    let entry = Entry::builder()
+        .margin_top(12)
+        .margin_start(12)
+        .margin_bottom(12)
+        .margin_end(12)
+        .placeholder_text(gettext("Find images"))
+        .has_tooltip(true)
+        .tooltip_text(gettext(
+            "Filter wallpapers based on the name. Fuzzy matching the name.",
+        ))
+        .build();
+    settings
+        .bind("image-filter", &entry.buffer(), "text")
+        .build();
+    entry.connect_changed(clone!(
+        #[strong]
+        image_list_store,
+        #[strong]
+        monitors_dropdown,
+        #[strong]
+        settings,
+        #[strong]
+        sort_dropdown,
+        #[strong]
+        invert_sort_switch,
+        #[strong]
+        removed_images_list_store,
+	#[strong]
+	wallpaper_changers_dropdown,
+        move |e| {
+            change_image_button_handlers(&image_list_store, &wallpaper_changers_dropdown, &monitors_dropdown, &settings);
+            hide_unsupported_files(
+                &image_list_store,
+                &get_selected_changer(&wallpaper_changers_dropdown, &settings),
+                &removed_images_list_store,
+                &sort_dropdown,
+                &invert_sort_switch,
+                e.text().as_ref()
+            );
+        }
+    ));
+    entry
 }
