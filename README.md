@@ -43,6 +43,7 @@ A GUI wallpaper setter for Wayland that is a spiritual successor for the minimal
 - List current state in JSON: `waytrogen --list` or `waytrogen -l`
 - Use external script: `waytrogen --external_script` or `waytrogen -e`
   - Script receives: monitor, wallpaper path, complete state
+  - Overrides `config.json` `executable_script` property. 
 - Cycle to the next wallpaper: `waytrogen --next` or `waytrogen -n` 
   
 ## Building from source

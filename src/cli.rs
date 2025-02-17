@@ -1,5 +1,8 @@
 use crate::{
-    common::{sort_by_sort_dropdown_string, Wallpaper, APP_ID, APP_VERSION, GETTEXT_DOMAIN},
+    common::{
+        parse_executable_script, sort_by_sort_dropdown_string, Wallpaper, APP_ID, APP_VERSION,
+        GETTEXT_DOMAIN,
+    },
     main_window::build_ui,
     ui_common::{gschema_string_to_string, string_to_gschema_string, SORT_DROPDOWN_STRINGS},
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
@@ -13,7 +16,6 @@ use std::{
     env::current_exe,
     fs::File,
     io::{BufRead, BufReader},
-    os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     thread,
     time::Duration,
@@ -281,9 +283,9 @@ pub struct Cli {
     #[arg(short, long, default_value_t = false)]
     /// Get the current wallpaper settings in JSON format.
     pub list_current_wallpapers: bool,
-    #[arg(short, long, value_parser = parse_executable_script, default_value_t = String::from(""))]
+    #[arg(short, long, value_parser = parse_executable_script)]
     /// Path to external script.
-    pub external_script: String,
+    pub external_script: Option<String>,
     #[arg(long)]
     /// Set random wallpapers based on last set changer.
     pub random: bool,
@@ -293,18 +295,4 @@ pub struct Cli {
     #[arg(short, long)]
     /// Cycle wallaper(s) the next on based on the previously set wallpaper(s) and sort settings on a given monitor. "All" cycles wallpapers on all monitors.
     pub next: Option<String>,
-}
-
-fn parse_executable_script(s: &str) -> anyhow::Result<String> {
-    if s.is_empty() {
-        return Ok(String::new());
-    }
-    let path = s.parse::<PathBuf>()?;
-    if !path.metadata()?.is_file() {
-        return Err(anyhow::anyhow!("Input is not a file"));
-    }
-    if path.metadata()?.permissions().mode() & 0o111 == 0 {
-        return Err(anyhow::anyhow!("File is not executable"));
-    }
-    Ok(s.to_owned())
 }

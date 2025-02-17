@@ -8,6 +8,7 @@ use std::{
     cell::RefCell,
     fmt::Display,
     io::Cursor,
+    os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     process::Command,
     str::FromStr,
@@ -21,10 +22,13 @@ pub const THUMBNAIL_HEIGHT: i32 = 200;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
 pub const APP_ID: &str = "org.Waytrogen.Waytrogen";
 pub const GETTEXT_DOMAIN: &str = "waytrogen";
+pub const CONFIG_APP_NAME: &str = "waytrogen";
+pub const CACHE_FILE_NAME: &str = "cache.db";
+pub const CONFIG_FILE_NAME: &str = "config.json";
 
 pub struct GtkPictureFile {
     pub picture: Picture,
-    pub chache_image_file: CacheImageFile,
+    pub cache_image_file: CacheImageFile,
     pub button_signal_handler: RefCell<Option<SignalHandlerId>>,
 }
 
@@ -194,4 +198,18 @@ pub fn sort_by_sort_dropdown_string(files: &mut [PathBuf], sort_by: &str, invert
         }
         _ => {}
     }
+}
+
+pub fn parse_executable_script(s: &str) -> anyhow::Result<String> {
+    if s.is_empty() {
+        return Ok(String::new());
+    }
+    let path = s.parse::<PathBuf>()?;
+    if !path.metadata()?.is_file() {
+        return Err(anyhow::anyhow!("Input is not a file"));
+    }
+    if path.metadata()?.permissions().mode() & 0o111 == 0 {
+        return Err(anyhow::anyhow!("File is not executable"));
+    }
+    Ok(s.to_owned())
 }

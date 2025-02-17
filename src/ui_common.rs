@@ -240,18 +240,22 @@ pub fn hide_unsupported_files(
         let item = o.clone().downcast::<BoxedAnyObject>().unwrap();
         let image_file: Ref<GtkPictureFile> = item.borrow();
         if !current_changer.accepted_formats().contains(
-            &Path::new(&image_file.chache_image_file.path)
+            &Path::new(&image_file.cache_image_file.path)
                 .extension()
                 .unwrap_or_default()
                 .to_str()
                 .unwrap_or_default()
                 .to_owned(),
-        ) || !&image_file.chache_image_file.name.to_lowercase().contains(&name_filter.to_lowercase())
+        ) || !&image_file
+            .cache_image_file
+            .name
+            .to_lowercase()
+            .contains(&name_filter.to_lowercase())
         {
             debug!(
                 "Image name: {}, Name Filter: {name_filter}, Contains: {}",
-                &image_file.chache_image_file.name,
-                &image_file.chache_image_file.name.contains(name_filter)
+                &image_file.cache_image_file.name,
+                &image_file.cache_image_file.name.contains(name_filter)
             );
             transfer_and_remove_image(removed_images_list_store, image_list_store, &o, &item);
         }
@@ -315,15 +319,15 @@ pub fn compare_image_list_items_by_name_comparitor(
         let image2: Ref<GtkPictureFile> = image2.borrow();
         if invert_sort_switch_state {
             image1
-                .chache_image_file
+                .cache_image_file
                 .name
-                .partial_cmp(&image2.chache_image_file.name)
+                .partial_cmp(&image2.cache_image_file.name)
                 .unwrap()
         } else {
             image2
-                .chache_image_file
+                .cache_image_file
                 .name
-                .partial_cmp(&image1.chache_image_file.name)
+                .partial_cmp(&image1.cache_image_file.name)
                 .unwrap()
         }
     }
@@ -339,15 +343,15 @@ pub fn compare_image_list_items_by_date_comparitor(
         let image2: Ref<GtkPictureFile> = image2.borrow();
         if invert_sort_switch_state {
             image1
-                .chache_image_file
+                .cache_image_file
                 .date
-                .partial_cmp(&image2.chache_image_file.date)
+                .partial_cmp(&image2.cache_image_file.date)
                 .unwrap()
         } else {
             image2
-                .chache_image_file
+                .cache_image_file
                 .date
-                .partial_cmp(&image1.chache_image_file.date)
+                .partial_cmp(&image1.cache_image_file.date)
                 .unwrap()
         }
     }

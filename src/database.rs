@@ -1,4 +1,4 @@
-use crate::common::CacheImageFile;
+use crate::common::{CacheImageFile, CACHE_FILE_NAME, CONFIG_APP_NAME};
 use anyhow::anyhow;
 use gettextrs::gettext;
 use log::{debug, trace, warn};
@@ -11,8 +11,8 @@ pub struct DatabaseConnection {
 
 impl DatabaseConnection {
     fn new() -> anyhow::Result<DatabaseConnection> {
-        let xdg_dirs = xdg::BaseDirectories::with_prefix("waytrogen")?;
-        let cache_path = xdg_dirs.place_cache_file("cache.db")?;
+        let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME)?;
+        let cache_path = xdg_dirs.place_cache_file(CACHE_FILE_NAME)?;
         let conn = Connection::open(cache_path.to_str().unwrap())?;
         let query = "
       CREATE TABLE IF NOT EXISTS gtkimagefile

@@ -1,6 +1,7 @@
 pub mod cli;
 pub mod common;
 pub mod database;
+pub mod dotfile;
 pub mod fs;
 pub mod hyprpaper;
 pub mod main_window;
