@@ -1,1 +1,2 @@
 option('cargo_features', type: 'string', value: '')
+option('debian_install', type: 'boolean', value: false)

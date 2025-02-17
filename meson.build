@@ -21,7 +21,9 @@ subdir('po')
 
 install_data('org.Waytrogen.Waytrogen.gschema.xml', install_dir: join_paths(get_option('prefix'), 'share', 'glib-2.0', 'schemas'))
 
-gnome.post_install(glib_compile_schemas: true)
+if get_option('debian_install') == false
+    gnome.post_install(glib_compile_schemas: true)
+endif
 
 install_data('waytrogen.desktop', install_dir: join_paths(get_option('prefix'), 'share', 'applications'))
 install_data('README-Assets/WaytrogenLogo.svg', rename: 'waytrogen.svg', install_dir: join_paths(get_option('prefix'), 'share', 'icons', 'hicolor', 'scalable', 'apps'))

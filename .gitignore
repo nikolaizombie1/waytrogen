@@ -78,3 +78,5 @@ flycheck_*.el
 .vscode/*
 result
 *.mo
+debpkgs/**/usr/*
+*.deb

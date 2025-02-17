@@ -35,6 +35,7 @@ A GUI wallpaper setter for Wayland that is a spiritual successor for the minimal
 2. Install `waytrogen`:
     - Arch Linux: Available on [`AUR`](https://aur.archlinux.org/packages/waytrogen)
     - NixOS: Available on [`Nixpkgs`](https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&type=packages&query=waytrogen)
+	- Debian, Ubuntu,Linux-Mint, etc. - Get the latest `.deb` in our [releases](https://github.com/nikolaizombie1/waytrogen/releases).
 
 ## Usage
 - Launch via terminal: `waytrogen`
@@ -65,7 +66,7 @@ sudo pacman -S gtk4 sqlite openssl glib2 rust meson ninja
 ```
 On Ubuntu use the following command to install the required build dependencies:
 ```bash
-sudo apt install sqlite3 openssl libgtk-4-1 libglib2.0-dev cargo meson ninja-build 
+sudo apt install libgtk-4-1 openssl libsqlite3-0 libsqlite3-dev libglib2.0-dev sqlite3 libgtk-4-dev meson ninja cargo
 ```
 Then clone the repository using:
 ```bash

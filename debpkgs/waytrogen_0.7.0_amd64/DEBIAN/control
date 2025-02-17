@@ -1,0 +1,9 @@
+Package: waytrogen
+Version: 0.7.0
+Architecture: amd64
+Essential: no
+Priority: Optional
+Section: utilities
+Maintainer: nikolaizombie1 <fabio.matos999@gmail.com>
+Depends: libgtk-4-1 (>= 4.12), openssl, libsqlite3-0, libsqlite3-dev, libglib2.0-dev (>= 2.78), sudo
+Description: Lightning fast wallpaper setter for Wayland Compositors
