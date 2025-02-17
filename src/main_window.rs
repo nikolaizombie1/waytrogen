@@ -127,7 +127,7 @@ pub fn build_ui(app: &Application, args: &Cli) {
         &sort_dropdown,
         &invert_sort_switch,
         &removed_images_list_store,
-	&wallpaper_changers_dropdown
+        &wallpaper_changers_dropdown,
     );
 
     let options_menu_button =
@@ -246,7 +246,7 @@ fn bind_image_list_item_factory(
             let button = item.child().and_downcast::<Button>().unwrap();
             let entry = item.item().and_downcast::<BoxedAnyObject>().unwrap();
             let image: Ref<GtkPictureFile> = entry.borrow();
-            let path = &image.chache_image_file.path;
+            let path = &image.cache_image_file.path;
             let args = args.clone();
             button.set_size_request(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
             let previous_wallpapers_text_buffer = previous_wallpapers_text_buffer.clone();
@@ -319,15 +319,15 @@ fn bind_image_list_item_factory(
                         }
                     )))),
             };
-            button.set_tooltip_text(Some(&image.chache_image_file.name));
+            button.set_tooltip_text(Some(&image.cache_image_file.name));
             button.set_child(Some(&image.picture));
         }
     ));
 }
 
 fn execute_external_script(args: &Cli, path: &str, selected_monitor: &str, settings: &Settings) {
-    if args.external_script != *"" {
-        match Command::new(args.external_script.clone())
+    if args.external_script.is_some() {
+        match Command::new(args.external_script.as_ref().unwrap())
             .arg(selected_monitor)
             .arg(path)
             .arg(gschema_string_to_string(&gschema_string_to_string(
@@ -745,7 +745,7 @@ fn create_cache_image_future(
                     picture: Picture::for_paintable(
                         &Texture::from_bytes(&Bytes::from(&image.image)).unwrap(),
                     ),
-                    chache_image_file: image,
+                    cache_image_file: image,
                     button_signal_handler: RefCell::new(None),
                 }));
             }
@@ -910,7 +910,7 @@ fn create_image_filter_entry(
     sort_dropdown: &DropDown,
     invert_sort_switch: &Switch,
     removed_images_list_store: &ListStore,
-    wallpaper_changers_dropdown: &DropDown
+    wallpaper_changers_dropdown: &DropDown,
 ) -> Entry {
     let entry = Entry::builder()
         .margin_top(12)
@@ -939,17 +939,22 @@ fn create_image_filter_entry(
         invert_sort_switch,
         #[strong]
         removed_images_list_store,
-	#[strong]
-	wallpaper_changers_dropdown,
+        #[strong]
+        wallpaper_changers_dropdown,
         move |e| {
-            change_image_button_handlers(&image_list_store, &wallpaper_changers_dropdown, &monitors_dropdown, &settings);
+            change_image_button_handlers(
+                &image_list_store,
+                &wallpaper_changers_dropdown,
+                &monitors_dropdown,
+                &settings,
+            );
             hide_unsupported_files(
                 &image_list_store,
                 &get_selected_changer(&wallpaper_changers_dropdown, &settings),
                 &removed_images_list_store,
                 &sort_dropdown,
                 &invert_sort_switch,
-                e.text().as_ref()
+                e.text().as_ref(),
             );
         }
     ));
