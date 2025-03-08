@@ -99,16 +99,26 @@ fn get_previous_supported_wallpapers(settings: &Settings) -> Vec<PathBuf> {
 #[must_use]
 pub fn set_random_wallpapers() -> glib::ExitCode {
     let settings = Settings::new(APP_ID);
-    let previous_wallpapers = get_previous_wallpapers(&settings);
+    let mut previous_wallpapers = get_previous_wallpapers(&settings);
     let files = get_previous_supported_wallpapers(&settings);
     WallpaperChangers::killall_changers();
-    for w in &previous_wallpapers {
+    for w in &mut previous_wallpapers {
         let mut rng = rand::thread_rng();
         let index = rng.gen_range(0..files.len());
         log::debug!("{index}");
         w.changer
             .clone()
             .change(files[index].clone(), w.monitor.clone());
+        w.path = files[index].clone().to_str().unwrap_or_default().to_owned();
+    }
+    match settings.set_string(
+        "saved-wallpapers",
+        &string_to_gschema_string(&serde_json::to_string(&previous_wallpapers).unwrap_or_default()),
+    ) {
+        Ok(_) => {}
+        Err(e) => {
+            error!("{} {e}", gettext("Unable to save \"next\" wallpapers"));
+        }
     }
     glib::ExitCode::SUCCESS
 }
@@ -295,4 +305,7 @@ pub struct Cli {
     #[arg(short, long)]
     /// Cycle wallaper(s) the next on based on the previously set wallpaper(s) and sort settings on a given monitor. "All" cycles wallpapers on all monitors.
     pub next: Option<String>,
+    #[arg(short, long, default_value_t = 0)]
+    /// Startup delay to allow monitors to initialize
+    pub startup_delay: u64
 }

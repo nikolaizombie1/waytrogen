@@ -7,7 +7,8 @@ use waytrogen::{
     },
     dotfile::get_config_file,
 };
-
+use std::thread::sleep;
+use std::time::Duration;
 use gtk::glib;
 
 fn main() -> glib::ExitCode {
@@ -33,14 +34,17 @@ fn main() -> glib::ExitCode {
     }
 
     if args.restore {
+        sleep(Duration::from_millis(args.startup_delay));
         restore_wallpapers()
     } else if args.list_current_wallpapers {
         print_wallpaper_state()
     } else if args.random {
+        sleep(Duration::from_millis(args.startup_delay));
         set_random_wallpapers()
     } else if args.version {
         print_app_version()
     } else if args.next.is_some() {
+        sleep(Duration::from_millis(args.startup_delay));
         cycle_next_wallpaper(&args)
     } else {
         launch_application(args)
