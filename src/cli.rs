@@ -277,7 +277,7 @@ pub struct Cli {
     #[arg(short, long)]
     /// Restore previously set wallpapers
     pub restore: bool,
-    #[arg(short, long, default_value_t = 0)]
+    #[arg(long, default_value_t = 0)]
     /// How many error, warning, info, debug or trace logs will be shown. 0 for error, 1 for warning, 2 for info, 3 for debug, 4 or higher for trace.
     pub log_level: u8,
     #[arg(short, long, default_value_t = false)]
