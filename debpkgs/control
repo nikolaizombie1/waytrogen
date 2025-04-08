@@ -1,5 +1,5 @@
 Package: waytrogen
-Version: 0.7.2
+Version: VERSION
 Architecture: amd64
 Essential: no
 Priority: Optional

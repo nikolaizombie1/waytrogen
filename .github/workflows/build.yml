@@ -1,0 +1,63 @@
+name: Build waytrogen
+on:
+  workflow_dispatch: 
+jobs:
+  build-prefix-usr-binary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4
+      - name: Get dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgtk-4-1 openssl libsqlite3-0 libsqlite3-dev libglib2.0-dev sqlite3 libgtk-4-dev meson ninja cargo gettext desktop-file-utils
+          version: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Rust Artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-directories: "builddir/target"
+      - name: Build waytrogen
+        run: |
+          meson setup builddir --prefix=/usr
+          meson compile -C builddir
+      - name: Upload meson build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prefix-usr-binary
+          path: builddir
+
+  package-deb-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4
+      - name: Get dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgtk-4-1 openssl libsqlite3-0 libsqlite3-dev libglib2.0-dev sqlite3 libgtk-4-dev meson ninja-build cargo gettext desktop-file-utils
+          version: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Rust Artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-directories: "builddir/target"
+      - name: Build waytrogen
+        run: |
+          git fetch --tags
+          TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          PACKAGE_NAME="waytrogen_${TAG}_amd64"
+          PREFIX="debpkgs/${PACKAGE_NAME}"
+          echo "PACKAGE_NAME=${PACKAGE_NAME}" >> $GITHUB_ENV
+          sed -i "s/VERSION/${TAG}/" meson.build
+          meson setup builddir --prefix="$(realpath $PREFIX)"
+          meson compile -C builddir
+          meson install -C builddir
+          mkdir -p "$PREFIX/DEBIAN"
+          mv debpkgs/control debpkgs/postinst "$PREFIX/DEBIAN"
+          sed -i "s/VERSION/${TAG}/" "$PREFIX/DEBIAN/control"
+          chmod 755 "$PREFIX/DEBIAN/postinst"
+          dpkg-deb --build "$PREFIX"
+      - name: Upload deb package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PACKAGE_NAME }}
+          path: debpkgs/*.deb
