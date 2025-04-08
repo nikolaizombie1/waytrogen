@@ -1,0 +1,20 @@
+name: Build waytrogen
+on:
+  workflow_dispatch: 
+jobs:
+  build-generic-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4
+      - name: List files
+        run: ls
+      - name: test
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgtk-4-1 openssl libsqlite3-0 libsqlite3-dev libglib2.0-dev sqlite3 libgtk-4-dev meson ninja cargo
+          version: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build waytrogen
+        run: |
+          meson setup builddir --prefix=/usr
+          meson compile -C builddir
