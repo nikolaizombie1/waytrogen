@@ -17,36 +17,15 @@ jobs:
       - name: Cache Rust Artifacts
         uses: Swatinem/rust-cache@v2
         with:
-          cache-directories: "builddir/target"
+          cache-directories: "./target"
       - name: Build waytrogen
-        run: |
-          meson setup builddir --prefix=/usr
-          meson compile -C builddir
-      - name: Upload meson build artifacts
+        run: cargo build --release
+      - name: Upload ccompiled binary
         uses: actions/upload-artifact@v4
         id: compiled-meson-project
         with:
-          name: builddir
-          path: ./
-
-  publish-waytrogen-to-aur:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get AUR PKGBUILD
-        run: |
-          git clone https://aur.archlinux.org/waytrogen.git
-      - name: Prepare PKGBUILD
-        run:
-          sed -i "s/pkgver=.*/pkgver=${{ github.ref_name }}/" waytrogen/PKGBUILD
-      - name: Publish to AUR
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
-        with:
-          pkgname: waytrogen
-          pkgbuild: ./waytrogen/PKGBUILD
-          commit_username: ${{ secrets.AUR_USERNAME }}
-          commit_email: ${{ secrets.AUR_EMAIL }}
-          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: Update to ${{ github.ref_name }}
+          name: waytrogen_${{ github.ref_name }}_amd64
+          path: ./target/release/waytrogen
 
   package-deb-file:
     runs-on: ubuntu-latest
@@ -80,28 +59,68 @@ jobs:
       - name: Upload deb package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PACKAGE_NAME }}
+          name: "${{ env.PACKAGE_NAME }}.deb"
           path: debpkgs/*.deb
   
-  create_release:
+  create-release:
     needs: [ build-prefix-usr-binary, package-deb-file ]
     runs-on: ubuntu-latest
     steps:
       - name: Get generic build prefix usr binary
         uses: actions/download-artifact@v4
         with:
-          name: builddir
-      - name: Archive generic prefix usr binary
-        run: tar -czf waytrogen_${{ github.ref_name }}_generic_linux_x64.tar.gz *
+          name: waytrogen_${{ github.ref_name }}_amd64
+      - name: Rename precompiled binary
+        run: mv waytrogen waytrogen_${{ github.ref_name }}_amd64
       - name: Get deb file
         uses: actions/download-artifact@v4
         with:
-          name: waytrogen_${{ github.ref_name }}_amd64
+          name: waytrogen_${{ github.ref_name }}_amd64.deb
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            waytrogen_${{ github.ref_name }}_generic_linux_x64.tar.gz
+            waytrogen_${{ github.ref_name }}_amd64
             waytrogen_${{ github.ref_name }}_amd64.deb
+          make_latest: 'true'
 
-        
+  publish-waytrogen-to-aur:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get AUR PKGBUILD
+        run: |
+          git clone https://aur.archlinux.org/waytrogen.git
+      - name: Prepare PKGBUILD
+        run:
+          sed -i "s/pkgver=.*/pkgver=${{ github.ref_name }}/" waytrogen/PKGBUILD
+      - name: Publish to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
+        with:
+          pkgname: waytrogen
+          pkgbuild: ./waytrogen/PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update to ${{ github.ref_name }}
+
+  publish-waytrogen-bin-to-aur:
+    permissions: 
+      contents: write
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get AUR PKGBUILD
+        run: |
+          git clone https://aur.archlinux.org/waytrogen-bin.git
+      - name: Prepare PKGBUILD
+        run:
+          sed -i "s/pkgver=.*/pkgver=${{ github.ref_name }}/" waytrogen-bin/PKGBUILD
+      - name: Publish to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
+        with:
+          pkgname: waytrogen-bin
+          pkgbuild: ./waytrogen-bin/PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update to ${{ github.ref_name }}
