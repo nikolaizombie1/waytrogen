@@ -1,6 +1,8 @@
 name: Build waytrogen
 on:
-  workflow_dispatch: 
+  push:
+    tags:
+      - "*.*.*"
 jobs:
   build-prefix-usr-binary:
     runs-on: ubuntu-latest
@@ -22,9 +24,29 @@ jobs:
           meson compile -C builddir
       - name: Upload meson build artifacts
         uses: actions/upload-artifact@v4
+        id: compiled-meson-project
         with:
-          name: prefix-usr-binary
-          path: builddir
+          name: builddir
+          path: ./
+
+  publish-waytrogen-to-aur:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get AUR PKGBUILD
+        run: |
+          git clone https://aur.archlinux.org/waytrogen.git
+      - name: Prepare PKGBUILD
+        run:
+          sed -i "s/pkgver=.*/pkgver=${{ github.ref_name }}/" waytrogen/PKGBUILD
+      - name: Publish to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
+        with:
+          pkgname: waytrogen
+          pkgbuild: ./waytrogen/PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update to ${{ github.ref_name }}
 
   package-deb-file:
     runs-on: ubuntu-latest
@@ -42,8 +64,7 @@ jobs:
           cache-directories: "builddir/target"
       - name: Build waytrogen
         run: |
-          git fetch --tags
-          TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          TAG=${{ github.ref_name }}
           PACKAGE_NAME="waytrogen_${TAG}_amd64"
           PREFIX="debpkgs/${PACKAGE_NAME}"
           echo "PACKAGE_NAME=${PACKAGE_NAME}" >> $GITHUB_ENV
@@ -61,3 +82,26 @@ jobs:
         with:
           name: ${{ env.PACKAGE_NAME }}
           path: debpkgs/*.deb
+  
+  create_release:
+    needs: [ build-prefix-usr-binary, package-deb-file ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get generic build prefix usr binary
+        uses: actions/download-artifact@v4
+        with:
+          name: builddir
+      - name: Archive generic prefix usr binary
+        run: tar -czf waytrogen_${{ github.ref_name }}_generic_linux_x64.tar.gz *
+      - name: Get deb file
+        uses: actions/download-artifact@v4
+        with:
+          name: waytrogen_${{ github.ref_name }}_amd64
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            waytrogen_${{ github.ref_name }}_generic_linux_x64.tar.gz
+            waytrogen_${{ github.ref_name }}_amd64.deb
+
+        
