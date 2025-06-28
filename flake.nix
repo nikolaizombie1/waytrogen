@@ -30,6 +30,7 @@
               sqlite
               openssl
               gsettings-desktop-schemas
+              socat
             ];
 
             preBuild = "export OUT_PATH=$out";
@@ -79,6 +80,7 @@
             killall
             meson
             ninja
+            socat
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };

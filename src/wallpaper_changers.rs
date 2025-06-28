@@ -467,7 +467,7 @@ impl WallpaperChanger for WallpaperChangers {
                 change_swaybg_wallpaper(self, &image, &monitor);
             }
             Self::MpvPaper(_, _, _) => {
-                change_mpvpaper_wallpaper(self, image, &monitor);
+                change_mpvpaper_wallpaper(&self, image, &monitor);
             }
             Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
                 change_swww_wallpaper(self, image, monitor);

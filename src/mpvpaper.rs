@@ -10,14 +10,25 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
+
+const ALL_MONITOR_SOCKET: &str = "/tmp/mpv-socket-All";
+
 pub fn change_mpvpaper_wallpaper(
-    mpvpaper_changer: WallpaperChangers,
+    mpvpaper_changer: &WallpaperChangers,
     image: PathBuf,
     monitor: &str,
 ) {
     if let WallpaperChangers::MpvPaper(pause_mode, slideshow, mpv_options) = mpvpaper_changer {
         log::debug!("{}", image.display());
         let mut command = Command::new("mpvpaper");
+        let socket = if monitor == gettext("All") {
+            String::from(ALL_MONITOR_SOCKET)
+        } else {
+            format!("/tmp/mpv-socket-{monitor}")
+        };
+
+        let mpv_options = format!("input-ipc-server={socket} {mpv_options}");
+
         let monitor = if monitor == gettext("All") {
             "*"
         } else {
@@ -36,9 +47,40 @@ pub fn change_mpvpaper_wallpaper(
         if slideshow.enable {
             command.arg("-n").arg(slideshow.seconds.to_string());
         }
+
+        let socket_path = std::path::Path::new(&socket);
+
+        if socket_path.exists() {
+	    log::debug!("Attempting to close socket.");
+            Command::new("bash")
+                .arg("-c")
+                .arg(format!("echo quit | socat - {socket}"))
+                .spawn()
+                .unwrap()
+                .wait()
+                .unwrap();
+	    Command::new("rm").arg(socket).spawn().unwrap().wait().unwrap();
+        }
+
+	let all_monitor_socket_exists = std::path::Path::new(ALL_MONITOR_SOCKET).exists();
+	
+	if all_monitor_socket_exists && monitor != gettext("All") {
+            Command::new("bash")
+                .arg("-c")
+                .arg(format!("echo quit | socat - {ALL_MONITOR_SOCKET}"))
+                .spawn()
+                .unwrap()
+                .wait()
+                .unwrap();
+	}
+	else if all_monitor_socket_exists && monitor == gettext("All")  {
+	    mpvpaper_changer.kill();
+	}
+
         command
             .arg(monitor)
             .arg(image)
+            .arg("-f")
             .spawn()
             .unwrap()
             .wait()
