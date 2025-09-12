@@ -83,7 +83,7 @@ impl WallpaperChangers {
         let mut accepted_formats = vec![];
         for changer in WallpaperChangers::iter() {
             for format in changer.accepted_formats() {
-                if !accepted_formats.iter().any(|f: &String| *f == format) {
+                if !accepted_formats.contains(&format) {
                     accepted_formats.push(format);
                 }
             }

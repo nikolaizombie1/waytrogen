@@ -1,7 +1,7 @@
 use crate::{
     common::{
         parse_executable_script, sort_by_sort_dropdown_string, Wallpaper, APP_ID, APP_VERSION,
-        GETTEXT_DOMAIN,
+        CACHE_FILE_NAME, CONFIG_APP_NAME, GETTEXT_DOMAIN,
     },
     main_window::build_ui,
     ui_common::{gschema_string_to_string, string_to_gschema_string, SORT_DROPDOWN_STRINGS},
@@ -14,7 +14,7 @@ use log::debug;
 use rand::Rng;
 use std::{
     env::current_exe,
-    fs::File,
+    fs::{remove_file, File},
     io::{BufRead, BufReader},
     path::{Path, PathBuf},
     thread,
@@ -224,6 +224,30 @@ fn try_set_next_wallpaper(
     }
 }
 
+pub fn delete_image_cache() -> glib::ExitCode {
+    let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
+    if xdg_dirs.is_err() {
+        error!(
+            "Failed to get XDG base dirrectory, {}",
+            xdg_dirs.err().unwrap()
+        );
+        return glib::ExitCode::FAILURE;
+    }
+    let xdg_dirs = xdg_dirs.unwrap();
+    let cache_path = xdg_dirs.place_cache_file(CACHE_FILE_NAME);
+    if cache_path.is_err() {
+        error!("Failed to get cache path, {}", cache_path.err().unwrap());
+        return glib::ExitCode::FAILURE;
+    }
+    match remove_file(cache_path.unwrap()) {
+        Ok(_) => glib::ExitCode::SUCCESS,
+        Err(e) => {
+            error!("Failed to delete cache {e}");
+            glib::ExitCode::FAILURE
+        }
+    }
+}
+
 #[must_use]
 pub fn launch_application(args: Cli) -> glib::ExitCode {
     let app = Application::builder().application_id(APP_ID).build();
@@ -285,7 +309,7 @@ fn get_os_id() -> anyhow::Result<Option<String>> {
 #[derive(Parser, Clone)]
 pub struct Cli {
     #[arg(short, long)]
-    /// Restore previously set wallpapers
+    /// Restore previously set wallpapers.
     pub restore: bool,
     #[arg(long, default_value_t = 0)]
     /// How many error, warning, info, debug or trace logs will be shown. 0 for error, 1 for warning, 2 for info, 3 for debug, 4 or higher for trace.
@@ -300,12 +324,15 @@ pub struct Cli {
     /// Set random wallpapers based on last set changer.
     pub random: bool,
     #[arg(short, long)]
-    /// Get application version
+    /// Get application version.
     pub version: bool,
     #[arg(short, long)]
     /// Cycle wallaper(s) the next on based on the previously set wallpaper(s) and sort settings on a given monitor. "All" cycles wallpapers on all monitors.
     pub next: Option<String>,
     #[arg(short, long, default_value_t = 0)]
-    /// Startup delay to allow monitors to initialize
-    pub startup_delay: u64
+    /// Startup delay to allow monitors to initialize.
+    pub startup_delay: u64,
+    #[arg(short, long)]
+    /// Delete image cache.
+    pub delete_cache: bool,
 }

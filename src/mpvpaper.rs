@@ -51,7 +51,7 @@ pub fn change_mpvpaper_wallpaper(
         let socket_path = std::path::Path::new(&socket);
 
         if socket_path.exists() {
-	    log::debug!("Attempting to close socket.");
+            log::debug!("Attempting to close socket.");
             Command::new("bash")
                 .arg("-c")
                 .arg(format!("echo quit | socat - {socket}"))
@@ -59,12 +59,17 @@ pub fn change_mpvpaper_wallpaper(
                 .unwrap()
                 .wait()
                 .unwrap();
-	    Command::new("rm").arg(socket).spawn().unwrap().wait().unwrap();
+            Command::new("rm")
+                .arg(socket)
+                .spawn()
+                .unwrap()
+                .wait()
+                .unwrap();
         }
 
-	let all_monitor_socket_exists = std::path::Path::new(ALL_MONITOR_SOCKET).exists();
-	
-	if all_monitor_socket_exists && monitor != gettext("All") {
+        let all_monitor_socket_exists = std::path::Path::new(ALL_MONITOR_SOCKET).exists();
+
+        if all_monitor_socket_exists && monitor != gettext("All") {
             Command::new("bash")
                 .arg("-c")
                 .arg(format!("echo quit | socat - {ALL_MONITOR_SOCKET}"))
@@ -72,10 +77,9 @@ pub fn change_mpvpaper_wallpaper(
                 .unwrap()
                 .wait()
                 .unwrap();
-	}
-	else if all_monitor_socket_exists && monitor == gettext("All")  {
-	    mpvpaper_changer.kill();
-	}
+        } else if all_monitor_socket_exists && monitor == gettext("All") {
+            mpvpaper_changer.kill();
+        }
 
         command
             .arg(monitor)
