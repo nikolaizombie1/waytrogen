@@ -1,15 +1,14 @@
 use clap::Parser;
+use gtk::glib;
 use log::error;
+use std::{thread::sleep, time::Duration};
 use waytrogen::{
     cli::{
-        cycle_next_wallpaper, launch_application, print_app_version, print_wallpaper_state,
-        restore_wallpapers, set_random_wallpapers, Cli,
+        cycle_next_wallpaper, delete_image_cache, launch_application, print_app_version,
+        print_wallpaper_state, restore_wallpapers, set_random_wallpapers, Cli,
     },
     dotfile::get_config_file,
 };
-use std::thread::sleep;
-use std::time::Duration;
-use gtk::glib;
 
 fn main() -> glib::ExitCode {
     let mut args = Cli::parse();
@@ -46,6 +45,8 @@ fn main() -> glib::ExitCode {
     } else if args.next.is_some() {
         sleep(Duration::from_millis(args.startup_delay));
         cycle_next_wallpaper(&args)
+    } else if args.delete_cache {
+        delete_image_cache()
     } else {
         launch_application(args)
     }
