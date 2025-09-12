@@ -12,7 +12,7 @@ jobs:
       - name: Get dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: libgtk-4-1 openssl libsqlite3-0 libsqlite3-dev libglib2.0-dev sqlite3 libgtk-4-dev meson ninja cargo gettext desktop-file-utils
+          packages: libgtk-4-1 openssl libsqlite3-0 libsqlite3-dev libglib2.0-dev sqlite3 libgtk-4-dev meson ninja-build cargo gettext desktop-file-utils
           version: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache Rust Artifacts
         uses: Swatinem/rust-cache@v2
