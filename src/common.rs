@@ -157,7 +157,7 @@ impl FromStr for RGB {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Wallpaper {
     pub monitor: String,
     pub path: String,
