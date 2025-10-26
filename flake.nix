@@ -31,6 +31,7 @@
               openssl
               gsettings-desktop-schemas
               socat
+              rust-analyzer
             ];
 
             preBuild = "export OUT_PATH=$out";
