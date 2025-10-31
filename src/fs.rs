@@ -6,7 +6,7 @@ pub fn get_image_files(
     sort_dropdown: &str,
     invert_sort_switch_state: bool,
 ) -> Vec<PathBuf> {
-    let mut files = walkdir::WalkDir::new(path)
+    let mut files = walkdir::WalkDir::new(path).follow_links(true).follow_root_links(true)
         .into_iter()
         .filter_map(std::result::Result::ok)
         .filter(|f| f.file_type().is_file())

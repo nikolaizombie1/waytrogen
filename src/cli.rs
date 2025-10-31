@@ -74,6 +74,8 @@ fn get_previous_supported_wallpapers(settings: &Settings) -> Vec<PathBuf> {
         .parent()
         .unwrap_or_else(|| Path::new(""));
     let files = walkdir::WalkDir::new(path)
+        .follow_links(true)
+        .follow_root_links(true)
         .into_iter()
         .filter_map(std::result::Result::ok)
         .filter(|f| f.file_type().is_file())
