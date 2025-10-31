@@ -61,6 +61,9 @@
         };
 
         devShells.default = pkgs.mkShell {
+              shellHook = ''
+                export RUST_SRC_PATH=${pkgs.rustPlatform.rustLibSrc}
+              '';
           nativeBuildInputs = with pkgs; [
             glibcLocales
             pkg-config
@@ -82,6 +85,9 @@
             meson
             ninja
             socat
+            cargo
+            gettext
+            clippy
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };
