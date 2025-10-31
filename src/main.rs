@@ -7,7 +7,7 @@ use waytrogen::{
         cycle_next_wallpaper, delete_image_cache, launch_application, print_app_version,
         print_wallpaper_state, restore_wallpapers, set_random_wallpapers, Cli,
     },
-    dotfile::get_config_file,
+    dotfile::{self, get_config_file},
 };
 
 fn main() -> glib::ExitCode {
@@ -18,15 +18,21 @@ fn main() -> glib::ExitCode {
         .init()
         .unwrap();
 
-    let config_file = get_config_file();
-    if config_file.is_err() {
-        error!(
-            "Failed to get config file: {}",
-            config_file.as_ref().err().unwrap()
-        );
-        return glib::ExitCode::FAILURE;
+    let config_file = match get_config_file() {
+        Ok(c) => c,
+        Err(e) => {
+            error!("Failed to get config file: {e}");
+            return glib::ExitCode::FAILURE;
+        }
+    };
+
+    match config_file.write_to_gsettings() {
+	Ok(_) => {},
+	Err(e) => {
+	    error!("Failed to write gsettings from configuration file: {e}");
+	    return glib::ExitCode::FAILURE;
+	}
     }
-    let config_file = config_file.unwrap();
 
     if args.external_script.is_none() && !config_file.executable_script.is_empty() {
         args.external_script = Some(config_file.executable_script);
@@ -48,6 +54,18 @@ fn main() -> glib::ExitCode {
     } else if args.delete_cache {
         delete_image_cache()
     } else {
-        launch_application(args)
+        let _ = launch_application(args);
+
+        let config_file = match dotfile::ConfigFile::from_gsettings() {
+            Ok(c) => c,
+            Err(e) => {
+                error!("Failed to get config file: {e}");
+                return glib::ExitCode::FAILURE;
+            }
+        };
+        match config_file.write_to_config_file() {
+            Ok(_) => glib::ExitCode::SUCCESS,
+            Err(_) => glib::ExitCode::FAILURE,
+        }
     }
 }

@@ -213,3 +213,9 @@ pub fn parse_executable_script(s: &str) -> anyhow::Result<String> {
     }
     Ok(s.to_owned())
 }
+
+pub fn get_config_file_path() -> anyhow::Result<PathBuf> {
+    let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME)?;
+    let config_file = xdg_dirs.place_config_file(CONFIG_FILE_NAME)?;
+    Ok(config_file)
+}
