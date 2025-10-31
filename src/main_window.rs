@@ -135,6 +135,12 @@ pub fn build_ui(app: &Application, args: &Cli) {
 
     let hide_changer_options_box = settings.boolean("hide-changer-options-box");
 
+    let hide_changer_options_box = if args.hide_bottom_bar.is_some() {
+	args.hide_bottom_bar.unwrap()
+    } else {
+	hide_changer_options_box
+    };
+    
     let changer_options_box = create_changer_options_box(hide_changer_options_box);
     changer_options_box.append(&monitors_dropdown);
     changer_options_box.append(&open_folder_button);
