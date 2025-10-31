@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 17:45+0000\n"
+"POT-Creation-Date: 2025-10-31 20:20+0000\n"
 "PO-Revision-Date: 2025-01-08 18:00+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/cli.rs:120 ../src/cli.rs:185
+#: ../src/cli.rs:122 ../src/cli.rs:187
 msgid "Unable to save \"next\" wallpapers"
 msgstr "No se pudo guardar la siguiente imagen de fondo"
 
@@ -49,229 +49,231 @@ msgstr "Imagen GTK fue creada"
 msgid "File could not be converted to a GTK Picture"
 msgstr "Archivo no se pudo convertir a una imagen GTK"
 
-#: ../src/dotfile.rs:85
+#: ../src/dotfile.rs:86
 msgid ""
 "The path to executable script used after a wallpaper is set. The script is "
 "sent the monitor identifier, wallpaper path and the serialized "
 "saved_wallpapers state."
 msgstr ""
-"El lugar en el disco duro donde se consigue el archivo ejecutable que se ultiliza despues que la imagen de fondo se aplica."
-"El archivo ejecutable recibe los siguentes argumentos: el idenficador del monitor, el lugar en el disco duro de la imagen"
-"y el contenido de la variable 'saved_wallpapers'."
+"El lugar en el disco duro donde se consigue el archivo ejecutable que se "
+"ultiliza despues que la imagen de fondo se aplica.El archivo ejecutable "
+"recibe los siguentes argumentos: el idenficador del monitor, el lugar en el "
+"disco duro de la imageny el contenido de la variable 'saved_wallpapers'."
 
-#: ../src/dotfile.rs:87
+#: ../src/dotfile.rs:88
 msgid ""
 "The path to the currently selected wallpaper folder. Note: The path cannot "
 "have a trailing forward slash."
 msgstr ""
-"El lugar en el disco duro de la carpeta de imagenes. Es importante que "
-"que esta variable termine con un '/'."
+"El lugar en el disco duro de la carpeta de imagenes. Es importante que que "
+"esta variable termine con un '/'."
 
-#: ../src/dotfile.rs:89
+#: ../src/dotfile.rs:90
 msgid ""
 "The collection of the currently saved wallpapers with their corresponding "
 "monitor, path and changer."
 msgstr ""
 "El conjuto de imagenes de fondo mas recientes con su monitor y cambiador."
 
-#: ../src/dotfile.rs:91
+#: ../src/dotfile.rs:92
 msgid ""
 "The internal numeric identifier in the monitor dropdown used by dconf for "
 "the currently selected monitor. Do not change unless you know what you are "
 "doing."
 msgstr ""
-"El identificator numerico interno en el menu de monitor ultilizado por dconf"
-"para el monitor mas recientement ultilizado. Por favor, no cambie el valor"
-"de esta variable si no entienes que hace."
+"El identificator numerico interno en el menu de monitor ultilizado por "
+"dconfpara el monitor mas recientement ultilizado. Por favor, no cambie el "
+"valorde esta variable si no entienes que hace."
 
-#: ../src/dotfile.rs:93
+#: ../src/dotfile.rs:94
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected sorting option. Do not change unless you know what "
 "you are doing."
 msgstr ""
-"El identificator numerico interno en el menu de cambiador ultilizado por dconf"
-"para el cambiador mas recientement ultilizado. Por favor, no cambie el valor"
-"de esta variable si no entienes que hace."
+"El identificator numerico interno en el menu de cambiador ultilizado por "
+"dconfpara el cambiador mas recientement ultilizado. Por favor, no cambie el "
+"valorde esta variable si no entienes que hace."
 
-#: ../src/dotfile.rs:95
+#: ../src/dotfile.rs:96
 msgid ""
 "The boolean flag to invert the currently selected sort-by option in the sort "
 "dropdown used by dconf."
 msgstr ""
-"La variable booleana de la selection de invertir el ordenamiento de las imagenes."
+"La variable booleana de la selection de invertir el ordenamiento de las "
+"imagenes."
 
-#: ../src/dotfile.rs:97
+#: ../src/dotfile.rs:98
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected changer. Do not change unless you know what you are "
 "doing."
 msgstr ""
-"El identificator numerico interno en el menu de cambiador ultilizado por dconf"
-"para el cambiador mas recientement ultilizado. Por favor, no cambie el valor"
-"de esta variable si no entienes que hace."
+"El identificator numerico interno en el menu de cambiador ultilizado por "
+"dconfpara el cambiador mas recientement ultilizado. Por favor, no cambie el "
+"valorde esta variable si no entienes que hace."
 
-#: ../src/dotfile.rs:99
+#: ../src/dotfile.rs:100
 msgid "The search string for the wallpapers."
-msgstr ""
-"Los caracteres de busqueda para imagenes de fondo."
+msgstr "Los caracteres de busqueda para imagenes de fondo."
 
-#: ../src/dotfile.rs:101
+#: ../src/dotfile.rs:102
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected swaybg mode. Do not change unless you know what you "
 "are doing."
 msgstr ""
-"El identificator numerico interno en el menu de modo de swaybg ultilizado por dconf"
-"para el mode de swaybg mas recientement ultilizado. Por favor, no cambie el valor"
-"de esta variable si no entienes que hace."
+"El identificator numerico interno en el menu de modo de swaybg ultilizado "
+"por dconfpara el mode de swaybg mas recientement ultilizado. Por favor, no "
+"cambie el valorde esta variable si no entienes que hace."
 
-#: ../src/dotfile.rs:103
+#: ../src/dotfile.rs:104
 msgid "The hex color for swaybg background fill. Must be six characters long."
 msgstr ""
-"El color ultilizado para el relleno de fondo para swaybg. Tiene que ser 6 characteres."
+"El color ultilizado para el relleno de fondo para swaybg. Tiene que ser 6 "
+"characteres."
 
-#: ../src/dotfile.rs:105
+#: ../src/dotfile.rs:106
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected mpvpaper pause option. Do not change unless you know "
 "what you are doing."
 msgstr ""
-"El identificator numerico interno en el menu de modo de pausa para mpvpaper ultilizado por dconf"
-"para el modo de pausa para mpvpaper mas recientement ultilizado. Por favor, no cambie el valor"
-"de esta variable si no entienes que hace."
+"El identificator numerico interno en el menu de modo de pausa para mpvpaper "
+"ultilizado por dconfpara el modo de pausa para mpvpaper mas recientement "
+"ultilizado. Por favor, no cambie el valorde esta variable si no entienes que "
+"hace."
 
-#: ../src/dotfile.rs:107
+#: ../src/dotfile.rs:108
 msgid ""
 "The boolean flag to enable/disable slideshows for mpvpaper used by dconf."
 msgstr ""
-"La variable booleana para comenzar presentar imagenes en serie ultilizada por dconf."
+"La variable booleana para comenzar presentar imagenes en serie ultilizada "
+"por dconf."
 
-#: ../src/dotfile.rs:109
+#: ../src/dotfile.rs:110
 msgid ""
 "The number of seconds of that mpvpaper takes between switching images in "
 "slideshow mode. Note: The option must be a positive floating point number."
 msgstr ""
-"La cantidad de segundos que mpvpaper se tarda en cambiar entre images."
-"Es importante que el numero sea positivo."
+"La cantidad de segundos que mpvpaper se tarda en cambiar entre images.Es "
+"importante que el numero sea positivo."
 
-#: ../src/dotfile.rs:111
+#: ../src/dotfile.rs:112
 msgid "Custom options for mpvpaper passed as command line arguments."
-msgstr ""
-"Argumentos addicionales de linea de comando para mpvpaper."
+msgstr "Argumentos addicionales de linea de comando para mpvpaper."
 
-#: ../src/dotfile.rs:113
+#: ../src/dotfile.rs:114
 msgid ""
 "The currently selected monitor as a string. Note: The name must coincide "
 "with the monitor numeric identifier."
 msgstr ""
-"El monitor mas recientement ultilizado. Es importante que el monitor"
-"coincide con el identificador numerico."
+"El monitor mas recientement ultilizado. Es importante que el monitorcoincide "
+"con el identificador numerico."
 
-#: ../src/dotfile.rs:115
+#: ../src/dotfile.rs:116
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected swww resize option. Do not change unless you know "
 "what you are doing."
 msgstr ""
-"El identificator numerico interno en el menu de algoritmo de cambiar tamaño ultilizado por dconf"
-"para la opcion mas recientemente ultilizado. Por favor, no cambie el valor"
-"de esta variable si no entienes que hace."
+"El identificator numerico interno en el menu de algoritmo de cambiar tamaño "
+"ultilizado por dconfpara la opcion mas recientemente ultilizado. Por favor, "
+"no cambie el valorde esta variable si no entienes que hace."
 
-#: ../src/dotfile.rs:117
+#: ../src/dotfile.rs:118
 msgid "The hex color for swww background fill. Must be six characters long."
 msgstr ""
-"El color ultilizado para el relleno de fondo para swww. Tiene que ser 6 characteres."
+"El color ultilizado para el relleno de fondo para swww. Tiene que ser 6 "
+"characteres."
 
-#: ../src/dotfile.rs:119
+#: ../src/dotfile.rs:120
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected swww scaling filter option. Do not change unless you "
 "know what you are doing."
 msgstr ""
-"El identificator numerico interno en el menu de filtro de escalamiento para swww ultilizado por dconf"
-"para la opcion mas recientemente ultilizado. Por favor, no cambie el valor"
-"de esta variable si no entienes que hace."
+"El identificator numerico interno en el menu de filtro de escalamiento para "
+"swww ultilizado por dconfpara la opcion mas recientemente ultilizado. Por "
+"favor, no cambie el valorde esta variable si no entienes que hace."
 
-#: ../src/dotfile.rs:121
+#: ../src/dotfile.rs:122
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected swww transition type option. Do not change unless you "
 "know what you are doing."
 msgstr ""
-"El identificator numerico interno en el menu de opcion de transicion para swww ultilizado por dconf"
-"para la opcion mas recientemente ultilizado. Por favor, no cambie el valor"
-"de esta variable si no entienes que hace."
+"El identificator numerico interno en el menu de opcion de transicion para "
+"swww ultilizado por dconfpara la opcion mas recientemente ultilizado. Por "
+"favor, no cambie el valorde esta variable si no entienes que hace."
 
-#: ../src/dotfile.rs:123
+#: ../src/dotfile.rs:124
 msgid "How fast the transition approaches the new image used by swww."
 msgstr ""
 "Cuan rapido la imagen transiciona a la imagen nueva ultilizada por swww."
 
-#: ../src/dotfile.rs:125
+#: ../src/dotfile.rs:126
 msgid "How long the transition takes to complete in seconds used by swww."
 msgstr ""
-"Cuanto se tarda en completar la transicion, en segundos, a la nueva imagen. Ultilizada por swww."
+"Cuanto se tarda en completar la transicion, en segundos, a la nueva imagen. "
+"Ultilizada por swww."
 
-#: ../src/dotfile.rs:127
+#: ../src/dotfile.rs:128
 msgid ""
 "Used for the 'wipe' and 'wave' transitions used by swww. It controls the "
 "angle of the wipe."
-msgstr ""
-"El angulo de transicion en swww para las opciones 'wipe' y 'wave'."
+msgstr "El angulo de transicion en swww para las opciones 'wipe' y 'wave'."
 
-#: ../src/dotfile.rs:129
+#: ../src/dotfile.rs:130
 msgid ""
 "This is only used for the 'grow','outer' transitions used by swww. It "
 "controls the center of circle."
 msgstr ""
-"El centro del circulo ultilizado para las tranciciones 'grow' y 'outer' de swww."
+"El centro del circulo ultilizado para las tranciciones 'grow' y 'outer' de "
+"swww."
 
-#: ../src/dotfile.rs:131
+#: ../src/dotfile.rs:132
 #, fuzzy
 msgid "Inverts the y position sent in 'transition_pos' flag used by swww."
 msgstr "Invertir la posición del eje Y durante la transición."
 
-#: ../src/dotfile.rs:133
+#: ../src/dotfile.rs:134
 msgid ""
 "Currently only used for 'wave' transition to control the width of each wave "
 "used by swww."
-msgstr ""
-"Controla cuan ancho cada ola es para la trancicion 'wave' de swww."
+msgstr "Controla cuan ancho cada ola es para la trancicion 'wave' de swww."
 
-#: ../src/dotfile.rs:135
+#: ../src/dotfile.rs:136
 msgid ""
 "Currently only used for 'wave' transition to control the height of each wave "
 "used by swww."
-msgstr ""
-"Controla cuan alto cada ola es para la trancicion 'wave' de swww."
+msgstr "Controla cuan alto cada ola es para la trancicion 'wave' de swww."
 
-#: ../src/dotfile.rs:137
+#: ../src/dotfile.rs:138
 msgid "Point 0 for the Bezier curve to use for the transition"
-msgstr ""
-"Punto 0 para la curva Bezier ultilizada para la transicion de swww."
+msgstr "Punto 0 para la curva Bezier ultilizada para la transicion de swww."
 
-#: ../src/dotfile.rs:139
+#: ../src/dotfile.rs:140
 msgid "Point 1 for the Bezier curve to use for the transition"
-msgstr ""
-"Punto 1 para la curva Bezier ultilizada para la transicion de swww."
+msgstr "Punto 1 para la curva Bezier ultilizada para la transicion de swww."
 
-#: ../src/dotfile.rs:141
+#: ../src/dotfile.rs:142
 msgid "Point 2 for the Bezier curve to use for the transition"
-msgstr ""
-"Punto 2 para la curva Bezier ultilizada para la transicion de swww."
+msgstr "Punto 2 para la curva Bezier ultilizada para la transicion de swww."
 
-#: ../src/dotfile.rs:143
+#: ../src/dotfile.rs:144
 msgid "Point 3 for the Bezier curve to use for the transition"
-msgstr ""
-"Punto 3 para la curva Bezier ultilizada para la transicion de swww."
+msgstr "Punto 3 para la curva Bezier ultilizada para la transicion de swww."
 
-#: ../src/dotfile.rs:145
+#: ../src/dotfile.rs:146
 msgid "Frame rate for the transition effect used by swww."
-msgstr ""
-"La velocidad de fotogramas ultilizado en la tranciciones de swww."
+msgstr "La velocidad de fotogramas ultilizado en la tranciciones de swww."
 
-#: ../src/hyprpaper.rs:57 ../src/main_window.rs:384 ../src/mpvpaper.rs:24
+#: ../src/dotfile.rs:148
+msgid "Hide bottom bar."
+msgstr "Esconder barra inferior."
+
+#: ../src/hyprpaper.rs:57 ../src/main_window.rs:386 ../src/mpvpaper.rs:24
 #: ../src/mpvpaper.rs:32 ../src/mpvpaper.rs:72 ../src/mpvpaper.rs:80
 #: ../src/swaybg.rs:16 ../src/swww.rs:45
 msgid "All"
@@ -282,49 +284,49 @@ msgstr "Todos"
 msgid "Wallpaper Folder"
 msgstr "Carpeta de imagen"
 
-#: ../src/main_window.rs:306
+#: ../src/main_window.rs:308
 msgid "Saved wallpapers"
 msgstr "Imágenes salvados"
 
-#: ../src/main_window.rs:314
+#: ../src/main_window.rs:316
 msgid "Stored Text"
 msgstr "Text almacenado"
 
-#: ../src/main_window.rs:360
+#: ../src/main_window.rs:362
 msgid "Image Folder"
 msgid_plural "Images Folder"
 msgstr[0] "Carpeta de imagen"
 msgstr[1] "Carpeta de imágenes"
 
-#: ../src/main_window.rs:522
+#: ../src/main_window.rs:524
 msgid "Invert Sort"
 msgstr "Invertir ordenamiento"
 
-#: ../src/main_window.rs:634
+#: ../src/main_window.rs:636
 msgid "Options"
 msgstr "Opciones"
 
-#: ../src/main_window.rs:765
+#: ../src/main_window.rs:768
 msgid "Images are loading, please wait"
 msgstr "Las imágenes están cargando. Espera, por favor."
 
-#: ../src/main_window.rs:779
+#: ../src/main_window.rs:782
 msgid "Finished loading images"
 msgstr "Las imágenes terminaron de cargar."
 
-#: ../src/main_window.rs:800
+#: ../src/main_window.rs:803
 msgid "Hiding unsupported images"
 msgstr "Escondiendo imágenes que no son compatibles."
 
-#: ../src/main_window.rs:864
+#: ../src/main_window.rs:867
 msgid "Ok"
 msgstr "De Acuerdo"
 
-#: ../src/main_window.rs:869
+#: ../src/main_window.rs:872
 msgid "Close waytrogen"
 msgstr "Cerrar waytrogen"
 
-#: ../src/main_window.rs:880
+#: ../src/main_window.rs:883
 msgid ""
 "No wallpaper changers detected.\n"
 "\n"
@@ -366,12 +368,12 @@ msgstr ""
 "\n"
 "https://github.com/nikolaizombie1/waytrogen/issues"
 
-#: ../src/main_window.rs:920
+#: ../src/main_window.rs:923
 #, fuzzy
 msgid "Find images"
 msgstr "Las imágenes terminaron de cargar."
 
-#: ../src/main_window.rs:923
+#: ../src/main_window.rs:926
 msgid "Filter wallpapers based on the name. Fuzzy matching the name."
 msgstr "Filtar las imagenes de fondo por su nombre."
 

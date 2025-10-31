@@ -1,124 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
 <schemalist>
-    <schema id="org.Waytrogen.Waytrogen" path="/org/Waytrogen/Waytrogen/">
-        <key name="wallpaper-folder" type="s">
-            <default>""</default>
-            <summary>Wallpaper directory</summary>
-        </key>
-        <key name="saved-wallpapers" type="s">
-            <default>"[]"</default>
-        </key>
-        <key name="monitor" type="u">
-            <default>0</default>
-            <summary>Last set monitor</summary>
-        </key>
-        <key name="sort-by" type="u">
-            <default>0</default>
-            <summary>Last set sort by option</summary>
-        </key>
-        <key name="invert-sort" type="b">
-            <default>false</default>
-            <summary>Last set switch state for inverting main window sort</summary>
-        </key>
-        <key name="changer" type="u">
-            <default>0</default>
-            <summary>Last set wallpaper changer</summary>
-        </key>
-	<key name="image-filter" type="s">
-	  <default>""</default>
-	  <summary>Last set image fuzzy match filter</summary>
-	</key>
-        <key name="swaybg-mode" type="u">
-            <default>0</default>
-            <summary>Last set swaybg mode</summary>
-        </key>
-        <key name="swaybg-color" type="s">
-            <default>"000000"</default>
-            <summary>Last set swaybg solid color</summary>
-        </key>
-        <key name="mpvpaper-pause-option" type="u">
-            <default>0</default>
-            <summary>Last set mpvpaper pause option</summary>
-        </key>
-        <key name="mpvpaper-slideshow-enable" type="b">
-            <default>false</default>
-            <summary>Last set switch setting for mpvpaper slideshow</summary>
-        </key>
-        <key name="mpvpaper-slideshow-interval" type="d">
-            <default>1.0</default>
-            <summary>Last set mpv slideshow interval</summary>
-        </key>
-        <key name="mpvpaper-additional-options" type="s">
-            <default>""</default>
-            <summary>Last set custom options for mpv in mpv paper.</summary>
-        </key>
-        <key name="selected-monitor-item" type="s">
-            <default>""</default>
-            <summary>Last set monitor string</summary>
-        </key>
-        <key name="swww-resize" type="u">
-            <default>0</default>
-            <summary>Last set swww resize option</summary>
-        </key>
-        <key name="swww-fill-color" type="s">
-            <default>"000000"</default>
-            <summary>Last set swww fill color</summary>
-        </key>
-        <key name="swww-scaling-filter" type="u">
-            <default>0</default>
-            <summary>Last set swww scaling filter</summary>
-        </key>
-        <key name="swww-transition-type" type="u">
-            <default>1</default>
-            <summary>Last set swww transition type</summary>
-        </key>
-        <key name="swww-transition-step" type="d">
-            <default>90.0</default>
-            <summary>Last set swww transition step</summary>
-        </key>
-        <key name="swww-transition-duration" type="d">
-            <default>3.0</default>
-            <summary>Last set swww transition duration</summary>
-        </key>
-        <key name="swww-transition-angle" type="d">
-            <default>45.0</default>
-            <summary>Last set swww transition angle</summary>
-        </key>
-        <key name="swww-transition-position" type="s">
-            <default>"center"</default>
-            <summary>Last set swww transition position</summary>
-        </key>
-        <key name="swww-invert-y" type="b">
-            <default>false</default>
-            <summary>Last set swww invert y state</summary>
-        </key>
-        <key name="swww-transition-wave-width" type="d">
-            <default>200</default>
-            <summary>Last set swww transition wave width</summary>
-        </key>
-        <key name="swww-transition-wave-height" type="d">
-            <default>200</default>
-            <summary>Last set swww transition wave height</summary>
-        </key>
-        <key name="swww-transition-bezier-p0" type="d">
-            <default>0.54</default>
-            <summary>Last set swww transition bezier p0 value</summary>
-        </key>
-        <key name="swww-transition-bezier-p1" type="d">
-            <default>0.0</default>
-            <summary>Last set swww transition bezier p1 value</summary>
-        </key>
-        <key name="swww-transition-bezier-p2" type="d">
-            <default>0.34</default>
-            <summary>Last set swww transition bezier p2 value</summary>
-        </key>
-        <key name="swww-transition-bezier-p3" type="d">
-            <default>0.99</default>
-            <summary>Last set swww transition bezier p3 value</summary>
-        </key>
-        <key name="swww-transition-fps" type="u">
-        <default>30</default>
-        <summary>Last set swww transition frames per second</summary>
-        </key>
-    </schema>
+	<schema id="org.Waytrogen.Waytrogen" path="/org/Waytrogen/Waytrogen/">
+		<key name="wallpaper-folder" type="s">
+			<default>""</default>
+			<summary>Wallpaper directory</summary>
+		</key>
+		<key name="saved-wallpapers" type="s">
+			<default>"[]"</default>
+		</key>
+		<key name="monitor" type="u">
+			<default>0</default>
+			<summary>Last set monitor</summary>
+		</key>
+		<key name="sort-by" type="u">
+			<default>0</default>
+			<summary>Last set sort by option</summary>
+		</key>
+		<key name="invert-sort" type="b">
+			<default>false</default>
+			<summary>Last set switch state for inverting main window sort</summary>
+		</key>
+		<key name="changer" type="u">
+			<default>0</default>
+			<summary>Last set wallpaper changer</summary>
+		</key>
+		<key name="image-filter" type="s">
+			<default>""</default>
+			<summary>Last set image fuzzy match filter</summary>
+		</key>
+		<key name="swaybg-mode" type="u">
+			<default>0</default>
+			<summary>Last set swaybg mode</summary>
+		</key>
+		<key name="swaybg-color" type="s">
+			<default>"000000"</default>
+			<summary>Last set swaybg solid color</summary>
+		</key>
+		<key name="mpvpaper-pause-option" type="u">
+			<default>0</default>
+			<summary>Last set mpvpaper pause option</summary>
+		</key>
+		<key name="mpvpaper-slideshow-enable" type="b">
+			<default>false</default>
+			<summary>Last set switch setting for mpvpaper slideshow</summary>
+		</key>
+		<key name="mpvpaper-slideshow-interval" type="d">
+			<default>1.0</default>
+			<summary>Last set mpv slideshow interval</summary>
+		</key>
+		<key name="mpvpaper-additional-options" type="s">
+			<default>""</default>
+			<summary>Last set custom options for mpv in mpv paper.</summary>
+		</key>
+		<key name="selected-monitor-item" type="s">
+			<default>""</default>
+			<summary>Last set monitor string</summary>
+		</key>
+		<key name="swww-resize" type="u">
+			<default>0</default>
+			<summary>Last set swww resize option</summary>
+		</key>
+		<key name="swww-fill-color" type="s">
+			<default>"000000"</default>
+			<summary>Last set swww fill color</summary>
+		</key>
+		<key name="swww-scaling-filter" type="u">
+			<default>0</default>
+			<summary>Last set swww scaling filter</summary>
+		</key>
+		<key name="swww-transition-type" type="u">
+			<default>1</default>
+			<summary>Last set swww transition type</summary>
+		</key>
+		<key name="swww-transition-step" type="d">
+			<default>90.0</default>
+			<summary>Last set swww transition step</summary>
+		</key>
+		<key name="swww-transition-duration" type="d">
+			<default>3.0</default>
+			<summary>Last set swww transition duration</summary>
+		</key>
+		<key name="swww-transition-angle" type="d">
+			<default>45.0</default>
+			<summary>Last set swww transition angle</summary>
+		</key>
+		<key name="swww-transition-position" type="s">
+			<default>"center"</default>
+			<summary>Last set swww transition position</summary>
+		</key>
+		<key name="swww-invert-y" type="b">
+			<default>false</default>
+			<summary>Last set swww invert y state</summary>
+		</key>
+		<key name="swww-transition-wave-width" type="d">
+			<default>200</default>
+			<summary>Last set swww transition wave width</summary>
+		</key>
+		<key name="swww-transition-wave-height" type="d">
+			<default>200</default>
+			<summary>Last set swww transition wave height</summary>
+		</key>
+		<key name="swww-transition-bezier-p0" type="d">
+			<default>0.54</default>
+			<summary>Last set swww transition bezier p0 value</summary>
+		</key>
+		<key name="swww-transition-bezier-p1" type="d">
+			<default>0.0</default>
+			<summary>Last set swww transition bezier p1 value</summary>
+		</key>
+		<key name="swww-transition-bezier-p2" type="d">
+			<default>0.34</default>
+			<summary>Last set swww transition bezier p2 value</summary>
+		</key>
+		<key name="swww-transition-bezier-p3" type="d">
+			<default>0.99</default>
+			<summary>Last set swww transition bezier p3 value</summary>
+		</key>
+		<key name="swww-transition-fps" type="u">
+			<default>30</default>
+			<summary>Last set swww transition frames per second</summary>
+		</key>
+		<key name="hide-changer-options-box" type="b">
+			<default>false</default>
+			<summary>Last set hide changer options box setting</summary>
+		</key>
+	</schema>
 </schemalist>

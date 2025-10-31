@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 17:45+0000\n"
+"POT-Creation-Date: 2025-10-31 20:20+0000\n"
 "PO-Revision-Date: 2025-01-08 18:00+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/cli.rs:120 ../src/cli.rs:185
+#: ../src/cli.rs:122 ../src/cli.rs:187
 msgid "Unable to save \"next\" wallpapers"
 msgstr "Unable to save \"next\" wallpapers"
 
@@ -49,26 +49,26 @@ msgstr "GTK Picture created successfully."
 msgid "File could not be converted to a GTK Picture"
 msgstr "File could not be converted to a GTK Picture"
 
-#: ../src/dotfile.rs:85
+#: ../src/dotfile.rs:86
 msgid ""
 "The path to executable script used after a wallpaper is set. The script is "
 "sent the monitor identifier, wallpaper path and the serialized "
 "saved_wallpapers state."
 msgstr ""
 
-#: ../src/dotfile.rs:87
+#: ../src/dotfile.rs:88
 msgid ""
-"The path to the currently selected wallpaper folder. Note: The path must "
+"The path to the currently selected wallpaper folder. Note: The path cannot "
 "have a trailing forward slash."
 msgstr ""
 
-#: ../src/dotfile.rs:89
+#: ../src/dotfile.rs:90
 msgid ""
 "The collection of the currently saved wallpapers with their corresponding "
 "monitor, path and changer."
 msgstr ""
 
-#: ../src/dotfile.rs:91
+#: ../src/dotfile.rs:92
 msgid ""
 "The internal numeric identifier in the monitor dropdown used by dconf for "
 "the currently selected monitor. Do not change unless you know what you are "
@@ -78,7 +78,7 @@ msgstr ""
 "the currently selected monitor. Do not change unless you know what you are "
 "doing."
 
-#: ../src/dotfile.rs:93
+#: ../src/dotfile.rs:94
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected sorting option. Do not change unless you know what "
@@ -88,7 +88,7 @@ msgstr ""
 "the currently selected sorting option. Do not change unless you know what "
 "you are doing."
 
-#: ../src/dotfile.rs:95
+#: ../src/dotfile.rs:96
 msgid ""
 "The boolean flag to invert the currently selected sort-by option in the sort "
 "dropdown used by dconf."
@@ -96,7 +96,7 @@ msgstr ""
 "The boolean flag to invert the currently selected sort-by option in the sort "
 "dropdown used by dconf."
 
-#: ../src/dotfile.rs:97
+#: ../src/dotfile.rs:98
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected changer. Do not change unless you know what you are "
@@ -106,12 +106,11 @@ msgstr ""
 "the currently selected changer. Do not change unless you know what you are "
 "doing."
 
-#: ../src/dotfile.rs:99
+#: ../src/dotfile.rs:100
 msgid "The search string for the wallpapers."
-msgstr ""
-"The search string for the wallpapers."
+msgstr "The search string for the wallpapers."
 
-#: ../src/dotfile.rs:101
+#: ../src/dotfile.rs:102
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected swaybg mode. Do not change unless you know what you "
@@ -121,12 +120,11 @@ msgstr ""
 "the currently selected swaybg mode. Do not change unless you know what you "
 "are doing."
 
-#: ../src/dotfile.rs:103
+#: ../src/dotfile.rs:104
 msgid "The hex color for swaybg background fill. Must be six characters long."
-msgstr ""
-"The hex color for swaybg background fill. Must be six characters long."
+msgstr "The hex color for swaybg background fill. Must be six characters long."
 
-#: ../src/dotfile.rs:105
+#: ../src/dotfile.rs:106
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected mpvpaper pause option. Do not change unless you know "
@@ -136,13 +134,13 @@ msgstr ""
 "the currently selected mpvpaper pause option. Do not change unless you know "
 "what you are doing."
 
-#: ../src/dotfile.rs:107
+#: ../src/dotfile.rs:108
 msgid ""
 "The boolean flag to enable/disable slideshows for mpvpaper used by dconf."
 msgstr ""
 "The boolean flag to enable/disable slideshows for mpvpaper used by dconf."
 
-#: ../src/dotfile.rs:109
+#: ../src/dotfile.rs:110
 msgid ""
 "The number of seconds of that mpvpaper takes between switching images in "
 "slideshow mode. Note: The option must be a positive floating point number."
@@ -150,12 +148,11 @@ msgstr ""
 "The number of seconds of that mpvpaper takes between switching images in "
 "slideshow mode. Note: The option must be a positive floating point number."
 
-#: ../src/dotfile.rs:111
+#: ../src/dotfile.rs:112
 msgid "Custom options for mpvpaper passed as command line arguments."
-msgstr ""
-"Custom options for mpvpaper passed as command line arguments."
+msgstr "Custom options for mpvpaper passed as command line arguments."
 
-#: ../src/dotfile.rs:113
+#: ../src/dotfile.rs:114
 msgid ""
 "The currently selected monitor as a string. Note: The name must coincide "
 "with the monitor numeric identifier."
@@ -163,7 +160,7 @@ msgstr ""
 "The currently selected monitor as a string. Note: The name must coincide "
 "with the monitor numeric identifier."
 
-#: ../src/dotfile.rs:115
+#: ../src/dotfile.rs:116
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected swww resize option. Do not change unless you know "
@@ -173,12 +170,11 @@ msgstr ""
 "the currently selected swww resize option. Do not change unless you know "
 "what you are doing."
 
-#: ../src/dotfile.rs:117
+#: ../src/dotfile.rs:118
 msgid "The hex color for swww background fill. Must be six characters long."
-msgstr ""
-"The hex color for swww background fill. Must be six characters long."
+msgstr "The hex color for swww background fill. Must be six characters long."
 
-#: ../src/dotfile.rs:119
+#: ../src/dotfile.rs:120
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected swww scaling filter option. Do not change unless you "
@@ -188,7 +184,7 @@ msgstr ""
 "the currently selected swww scaling filter option. Do not change unless you "
 "know what you are doing."
 
-#: ../src/dotfile.rs:121
+#: ../src/dotfile.rs:122
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
 "the currently selected swww transition type option. Do not change unless you "
@@ -198,17 +194,15 @@ msgstr ""
 "the currently selected swww transition type option. Do not change unless you "
 "know what you are doing."
 
-#: ../src/dotfile.rs:123
+#: ../src/dotfile.rs:124
 msgid "How fast the transition approaches the new image used by swww."
-msgstr ""
-"How fast the transition approaches the new image used by swww."
+msgstr "How fast the transition approaches the new image used by swww."
 
-#: ../src/dotfile.rs:125
+#: ../src/dotfile.rs:126
 msgid "How long the transition takes to complete in seconds used by swww."
-msgstr ""
-"How long the transition takes to complete in seconds used by swww."
+msgstr "How long the transition takes to complete in seconds used by swww."
 
-#: ../src/dotfile.rs:127
+#: ../src/dotfile.rs:128
 msgid ""
 "Used for the 'wipe' and 'wave' transitions used by swww. It controls the "
 "angle of the wipe."
@@ -216,7 +210,7 @@ msgstr ""
 "Used for the 'wipe' and 'wave' transitions used by swww. It controls the "
 "angle of the wipe."
 
-#: ../src/dotfile.rs:129
+#: ../src/dotfile.rs:130
 msgid ""
 "This is only used for the 'grow','outer' transitions used by swww. It "
 "controls the center of circle."
@@ -224,12 +218,12 @@ msgstr ""
 "This is only used for the 'grow','outer' transitions used by swww. It "
 "controls the center of circle."
 
-#: ../src/dotfile.rs:131
+#: ../src/dotfile.rs:132
 #, fuzzy
 msgid "Inverts the y position sent in 'transition_pos' flag used by swww."
 msgstr "Inverts the y position sent in 'transition_pos' flag used by swww."
 
-#: ../src/dotfile.rs:133
+#: ../src/dotfile.rs:134
 msgid ""
 "Currently only used for 'wave' transition to control the width of each wave "
 "used by swww."
@@ -237,7 +231,7 @@ msgstr ""
 "Currently only used for 'wave' transition to control the width of each wave "
 "used by swww."
 
-#: ../src/dotfile.rs:135
+#: ../src/dotfile.rs:136
 msgid ""
 "Currently only used for 'wave' transition to control the height of each wave "
 "used by swww."
@@ -245,33 +239,32 @@ msgstr ""
 "Currently only used for 'wave' transition to control the height of each wave "
 "used by swww."
 
-#: ../src/dotfile.rs:137
+#: ../src/dotfile.rs:138
 msgid "Point 0 for the Bezier curve to use for the transition"
-msgstr ""
-"Point 0 for the Bezier curve to use for the transition"
+msgstr "Point 0 for the Bezier curve to use for the transition"
 
+#: ../src/dotfile.rs:140
+#, fuzzy
+msgid "Point 1 for the Bezier curve to use for the transition"
+msgstr "Point 0 for the Bezier curve to use for the transition"
 
-#: ../src/dotfile.rs:139
-msgid "point 1 for the bezier curve to use for the transition"
-msgstr ""
-"Point 0 for the Bezier curve to use for the transition"
-
-#: ../src/dotfile.rs:141
+#: ../src/dotfile.rs:142
 msgid "Point 2 for the Bezier curve to use for the transition"
-msgstr ""
-"Point 2 for the Bezier curve to use for the transition"
+msgstr "Point 2 for the Bezier curve to use for the transition"
 
-#: ../src/dotfile.rs:143
+#: ../src/dotfile.rs:144
 msgid "Point 3 for the Bezier curve to use for the transition"
-msgstr ""
-"Point 3 for the Bezier curve to use for the transition"
+msgstr "Point 3 for the Bezier curve to use for the transition"
 
-#: ../src/dotfile.rs:145
+#: ../src/dotfile.rs:146
 msgid "Frame rate for the transition effect used by swww."
-msgstr ""
-"Frame rate for the transition effect used by swww."
+msgstr "Frame rate for the transition effect used by swww."
 
-#: ../src/hyprpaper.rs:57 ../src/main_window.rs:384 ../src/mpvpaper.rs:24
+#: ../src/dotfile.rs:148
+msgid "Hide bottom bar."
+msgstr ""
+
+#: ../src/hyprpaper.rs:57 ../src/main_window.rs:386 ../src/mpvpaper.rs:24
 #: ../src/mpvpaper.rs:32 ../src/mpvpaper.rs:72 ../src/mpvpaper.rs:80
 #: ../src/swaybg.rs:16 ../src/swww.rs:45
 msgid "All"
@@ -282,49 +275,49 @@ msgstr "All"
 msgid "Wallpaper Folder"
 msgstr "Image Folder"
 
-#: ../src/main_window.rs:306
+#: ../src/main_window.rs:308
 msgid "Saved wallpapers"
 msgstr "Saved wallpapers"
 
-#: ../src/main_window.rs:314
+#: ../src/main_window.rs:316
 msgid "Stored Text"
 msgstr "Stored Text"
 
-#: ../src/main_window.rs:360
+#: ../src/main_window.rs:362
 msgid "Image Folder"
 msgid_plural "Images Folder"
 msgstr[0] "Image Folder"
 msgstr[1] "Images Folder"
 
-#: ../src/main_window.rs:522
+#: ../src/main_window.rs:524
 msgid "Invert Sort"
 msgstr "Invert Sort"
 
-#: ../src/main_window.rs:634
+#: ../src/main_window.rs:636
 msgid "Options"
 msgstr "Options"
 
-#: ../src/main_window.rs:765
+#: ../src/main_window.rs:768
 msgid "Images are loading, please wait"
 msgstr "Images are loading, please wait"
 
-#: ../src/main_window.rs:779
+#: ../src/main_window.rs:782
 msgid "Finished loading images"
 msgstr "Finished loading images"
 
-#: ../src/main_window.rs:800
+#: ../src/main_window.rs:803
 msgid "Hiding unsupported images"
 msgstr "Hiding unsupported images"
 
-#: ../src/main_window.rs:864
+#: ../src/main_window.rs:867
 msgid "Ok"
 msgstr "Ok"
 
-#: ../src/main_window.rs:869
+#: ../src/main_window.rs:872
 msgid "Close waytrogen"
 msgstr "Close waytrogen"
 
-#: ../src/main_window.rs:880
+#: ../src/main_window.rs:883
 msgid ""
 "No wallpaper changers detected.\n"
 "\n"
@@ -366,12 +359,12 @@ msgstr ""
 "\n"
 "https://github.com/nikolaizombie1/waytrogen/issues"
 
-#: ../src/main_window.rs:920
+#: ../src/main_window.rs:923
 #, fuzzy
 msgid "Find images"
 msgstr "Find images"
 
-#: ../src/main_window.rs:923
+#: ../src/main_window.rs:926
 msgid "Filter wallpapers based on the name. Fuzzy matching the name."
 msgstr "Filter wallpapers based on the name. Fuzzy matching the name."
 
@@ -541,6 +534,9 @@ msgstr "The channel must be open"
 #: ../src/ui_common.rs:145
 msgid "Selected changer"
 msgstr "Selected changer"
+
+#~ msgid "point 1 for the bezier curve to use for the transition"
+#~ msgstr "Point 0 for the Bezier curve to use for the transition"
 
 #~ msgid "Date"
 #~ msgstr "Date"

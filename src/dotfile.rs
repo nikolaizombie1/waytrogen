@@ -76,6 +76,8 @@ pub struct ConfigFile {
     pub swww_transition_bezier_p3: f64,
     swww_transition_fps_doc: String,
     pub swww_transition_fps: u32,
+    hide_changer_options_box_doc: String,
+    pub hide_changer_options_box: bool
 }
 
 impl Default for ConfigFile {
@@ -143,6 +145,8 @@ impl Default for ConfigFile {
 	    swww_transition_bezier_p3: 0.99,
 	    swww_transition_fps_doc: gettext("Frame rate for the transition effect used by swww."),
 	    swww_transition_fps: 30,
+	    hide_changer_options_box_doc: gettext("Hide bottom bar."),
+	    hide_changer_options_box: false
 	}
     }
 }
@@ -230,6 +234,9 @@ impl ConfigFile {
         trace!("Getting swww-transition-fps gsetting");
         let swww_transition_fps = settings.uint("swww-transition-fps");
 
+        trace!("Getting hide-changer-options-box gsetting");
+	let hide_changer_options_box = settings.boolean("hide-changer-options-box");
+	
         Ok(Self {
             executable_script,
             wallpaper_folder,
@@ -262,6 +269,7 @@ impl ConfigFile {
             swww_transition_bezier_p2,
             swww_transition_bezier_p3,
             swww_transition_fps,
+	    hide_changer_options_box,
             ..Default::default()
         })
     }
@@ -341,6 +349,10 @@ impl ConfigFile {
         settings.set_double("swww-transition-bezier-p3", self.swww_transition_bezier_p3)?;
         trace!("Setting swww-transition-fps gsetting");
         settings.set_uint("swww-transition-fps", self.swww_transition_fps)?;
+
+        trace!("Setting hide-changer-options-box gsetting");
+	settings.set_boolean("hide-changer-options-box", self.hide_changer_options_box)?;
+	
         Ok(())
     }
 }

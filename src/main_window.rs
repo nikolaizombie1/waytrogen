@@ -133,7 +133,9 @@ pub fn build_ui(app: &Application, args: &Cli) {
     let options_menu_button =
         create_options_menu_button(&invert_sort_switch, &invert_sort_switch_label);
 
-    let changer_options_box = create_changer_options_box();
+    let hide_changer_options_box = settings.boolean("hide-changer-options-box");
+
+    let changer_options_box = create_changer_options_box(hide_changer_options_box);
     changer_options_box.append(&monitors_dropdown);
     changer_options_box.append(&open_folder_button);
     changer_options_box.append(&sort_dropdown);
@@ -635,8 +637,8 @@ fn create_options_menu_button(
         .build()
 }
 
-fn create_changer_options_box() -> Box {
-    Box::builder()
+fn create_changer_options_box(hidden: bool) -> Box {
+    let changer_options_box = Box::builder()
         .margin_top(12)
         .margin_start(12)
         .margin_bottom(12)
@@ -645,8 +647,9 @@ fn create_changer_options_box() -> Box {
         .valign(Align::Center)
         .halign(Align::Center)
         .hexpand(true)
-        .orientation(Orientation::Horizontal)
-        .build()
+        .orientation(Orientation::Horizontal);
+    let changer_options_box = changer_options_box.visible(!hidden);
+    changer_options_box.build()
 }
 
 fn connect_folder_path_buffer_signals(
