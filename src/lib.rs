@@ -3,6 +3,7 @@ pub mod common;
 pub mod database;
 pub mod dotfile;
 pub mod fs;
+pub mod gslapper;
 pub mod hyprpaper;
 pub mod main_window;
 pub mod mpvpaper;

@@ -124,5 +124,21 @@
 			<default>false</default>
 			<summary>Last set hide changer options box setting</summary>
 		</key>
+		<key name="gslapper-scale-mode" type="u">
+			<default>0</default>
+			<summary>Last set gslapper scale mode (fill, stretch, original, panscan)</summary>
+		</key>
+		<key name="gslapper-pause-mode" type="u">
+			<default>0</default>
+			<summary>Last set gslapper pause mode (none, auto-pause, auto-stop)</summary>
+		</key>
+		<key name="gslapper-loop" type="b">
+			<default>true</default>
+			<summary>Loop video wallpapers in gslapper</summary>
+		</key>
+		<key name="gslapper-additional-options" type="s">
+			<default>""</default>
+			<summary>Additional gslapper/GStreamer options</summary>
+		</key>
 	</schema>
 </schemalist>
