@@ -1,4 +1,5 @@
 use crate::{
+    ui_common::DEFAULT_MARGIN,
     cli::Cli,
     common::{
         CacheImageFile, GtkPictureFile, Wallpaper, APP_ID, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH,
@@ -359,10 +360,10 @@ pub fn create_open_folder_button(
     window: &ApplicationWindow,
 ) -> Button {
     let open_folder_button = Button::builder()
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .halign(Align::End)
         .valign(Align::Center)
         .label(ngettext("Image Folder", "Images Folder", 2))
@@ -409,10 +410,10 @@ fn create_monitors_dropdown(settings: &Settings) -> DropDown {
     );
     monitors_dropdown.set_halign(Align::End);
     monitors_dropdown.set_valign(Align::Center);
-    monitors_dropdown.set_margin_top(12);
-    monitors_dropdown.set_margin_start(12);
-    monitors_dropdown.set_margin_bottom(12);
-    monitors_dropdown.set_margin_end(12);
+    monitors_dropdown.set_margin_top(DEFAULT_MARGIN);
+    monitors_dropdown.set_margin_start(DEFAULT_MARGIN);
+    monitors_dropdown.set_margin_bottom(DEFAULT_MARGIN);
+    monitors_dropdown.set_margin_end(DEFAULT_MARGIN);
     settings
         .bind("monitor", &monitors_dropdown, "selected")
         .build();
@@ -454,10 +455,10 @@ fn create_wallpaper_changers_dropdown() -> DropDown {
 
     wallpaper_changers_dropdown.set_halign(Align::End);
     wallpaper_changers_dropdown.set_halign(Align::Center);
-    wallpaper_changers_dropdown.set_margin_top(12);
-    wallpaper_changers_dropdown.set_margin_start(12);
-    wallpaper_changers_dropdown.set_margin_bottom(12);
-    wallpaper_changers_dropdown.set_margin_end(12);
+    wallpaper_changers_dropdown.set_margin_top(DEFAULT_MARGIN);
+    wallpaper_changers_dropdown.set_margin_start(DEFAULT_MARGIN);
+    wallpaper_changers_dropdown.set_margin_bottom(DEFAULT_MARGIN);
+    wallpaper_changers_dropdown.set_margin_end(DEFAULT_MARGIN);
     wallpaper_changers_dropdown
 }
 
@@ -509,29 +510,29 @@ fn create_sort_dropdown(settings: &Settings) -> DropDown {
     let sort_dropdown = DropDown::from_strings(&strings);
     sort_dropdown.set_halign(Align::End);
     sort_dropdown.set_valign(Align::Center);
-    sort_dropdown.set_margin_top(12);
-    sort_dropdown.set_margin_start(12);
-    sort_dropdown.set_margin_bottom(12);
-    sort_dropdown.set_margin_end(12);
+    sort_dropdown.set_margin_top(DEFAULT_MARGIN);
+    sort_dropdown.set_margin_start(DEFAULT_MARGIN);
+    sort_dropdown.set_margin_bottom(DEFAULT_MARGIN);
+    sort_dropdown.set_margin_end(DEFAULT_MARGIN);
     settings.bind("sort-by", &sort_dropdown, "selected").build();
     sort_dropdown
 }
 
 fn create_invert_sort_switch(settings: &Settings) -> (Switch, Text) {
     let switch = Switch::builder()
-        .margin_top(12)
-        .margin_bottom(12)
-        .margin_start(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .halign(Align::End)
         .valign(Align::Center)
         .build();
     let text = Text::builder()
         .text(gettext("Invert Sort"))
         .margin_start(3)
-        .margin_top(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .halign(Align::End)
         .valign(Align::Center)
         .build();
@@ -625,30 +626,30 @@ fn create_options_menu_button(
     options_box.append(&sort_invert_box);
 
     let options_popover_menu = Popover::builder()
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .child(&options_box)
         .build();
     MenuButton::builder()
         .popover(&options_popover_menu)
         .halign(Align::Start)
         .valign(Align::Center)
-        .margin_start(12)
-        .margin_top(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .label(gettext("Options"))
         .build()
 }
 
 fn create_changer_options_box(hidden: bool) -> Box {
     let changer_options_box = Box::builder()
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .hexpand(true)
         .valign(Align::Center)
         .halign(Align::Center)
@@ -712,10 +713,10 @@ fn connect_folder_path_buffer_signals(
 
 fn create_application_box() -> Box {
     Box::builder()
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .hexpand(true)
         .vexpand(true)
         .orientation(Orientation::Vertical)
@@ -765,10 +766,10 @@ fn create_cache_image_future(
 fn create_images_loading_progress_bar() -> ProgressBar {
     ProgressBar::builder()
         .opacity(1.0)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .halign(Align::Center)
         .valign(Align::Center)
         .text(gettext("Images are loading, please wait"))
@@ -881,10 +882,10 @@ fn create_no_changers_window(window: &ApplicationWindow) {
         .hexpand(true)
         .build();
     let error_message_label = Label::builder()
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .label(gettext(
             "No wallpaper changers detected.\n
 Please install one or more of the following:\n\n
@@ -922,10 +923,10 @@ fn create_image_filter_entry(
     wallpaper_changers_dropdown: &DropDown,
 ) -> Entry {
     let entry = Entry::builder()
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .placeholder_text(gettext("Find images"))
         .has_tooltip(true)
         .tooltip_text(gettext(

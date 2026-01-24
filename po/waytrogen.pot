@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 20:20+0000\n"
+"POT-Creation-Date: 2026-01-24 15:24+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,217 +17,377 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/cli.rs:122 ../src/cli.rs:187 ../src/cli.rs:122 ../src/cli.rs:187
-msgid "Unable to save \"next\" wallpapers"
-msgstr ""
-
-#: ../src/common.rs:77 ../src/common.rs:77
-msgid "Failed to create thumbnail for"
-msgstr ""
-
-#: ../src/common.rs:101 ../src/common.rs:101
-msgid "Thumbnail could not be generated using ffmpg."
-msgstr ""
-
-#: ../src/common.rs:155 ../src/common.rs:155
-msgid "Invalid string"
-msgstr ""
-
-#: ../src/database.rs:71 ../src/database.rs:71
-msgid "Cache Hit"
-msgstr ""
-
-#: ../src/database.rs:77 ../src/database.rs:77
-msgid "Cache Miss"
-msgstr ""
-
-#: ../src/database.rs:85 ../src/database.rs:85
-msgid "GTK Picture created successfully."
-msgstr ""
-
-#: ../src/database.rs:95 ../src/database.rs:95
-msgid "File could not be converted to a GTK Picture"
-msgstr ""
-
-#: ../src/dotfile.rs:86 ../src/dotfile.rs:86
-msgid "The path to executable script used after a wallpaper is set. The script is sent the monitor identifier, wallpaper path and the serialized saved_wallpapers state."
-msgstr ""
-
-#: ../src/dotfile.rs:88 ../src/dotfile.rs:88
-msgid "The path to the currently selected wallpaper folder. Note: The path cannot have a trailing forward slash."
-msgstr ""
-
-#: ../src/dotfile.rs:90 ../src/dotfile.rs:90
-msgid "The collection of the currently saved wallpapers with their corresponding monitor, path and changer."
-msgstr ""
-
-#: ../src/dotfile.rs:92 ../src/dotfile.rs:92
-msgid "The internal numeric identifier in the monitor dropdown used by dconf for the currently selected monitor. Do not change unless you know what you are doing."
-msgstr ""
-
-#: ../src/dotfile.rs:94 ../src/dotfile.rs:94
-msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected sorting option. Do not change unless you know what you are doing."
-msgstr ""
-
-#: ../src/dotfile.rs:96 ../src/dotfile.rs:96
-msgid "The boolean flag to invert the currently selected sort-by option in the sort dropdown used by dconf."
-msgstr ""
-
-#: ../src/dotfile.rs:98 ../src/dotfile.rs:98
-msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected changer. Do not change unless you know what you are doing."
-msgstr ""
-
-#: ../src/dotfile.rs:100 ../src/dotfile.rs:100
-msgid "The search string for the wallpapers."
-msgstr ""
-
-#: ../src/dotfile.rs:102 ../src/dotfile.rs:102
-msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swaybg mode. Do not change unless you know what you are doing."
-msgstr ""
-
-#: ../src/dotfile.rs:104 ../src/dotfile.rs:104
-msgid "The hex color for swaybg background fill. Must be six characters long."
-msgstr ""
-
-#: ../src/dotfile.rs:106 ../src/dotfile.rs:106
-msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected mpvpaper pause option. Do not change unless you know what you are doing."
-msgstr ""
-
-#: ../src/dotfile.rs:108 ../src/dotfile.rs:108
-msgid "The boolean flag to enable/disable slideshows for mpvpaper used by dconf."
-msgstr ""
-
-#: ../src/dotfile.rs:110 ../src/dotfile.rs:110
-msgid "The number of seconds of that mpvpaper takes between switching images in slideshow mode. Note: The option must be a positive floating point number."
-msgstr ""
-
-#: ../src/dotfile.rs:112 ../src/dotfile.rs:112
-msgid "Custom options for mpvpaper passed as command line arguments."
-msgstr ""
-
-#: ../src/dotfile.rs:114 ../src/dotfile.rs:114
-msgid "The currently selected monitor as a string. Note: The name must coincide with the monitor numeric identifier."
-msgstr ""
-
-#: ../src/dotfile.rs:116 ../src/dotfile.rs:116
-msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swww resize option. Do not change unless you know what you are doing."
-msgstr ""
-
-#: ../src/dotfile.rs:118 ../src/dotfile.rs:118
-msgid "The hex color for swww background fill. Must be six characters long."
-msgstr ""
-
-#: ../src/dotfile.rs:120 ../src/dotfile.rs:120
-msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swww scaling filter option. Do not change unless you know what you are doing."
-msgstr ""
-
-#: ../src/dotfile.rs:122 ../src/dotfile.rs:122
-msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swww transition type option. Do not change unless you know what you are doing."
-msgstr ""
-
-#: ../src/dotfile.rs:124 ../src/dotfile.rs:124
-msgid "How fast the transition approaches the new image used by swww."
-msgstr ""
-
-#: ../src/dotfile.rs:126 ../src/dotfile.rs:126
-msgid "How long the transition takes to complete in seconds used by swww."
-msgstr ""
-
-#: ../src/dotfile.rs:128 ../src/dotfile.rs:128
-msgid "Used for the 'wipe' and 'wave' transitions used by swww. It controls the angle of the wipe."
-msgstr ""
-
-#: ../src/dotfile.rs:130 ../src/dotfile.rs:130
-msgid "This is only used for the 'grow','outer' transitions used by swww. It controls the center of circle."
-msgstr ""
-
-#: ../src/dotfile.rs:132 ../src/dotfile.rs:132
-msgid "Inverts the y position sent in 'transition_pos' flag used by swww."
-msgstr ""
-
-#: ../src/dotfile.rs:134 ../src/dotfile.rs:134
-msgid "Currently only used for 'wave' transition to control the width of each wave used by swww."
-msgstr ""
-
-#: ../src/dotfile.rs:136 ../src/dotfile.rs:136
-msgid "Currently only used for 'wave' transition to control the height of each wave used by swww."
-msgstr ""
-
-#: ../src/dotfile.rs:138 ../src/dotfile.rs:138
-msgid "Point 0 for the Bezier curve to use for the transition"
-msgstr ""
-
-#: ../src/dotfile.rs:140 ../src/dotfile.rs:140
-msgid "Point 1 for the Bezier curve to use for the transition"
-msgstr ""
-
-#: ../src/dotfile.rs:142 ../src/dotfile.rs:142
-msgid "Point 2 for the Bezier curve to use for the transition"
-msgstr ""
-
-#: ../src/dotfile.rs:144 ../src/dotfile.rs:144
-msgid "Point 3 for the Bezier curve to use for the transition"
-msgstr ""
-
-#: ../src/dotfile.rs:146 ../src/dotfile.rs:146
-msgid "Frame rate for the transition effect used by swww."
-msgstr ""
-
-#: ../src/dotfile.rs:148 ../src/dotfile.rs:148
-msgid "Hide bottom bar."
-msgstr ""
-
-#: ../src/hyprpaper.rs:57 ../src/hyprpaper.rs:57 ../src/main_window.rs:386 ../src/mpvpaper.rs:24 ../src/mpvpaper.rs:32 ../src/mpvpaper.rs:72 ../src/mpvpaper.rs:80 ../src/swaybg.rs:16 ../src/swww.rs:45 ../src/main_window.rs:386 ../src/mpvpaper.rs:24 ../src/mpvpaper.rs:32 ../src/mpvpaper.rs:72 ../src/mpvpaper.rs:80 ../src/swaybg.rs:16 ../src/swww.rs:45
+#: src/changers/hyprpaper.rs:65 src/changers/hyprpaper.rs:65 src/changers/mpvpaper.rs:24 src/changers/mpvpaper.rs:32 src/changers/mpvpaper.rs:72 src/changers/mpvpaper.rs:80 src/changers/swaybg.rs:16 src/changers/swww.rs:46 src/changers/mpvpaper.rs:24 src/changers/mpvpaper.rs:32 src/changers/mpvpaper.rs:72 src/changers/mpvpaper.rs:80 src/changers/swaybg.rs:16 src/changers/swww.rs:46 src/main_window.rs:393 src/changers/hyprpaper.rs:65 src/changers/mpvpaper.rs:24 src/changers/mpvpaper.rs:32 src/changers/mpvpaper.rs:72 src/changers/mpvpaper.rs:80 src/changers/swaybg.rs:16 src/changers/swww.rs:46 src/main_window.rs:393
 msgid "All"
 msgstr ""
 
-#: ../src/main_window.rs:60 ../src/main_window.rs:60
+#: src/changers/hyprpaper.rs:83 src/changers/hyprpaper.rs:83 src/changers/hyprpaper.rs:83
+msgid "contain"
+msgstr ""
+
+#: src/changers/hyprpaper.rs:84 src/changers/hyprpaper.rs:84 src/changers/hyprpaper.rs:84
+msgid "cover"
+msgstr ""
+
+#: src/changers/hyprpaper.rs:85 src/changers/hyprpaper.rs:85 src/changers/swaybg.rs:39 src/changers/swaybg.rs:39 src/changers/hyprpaper.rs:85 src/changers/swaybg.rs:39
+msgid "tile"
+msgstr ""
+
+#: src/changers/hyprpaper.rs:86 src/changers/hyprpaper.rs:86 src/changers/swaybg.rs:37 src/changers/swaybg.rs:37 src/changers/hyprpaper.rs:86 src/changers/swaybg.rs:37
+msgid "fill"
+msgstr ""
+
+#: src/changers/mpvpaper.rs:97 src/changers/swww.rs:431 src/changers/mpvpaper.rs:97 src/changers/swww.rs:431 src/changers/mpvpaper.rs:97 src/changers/swww.rs:431
+msgid "none"
+msgstr ""
+
+#: src/changers/mpvpaper.rs:98 src/changers/mpvpaper.rs:98 src/changers/mpvpaper.rs:98
+msgid "auto-pause"
+msgstr ""
+
+#: src/changers/mpvpaper.rs:99 src/changers/mpvpaper.rs:99 src/changers/mpvpaper.rs:99
+msgid "auto-stop"
+msgstr ""
+
+#: src/changers/mpvpaper.rs:112 src/changers/mpvpaper.rs:112 src/changers/mpvpaper.rs:112
+msgid "Enable slideshow for the current folder."
+msgstr ""
+
+#: src/changers/mpvpaper.rs:126 src/changers/mpvpaper.rs:126 src/changers/mpvpaper.rs:126
+msgid "Slideshow change interval"
+msgstr ""
+
+#: src/changers/mpvpaper.rs:171 src/changers/mpvpaper.rs:171 src/changers/mpvpaper.rs:171
+msgid "Entered switch callback"
+msgstr ""
+
+#: src/changers/mpvpaper.rs:184 src/changers/mpvpaper.rs:184 src/changers/mpvpaper.rs:184
+msgid "Additional mpv options"
+msgstr ""
+
+#: src/changers/mpvpaper.rs:187 src/changers/mpvpaper.rs:187 src/changers/mpvpaper.rs:187
+msgid "Additional command line options to be sent to mpv."
+msgstr ""
+
+#: src/changers/swaybg.rs:35 src/changers/swaybg.rs:35 src/changers/swaybg.rs:35
+msgid "stretch"
+msgstr ""
+
+#: src/changers/swaybg.rs:36 src/changers/swww.rs:82 src/changers/swaybg.rs:36 src/changers/swww.rs:82 src/changers/swaybg.rs:36 src/changers/swww.rs:82
+msgid "fit"
+msgstr ""
+
+#: src/changers/swaybg.rs:38 src/changers/swww.rs:441 src/changers/swaybg.rs:38 src/changers/swww.rs:441 src/changers/swaybg.rs:38 src/changers/swww.rs:441
+msgid "center"
+msgstr ""
+
+#: src/changers/swaybg.rs:40 src/changers/swaybg.rs:40 src/changers/swaybg.rs:40
+msgid "solid_color"
+msgstr ""
+
+#: src/changers/swaybg.rs:73 src/changers/swaybg.rs:73 src/changers/swaybg.rs:73
+msgid "Serialized RGB"
+msgstr ""
+
+#: src/changers/swww.rs:82 src/changers/swww.rs:82 src/changers/swww.rs:82
+msgid "no"
+msgstr ""
+
+#: src/changers/swww.rs:82 src/changers/swww.rs:82 src/changers/swww.rs:82
+msgid "crop"
+msgstr ""
+
+#: src/changers/swww.rs:135 src/changers/swww.rs:135 src/changers/swww.rs:135
+msgid "SWWW Advanced Image Settings"
+msgstr ""
+
+#: src/changers/swww.rs:143 src/changers/swww.rs:143 src/changers/swww.rs:143
+msgid "Advanced Settings"
+msgstr ""
+
+#: src/changers/swww.rs:410 src/changers/swww.rs:410 src/changers/swww.rs:410
+msgid "nearest"
+msgstr ""
+
+#: src/changers/swww.rs:411 src/changers/swww.rs:411 src/changers/swww.rs:411
+msgid "bilinear"
+msgstr ""
+
+#: src/changers/swww.rs:412 src/changers/swww.rs:412 src/changers/swww.rs:412
+msgid "catmullrom"
+msgstr ""
+
+#: src/changers/swww.rs:413 src/changers/swww.rs:413 src/changers/swww.rs:413
+msgid "mitchell"
+msgstr ""
+
+#: src/changers/swww.rs:414 src/changers/swww.rs:414 src/changers/swww.rs:414
+msgid "lanczos3"
+msgstr ""
+
+#: src/changers/swww.rs:432 src/changers/swww.rs:432 src/changers/swww.rs:432
+msgid "simple"
+msgstr ""
+
+#: src/changers/swww.rs:433 src/changers/swww.rs:433 src/changers/swww.rs:433
+msgid "fade"
+msgstr ""
+
+#: src/changers/swww.rs:434 src/changers/swww.rs:434 src/changers/swww.rs:434
+msgid "left"
+msgstr ""
+
+#: src/changers/swww.rs:435 src/changers/swww.rs:435 src/changers/swww.rs:435
+msgid "right"
+msgstr ""
+
+#: src/changers/swww.rs:436 src/changers/swww.rs:436 src/changers/swww.rs:436
+msgid "top"
+msgstr ""
+
+#: src/changers/swww.rs:437 src/changers/swww.rs:437 src/changers/swww.rs:437
+msgid "bottom"
+msgstr ""
+
+#: src/changers/swww.rs:438 src/changers/swww.rs:438 src/changers/swww.rs:438
+msgid "wipe"
+msgstr ""
+
+#: src/changers/swww.rs:439 src/changers/swww.rs:439 src/changers/swww.rs:439
+msgid "wave"
+msgstr ""
+
+#: src/changers/swww.rs:440 src/changers/swww.rs:440 src/changers/swww.rs:440
+msgid "grow"
+msgstr ""
+
+#: src/changers/swww.rs:442 src/changers/swww.rs:442 src/changers/swww.rs:442
+msgid "any"
+msgstr ""
+
+#: src/changers/swww.rs:443 src/changers/swww.rs:443 src/changers/swww.rs:443
+msgid "outer"
+msgstr ""
+
+#: src/changers/swww.rs:444 src/changers/swww.rs:444 src/changers/swww.rs:444
+msgid "random"
+msgstr ""
+
+#: src/changers/swww.rs:553 src/changers/swww.rs:553 src/changers/swww.rs:553
+msgid "Transition position"
+msgstr ""
+
+#: src/changers/swww.rs:555 src/changers/swww.rs:555 src/changers/swww.rs:555
+msgid "Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."
+msgstr ""
+
+#: src/cli.rs:122 src/cli.rs:187 src/cli.rs:122 src/cli.rs:187
+msgid "Unable to save \"next\" wallpapers"
+msgstr ""
+
+#: src/common.rs:77 src/common.rs:77
+msgid "Failed to create thumbnail for"
+msgstr ""
+
+#: src/common.rs:101 src/common.rs:101
+msgid "Thumbnail could not be generated using ffmpg."
+msgstr ""
+
+#: src/common.rs:155 src/common.rs:155
+msgid "Invalid string"
+msgstr ""
+
+#: src/database.rs:71 src/database.rs:71
+msgid "Cache Hit"
+msgstr ""
+
+#: src/database.rs:77 src/database.rs:77
+msgid "Cache Miss"
+msgstr ""
+
+#: src/database.rs:85 src/database.rs:85
+msgid "GTK Picture created successfully."
+msgstr ""
+
+#: src/database.rs:95 src/database.rs:95
+msgid "File could not be converted to a GTK Picture"
+msgstr ""
+
+#: src/dotfile.rs:86 src/dotfile.rs:86
+msgid "The path to executable script used after a wallpaper is set. The script is sent the monitor identifier, wallpaper path and the serialized saved_wallpapers state."
+msgstr ""
+
+#: src/dotfile.rs:88 src/dotfile.rs:88
+msgid "The path to the currently selected wallpaper folder. Note: The path cannot have a trailing forward slash."
+msgstr ""
+
+#: src/dotfile.rs:90 src/dotfile.rs:90
+msgid "The collection of the currently saved wallpapers with their corresponding monitor, path and changer."
+msgstr ""
+
+#: src/dotfile.rs:92 src/dotfile.rs:92
+msgid "The internal numeric identifier in the monitor dropdown used by dconf for the currently selected monitor. Do not change unless you know what you are doing."
+msgstr ""
+
+#: src/dotfile.rs:94 src/dotfile.rs:94
+msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected sorting option. Do not change unless you know what you are doing."
+msgstr ""
+
+#: src/dotfile.rs:96 src/dotfile.rs:96
+msgid "The boolean flag to invert the currently selected sort-by option in the sort dropdown used by dconf."
+msgstr ""
+
+#: src/dotfile.rs:98 src/dotfile.rs:98
+msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected changer. Do not change unless you know what you are doing."
+msgstr ""
+
+#: src/dotfile.rs:100 src/dotfile.rs:100
+msgid "The search string for the wallpapers."
+msgstr ""
+
+#: src/dotfile.rs:102 src/dotfile.rs:102
+msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swaybg mode. Do not change unless you know what you are doing."
+msgstr ""
+
+#: src/dotfile.rs:104 src/dotfile.rs:104
+msgid "The hex color for swaybg background fill. Must be six characters long."
+msgstr ""
+
+#: src/dotfile.rs:106 src/dotfile.rs:106
+msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected mpvpaper pause option. Do not change unless you know what you are doing."
+msgstr ""
+
+#: src/dotfile.rs:108 src/dotfile.rs:108
+msgid "The boolean flag to enable/disable slideshows for mpvpaper used by dconf."
+msgstr ""
+
+#: src/dotfile.rs:110 src/dotfile.rs:110
+msgid "The number of seconds of that mpvpaper takes between switching images in slideshow mode. Note: The option must be a positive floating point number."
+msgstr ""
+
+#: src/dotfile.rs:112 src/dotfile.rs:112
+msgid "Custom options for mpvpaper passed as command line arguments."
+msgstr ""
+
+#: src/dotfile.rs:114 src/dotfile.rs:114
+msgid "The currently selected monitor as a string. Note: The name must coincide with the monitor numeric identifier."
+msgstr ""
+
+#: src/dotfile.rs:116 src/dotfile.rs:116
+msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swww resize option. Do not change unless you know what you are doing."
+msgstr ""
+
+#: src/dotfile.rs:118 src/dotfile.rs:118
+msgid "The hex color for swww background fill. Must be six characters long."
+msgstr ""
+
+#: src/dotfile.rs:120 src/dotfile.rs:120
+msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swww scaling filter option. Do not change unless you know what you are doing."
+msgstr ""
+
+#: src/dotfile.rs:122 src/dotfile.rs:122
+msgid "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swww transition type option. Do not change unless you know what you are doing."
+msgstr ""
+
+#: src/dotfile.rs:124 src/dotfile.rs:124
+msgid "How fast the transition approaches the new image used by swww."
+msgstr ""
+
+#: src/dotfile.rs:126 src/dotfile.rs:126
+msgid "How long the transition takes to complete in seconds used by swww."
+msgstr ""
+
+#: src/dotfile.rs:128 src/dotfile.rs:128
+msgid "Used for the 'wipe' and 'wave' transitions used by swww. It controls the angle of the wipe."
+msgstr ""
+
+#: src/dotfile.rs:130 src/dotfile.rs:130
+msgid "This is only used for the 'grow','outer' transitions used by swww. It controls the center of circle."
+msgstr ""
+
+#: src/dotfile.rs:132 src/dotfile.rs:132
+msgid "Inverts the y position sent in 'transition_pos' flag used by swww."
+msgstr ""
+
+#: src/dotfile.rs:134 src/dotfile.rs:134
+msgid "Currently only used for 'wave' transition to control the width of each wave used by swww."
+msgstr ""
+
+#: src/dotfile.rs:136 src/dotfile.rs:136
+msgid "Currently only used for 'wave' transition to control the height of each wave used by swww."
+msgstr ""
+
+#: src/dotfile.rs:138 src/dotfile.rs:138
+msgid "Point 0 for the Bezier curve to use for the transition"
+msgstr ""
+
+#: src/dotfile.rs:140 src/dotfile.rs:140
+msgid "Point 1 for the Bezier curve to use for the transition"
+msgstr ""
+
+#: src/dotfile.rs:142 src/dotfile.rs:142
+msgid "Point 2 for the Bezier curve to use for the transition"
+msgstr ""
+
+#: src/dotfile.rs:144 src/dotfile.rs:144
+msgid "Point 3 for the Bezier curve to use for the transition"
+msgstr ""
+
+#: src/dotfile.rs:146 src/dotfile.rs:146
+msgid "Frame rate for the transition effect used by swww."
+msgstr ""
+
+#: src/dotfile.rs:148 src/dotfile.rs:148
+msgid "Hide bottom bar."
+msgstr ""
+
+#: src/main_window.rs:61 src/main_window.rs:61
 msgid "Wallpaper Folder"
 msgstr ""
 
-#: ../src/main_window.rs:308 ../src/main_window.rs:308
+#: src/main_window.rs:315 src/main_window.rs:315
 msgid "Saved wallpapers"
 msgstr ""
 
-#: ../src/main_window.rs:316 ../src/main_window.rs:316
+#: src/main_window.rs:323 src/main_window.rs:323
 msgid "Stored Text"
 msgstr ""
 
-#: ../src/main_window.rs:362 ../src/main_window.rs:362
+#: src/main_window.rs:369 src/main_window.rs:369
 msgid "Image Folder"
 msgid_plural "Images Folder"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../src/main_window.rs:524 ../src/main_window.rs:524
+#: src/main_window.rs:531 src/main_window.rs:531
 msgid "Invert Sort"
 msgstr ""
 
-#: ../src/main_window.rs:636 ../src/main_window.rs:636
+#: src/main_window.rs:643 src/main_window.rs:643
 msgid "Options"
 msgstr ""
 
-#: ../src/main_window.rs:768 ../src/main_window.rs:768
+#: src/main_window.rs:775 src/main_window.rs:775
 msgid "Images are loading, please wait"
 msgstr ""
 
-#: ../src/main_window.rs:782 ../src/main_window.rs:782
+#: src/main_window.rs:789 src/main_window.rs:789
 msgid "Finished loading images"
 msgstr ""
 
-#: ../src/main_window.rs:803 ../src/main_window.rs:803
+#: src/main_window.rs:810 src/main_window.rs:810
 msgid "Hiding unsupported images"
 msgstr ""
 
-#: ../src/main_window.rs:867 ../src/main_window.rs:867
+#: src/main_window.rs:874 src/main_window.rs:874
 msgid "Ok"
 msgstr ""
 
-#: ../src/main_window.rs:872 ../src/main_window.rs:872
+#: src/main_window.rs:879 src/main_window.rs:879
 msgid "Close waytrogen"
 msgstr ""
 
-#: ../src/main_window.rs:883 ../src/main_window.rs:883
+#: src/main_window.rs:890 src/main_window.rs:890
 msgid "No wallpaper changers detected.\n"
 "\n"
 "Please install one or more of the following:\n"
@@ -249,170 +409,18 @@ msgid "No wallpaper changers detected.\n"
 "https://github.com/nikolaizombie1/waytrogen/issues"
 msgstr ""
 
-#: ../src/main_window.rs:923 ../src/main_window.rs:923
+#: src/main_window.rs:930 src/main_window.rs:930
 msgid "Find images"
 msgstr ""
 
-#: ../src/main_window.rs:926 ../src/main_window.rs:926
+#: src/main_window.rs:933 src/main_window.rs:933
 msgid "Filter wallpapers based on the name. Fuzzy matching the name."
 msgstr ""
 
-#: ../src/mpvpaper.rs:97 ../src/swww.rs:430 ../src/mpvpaper.rs:97 ../src/swww.rs:430
-msgid "none"
-msgstr ""
-
-#: ../src/mpvpaper.rs:98 ../src/mpvpaper.rs:98
-msgid "auto-pause"
-msgstr ""
-
-#: ../src/mpvpaper.rs:99 ../src/mpvpaper.rs:99
-msgid "auto-stop"
-msgstr ""
-
-#: ../src/mpvpaper.rs:112 ../src/mpvpaper.rs:112
-msgid "Enable slideshow for the current folder."
-msgstr ""
-
-#: ../src/mpvpaper.rs:126 ../src/mpvpaper.rs:126
-msgid "Slideshow change interval"
-msgstr ""
-
-#: ../src/mpvpaper.rs:171 ../src/mpvpaper.rs:171
-msgid "Entered switch callback"
-msgstr ""
-
-#: ../src/mpvpaper.rs:184 ../src/mpvpaper.rs:184
-msgid "Additional mpv options"
-msgstr ""
-
-#: ../src/mpvpaper.rs:187 ../src/mpvpaper.rs:187
-msgid "Additional command line options to be sent to mpv."
-msgstr ""
-
-#: ../src/swaybg.rs:35 ../src/swaybg.rs:35
-msgid "stretch"
-msgstr ""
-
-#: ../src/swaybg.rs:36 ../src/swww.rs:81 ../src/swaybg.rs:36 ../src/swww.rs:81
-msgid "fit"
-msgstr ""
-
-#: ../src/swaybg.rs:37 ../src/swaybg.rs:37
-msgid "fill"
-msgstr ""
-
-#: ../src/swaybg.rs:38 ../src/swww.rs:440 ../src/swaybg.rs:38 ../src/swww.rs:440
-msgid "center"
-msgstr ""
-
-#: ../src/swaybg.rs:39 ../src/swaybg.rs:39
-msgid "tile"
-msgstr ""
-
-#: ../src/swaybg.rs:40 ../src/swaybg.rs:40
-msgid "solid_color"
-msgstr ""
-
-#: ../src/swaybg.rs:73 ../src/swaybg.rs:73
-msgid "Serialized RGB"
-msgstr ""
-
-#: ../src/swww.rs:81 ../src/swww.rs:81
-msgid "no"
-msgstr ""
-
-#: ../src/swww.rs:81 ../src/swww.rs:81
-msgid "crop"
-msgstr ""
-
-#: ../src/swww.rs:134 ../src/swww.rs:134
-msgid "SWWW Advanced Image Settings"
-msgstr ""
-
-#: ../src/swww.rs:142 ../src/swww.rs:142
-msgid "Advanced Settings"
-msgstr ""
-
-#: ../src/swww.rs:409 ../src/swww.rs:409
-msgid "nearest"
-msgstr ""
-
-#: ../src/swww.rs:410 ../src/swww.rs:410
-msgid "bilinear"
-msgstr ""
-
-#: ../src/swww.rs:411 ../src/swww.rs:411
-msgid "catmullrom"
-msgstr ""
-
-#: ../src/swww.rs:412 ../src/swww.rs:412
-msgid "mitchell"
-msgstr ""
-
-#: ../src/swww.rs:413 ../src/swww.rs:413
-msgid "lanczos3"
-msgstr ""
-
-#: ../src/swww.rs:431 ../src/swww.rs:431
-msgid "simple"
-msgstr ""
-
-#: ../src/swww.rs:432 ../src/swww.rs:432
-msgid "fade"
-msgstr ""
-
-#: ../src/swww.rs:433 ../src/swww.rs:433
-msgid "left"
-msgstr ""
-
-#: ../src/swww.rs:434 ../src/swww.rs:434
-msgid "right"
-msgstr ""
-
-#: ../src/swww.rs:435 ../src/swww.rs:435
-msgid "top"
-msgstr ""
-
-#: ../src/swww.rs:436 ../src/swww.rs:436
-msgid "bottom"
-msgstr ""
-
-#: ../src/swww.rs:437 ../src/swww.rs:437
-msgid "wipe"
-msgstr ""
-
-#: ../src/swww.rs:438 ../src/swww.rs:438
-msgid "wave"
-msgstr ""
-
-#: ../src/swww.rs:439 ../src/swww.rs:439
-msgid "grow"
-msgstr ""
-
-#: ../src/swww.rs:441 ../src/swww.rs:441
-msgid "any"
-msgstr ""
-
-#: ../src/swww.rs:442 ../src/swww.rs:442
-msgid "outer"
-msgstr ""
-
-#: ../src/swww.rs:443 ../src/swww.rs:443
-msgid "random"
-msgstr ""
-
-#: ../src/swww.rs:552 ../src/swww.rs:552
-msgid "Transition position"
-msgstr ""
-
-#: ../src/swww.rs:554 ../src/swww.rs:554
-msgid "Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."
-msgstr ""
-
-#: ../src/ui_common.rs:45 ../src/ui_common.rs:51 ../src/ui_common.rs:55 ../src/ui_common.rs:60 ../src/ui_common.rs:45 ../src/ui_common.rs:51 ../src/ui_common.rs:55 ../src/ui_common.rs:60
+#: src/ui_common.rs:44 src/ui_common.rs:50 src/ui_common.rs:54 src/ui_common.rs:59 src/ui_common.rs:44 src/ui_common.rs:50 src/ui_common.rs:54 src/ui_common.rs:59
 msgid "The channel must be open"
 msgstr ""
 
-#: ../src/ui_common.rs:145 ../src/ui_common.rs:145
+#: src/ui_common.rs:146 src/ui_common.rs:146
 msgid "Selected changer"
 msgstr ""

@@ -1,4 +1,4 @@
-use crate::{common::RGB, wallpaper_changers::WallpaperChangers};
+use crate::{ui_common::DEFAULT_MARGIN, common::RGB, wallpaper_changers::WallpaperChangers};
 use gettextrs::gettext;
 use gtk::{
     gdk::RGBA,
@@ -41,19 +41,19 @@ pub fn generate_swaybg_changer_bar(changer_specific_options_box: &Box, settings:
     ]);
     dropdown.set_halign(Align::Start);
     dropdown.set_valign(Align::Center);
-    dropdown.set_margin_top(12);
-    dropdown.set_margin_start(12);
-    dropdown.set_margin_bottom(12);
-    dropdown.set_margin_end(12);
+    dropdown.set_margin_top(DEFAULT_MARGIN);
+    dropdown.set_margin_start(DEFAULT_MARGIN);
+    dropdown.set_margin_bottom(DEFAULT_MARGIN);
+    dropdown.set_margin_end(DEFAULT_MARGIN);
     changer_specific_options_box.append(&dropdown);
     let color_dialog = ColorDialog::builder().with_alpha(false).build();
     let color_picker = ColorDialogButton::builder()
         .halign(Align::Start)
         .valign(Align::Center)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .dialog(&color_dialog)
         .build();
     changer_specific_options_box.append(&color_picker);

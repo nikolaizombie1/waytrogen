@@ -28,6 +28,10 @@
 			<default>""</default>
 			<summary>Last set image fuzzy match filter</summary>
 		</key>
+		<key name="hyprpaper-fit-mode" type="u">
+		  <default>0</default>
+		  <summary>Last set hyprpaper fit mode</summary>
+		</key>
 		<key name="swaybg-mode" type="u">
 			<default>0</default>
 			<summary>Last set swaybg mode</summary>

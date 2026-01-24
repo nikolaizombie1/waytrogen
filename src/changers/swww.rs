@@ -1,4 +1,5 @@
 use crate::{
+    ui_common::DEFAULT_MARGIN,
     common::RGB,
     wallpaper_changers::{
         SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition, U32Enum,
@@ -79,10 +80,10 @@ pub fn change_swww_wallpaper(swww_changer: WallpaperChangers, image: PathBuf, mo
 pub fn generate_swww_changer_bar(changer_specific_options_box: &Box, settings: Settings) {
     let resize_dropdown =
         DropDown::from_strings(&[&gettext("no"), &gettext("crop"), &gettext("fit")]);
-    resize_dropdown.set_margin_top(12);
-    resize_dropdown.set_margin_start(12);
-    resize_dropdown.set_margin_bottom(12);
-    resize_dropdown.set_margin_end(12);
+    resize_dropdown.set_margin_top(DEFAULT_MARGIN);
+    resize_dropdown.set_margin_start(DEFAULT_MARGIN);
+    resize_dropdown.set_margin_bottom(DEFAULT_MARGIN);
+    resize_dropdown.set_margin_end(DEFAULT_MARGIN);
     resize_dropdown.set_halign(Align::Start);
     resize_dropdown.set_valign(Align::Center);
     changer_specific_options_box.append(&resize_dropdown);
@@ -93,10 +94,10 @@ pub fn generate_swww_changer_bar(changer_specific_options_box: &Box, settings: S
     let color_picker = ColorDialogButton::builder()
         .halign(Align::Start)
         .valign(Align::Center)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .dialog(&color_dialog)
         .build();
     let rgb_text_buffer = TextBuffer::builder().build();
@@ -135,10 +136,10 @@ pub fn generate_swww_changer_bar(changer_specific_options_box: &Box, settings: S
         .hide_on_close(true)
         .build();
     let advanced_settings_button = Button::builder()
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .label(gettext("Advanced Settings"))
         .halign(Align::Start)
         .valign(Align::Center)
@@ -159,10 +160,10 @@ fn connect_advanced_settings_window_signals(
     advanced_settings_button.connect_clicked(move |_| {
         let advanced_settings_window_box = Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .margin_top(12)
-            .margin_start(12)
-            .margin_bottom(12)
-            .margin_end(12)
+            .margin_top(DEFAULT_MARGIN)
+            .margin_start(DEFAULT_MARGIN)
+            .margin_bottom(DEFAULT_MARGIN)
+            .margin_end(DEFAULT_MARGIN)
             .hexpand(true)
             .vexpand(true)
             .build();
@@ -412,10 +413,10 @@ fn create_filter_dropdown(settings: &Settings) -> DropDown {
         &gettext("mitchell"),
         &gettext("lanczos3"),
     ]);
-    filter_dropdown.set_margin_top(12);
-    filter_dropdown.set_margin_start(12);
-    filter_dropdown.set_margin_bottom(12);
-    filter_dropdown.set_margin_end(12);
+    filter_dropdown.set_margin_top(DEFAULT_MARGIN);
+    filter_dropdown.set_margin_start(DEFAULT_MARGIN);
+    filter_dropdown.set_margin_bottom(DEFAULT_MARGIN);
+    filter_dropdown.set_margin_end(DEFAULT_MARGIN);
     filter_dropdown.set_halign(Align::Start);
     filter_dropdown.set_valign(Align::Center);
     settings
@@ -442,10 +443,10 @@ fn create_transition_type_dropdown(settings: &Settings) -> DropDown {
         &gettext("outer"),
         &gettext("random"),
     ]);
-    transition_type_dropdown.set_margin_top(12);
-    transition_type_dropdown.set_margin_start(12);
-    transition_type_dropdown.set_margin_bottom(12);
-    transition_type_dropdown.set_margin_end(12);
+    transition_type_dropdown.set_margin_top(DEFAULT_MARGIN);
+    transition_type_dropdown.set_margin_start(DEFAULT_MARGIN);
+    transition_type_dropdown.set_margin_bottom(DEFAULT_MARGIN);
+    transition_type_dropdown.set_margin_end(DEFAULT_MARGIN);
     transition_type_dropdown.set_halign(Align::Start);
     transition_type_dropdown.set_valign(Align::Center);
     settings
@@ -461,10 +462,10 @@ fn create_transition_type_dropdown(settings: &Settings) -> DropDown {
 fn create_category_box() -> Box {
     Box::builder()
         .orientation(gtk::Orientation::Horizontal)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .hexpand(true)
         .vexpand(true)
         .build()
@@ -472,10 +473,10 @@ fn create_category_box() -> Box {
 
 fn create_button(text: &str) -> Button {
     Button::builder()
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .label(gettext(text))
         .halign(Align::End)
         .valign(Align::Center)
@@ -488,10 +489,10 @@ fn create_spinbutton(adjustment: &Adjustment) -> SpinButton {
         .numeric(true)
         .halign(Align::Center)
         .valign(Align::Center)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .build()
 }
 
@@ -501,20 +502,20 @@ fn create_point_spinbutton(adjustment: &Adjustment) -> SpinButton {
         .numeric(true)
         .halign(Align::Center)
         .valign(Align::Center)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .build()
 }
 
 fn create_label(text: &str) -> Label {
     Label::builder()
         .label(gettext(text))
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .halign(Align::Center)
         .valign(Align::Center)
         .build()
@@ -523,10 +524,10 @@ fn create_label(text: &str) -> Label {
 fn create_window_control_box() -> Box {
     Box::builder()
         .orientation(gtk::Orientation::Horizontal)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .halign(Align::End)
         .valign(Align::Center)
         .hexpand(true)
@@ -538,10 +539,10 @@ fn create_switch(text: &str) -> Switch {
     Switch::builder()
         .tooltip_text(gettext(text))
         .has_tooltip(true)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .halign(Align::Start)
         .valign(Align::Center)
         .build()
@@ -552,10 +553,10 @@ fn create_transition_position_entry() -> Entry {
                 .placeholder_text(gettext("Transition position"))
                 .has_tooltip(true)
                 .tooltip_text(gettext("Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."))
-                .margin_top(12)
-                .margin_start(12)
-                .margin_bottom(12)
-                .margin_end(12)
+                .margin_top(DEFAULT_MARGIN)
+                .margin_start(DEFAULT_MARGIN)
+                .margin_bottom(DEFAULT_MARGIN)
+                .margin_end(DEFAULT_MARGIN)
                 .halign(Align::Start)
                 .valign(Align::Center)
                 .build()

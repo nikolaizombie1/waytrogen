@@ -1,6 +1,6 @@
-use crate::wallpaper_changers::{
+use crate::{ui_common::DEFAULT_MARGIN, wallpaper_changers::{
     MpvPaperPauseModes, MpvPaperSlideshowSettings, WallpaperChanger, WallpaperChangers,
-};
+}};
 use gettextrs::gettext;
 use gtk::{
     gio::Settings, glib::clone, prelude::*, Adjustment, Align, Box, DropDown, Entry, SpinButton,
@@ -98,10 +98,10 @@ pub fn generate_mpvpaper_changer_bar(changer_specific_options_box: &Box, setting
         &gettext("auto-pause"),
         &gettext("auto-stop"),
     ]);
-    pause_options_dropdown.set_margin_top(12);
-    pause_options_dropdown.set_margin_start(12);
-    pause_options_dropdown.set_margin_bottom(12);
-    pause_options_dropdown.set_margin_end(12);
+    pause_options_dropdown.set_margin_top(DEFAULT_MARGIN);
+    pause_options_dropdown.set_margin_start(DEFAULT_MARGIN);
+    pause_options_dropdown.set_margin_bottom(DEFAULT_MARGIN);
+    pause_options_dropdown.set_margin_end(DEFAULT_MARGIN);
     pause_options_dropdown.set_halign(Align::Start);
     pause_options_dropdown.set_valign(Align::Center);
     settings
@@ -111,10 +111,10 @@ pub fn generate_mpvpaper_changer_bar(changer_specific_options_box: &Box, setting
     let slideshow_enable_switch = Switch::builder()
         .tooltip_text(gettext("Enable slideshow for the current folder."))
         .has_tooltip(true)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .halign(Align::Start)
         .valign(Align::Center)
         .build();
@@ -124,10 +124,10 @@ pub fn generate_mpvpaper_changer_bar(changer_specific_options_box: &Box, setting
         .numeric(true)
         .has_tooltip(true)
         .tooltip_text(gettext("Slideshow change interval"))
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .halign(Align::Start)
         .valign(Align::Center)
         .build();
@@ -186,10 +186,10 @@ fn create_mpv_options_textbox(settings: &Settings) -> Entry {
         .tooltip_text(gettext(
             "Additional command line options to be sent to mpv.",
         ))
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
+        .margin_top(DEFAULT_MARGIN)
+        .margin_start(DEFAULT_MARGIN)
+        .margin_bottom(DEFAULT_MARGIN)
+        .margin_end(DEFAULT_MARGIN)
         .hexpand(true)
         .halign(Align::Start)
         .valign(Align::Center)

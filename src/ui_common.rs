@@ -1,14 +1,12 @@
 use crate::{
+    changers::{
+        hyprpaper::generate_hyprpaper_changer_bar, mpvpaper::generate_mpvpaper_changer_bar, swaybg::generate_swaybg_changer_bar, swww::generate_swww_changer_bar
+    },
     common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     fs::get_image_files,
-    mpvpaper::generate_mpvpaper_changer_bar,
-    swaybg::generate_swaybg_changer_bar,
-    swww::generate_swww_changer_bar,
     wallpaper_changers::{
-        MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter,
-        SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave,
-        SwaybgModes, U32Enum, WallpaperChanger, WallpaperChangers,
+        HyprpaperFitModes, MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave, SwaybgModes, U32Enum, WallpaperChanger, WallpaperChangers
     },
 };
 use async_channel::Sender;
@@ -30,6 +28,7 @@ use std::{
 };
 
 pub const SORT_DROPDOWN_STRINGS: [&str; 2] = ["Date", "Name"];
+pub const DEFAULT_MARGIN: i32 = 12;
 
 pub fn generate_image_files(
     path: String,
@@ -95,7 +94,9 @@ pub fn generate_changer_bar(
         changer_specific_options_box.remove(&changer_specific_options_box.first_child().unwrap());
     }
     match selected_changer {
-        WallpaperChangers::Hyprpaper => {}
+        WallpaperChangers::Hyprpaper(_) => {
+	    generate_hyprpaper_changer_bar(changer_specific_options_box, &settings)
+	}
         WallpaperChangers::Swaybg(_, _) => {
             generate_swaybg_changer_bar(changer_specific_options_box, &settings);
         }
@@ -189,7 +190,11 @@ pub fn get_selected_changer(
                 transition_wave,
             )
         }
-        _ => WallpaperChangers::Hyprpaper,
+        _ => {
+	    let fit_mode = settings.uint("hyprpaper-fit-mode");
+	    let fit_mode = HyprpaperFitModes::from_u32(fit_mode);
+	    WallpaperChangers::Hyprpaper(fit_mode)
+	},
     }
 }
 

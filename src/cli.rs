@@ -38,7 +38,7 @@ pub fn restore_wallpapers() -> glib::ExitCode {
             wallpaper.clone().monitor,
         );
         match wallpaper.clone().changer {
-            WallpaperChangers::Hyprpaper => {
+            WallpaperChangers::Hyprpaper(_) => {
                 thread::sleep(Duration::from_millis(1000));
             }
             WallpaperChangers::Swaybg(_, _)
