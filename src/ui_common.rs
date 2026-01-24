@@ -19,7 +19,10 @@ use gtk::{
     prelude::*,
     Box, DropDown, GridView, ListItem, ListScrollFlags, StringObject, Switch,
 };
-use log::debug;
+
+use chrono::prelude::*;
+
+use log::{debug, trace};
 use std::{
     cell::Ref,
     cmp::Ordering,
@@ -44,6 +47,7 @@ pub fn generate_image_files(
             .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
         let files = get_image_files(&path, &sort_dropdown, invert_sort_switch_state);
 
+	let time_before_load = Local::now();
         for (index, file) in files.iter().enumerate() {
             sender_images_loading_progress_bar
                 .send_blocking((index as f64) / (files.len() as f64))
@@ -54,6 +58,9 @@ pub fn generate_image_files(
                     .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
             }
         }
+	let image_load_time_milliseconds = (Local::now() - time_before_load).num_milliseconds();
+	trace!("Image grid took {} milliseconds to load {} images", image_load_time_milliseconds, files.len());
+	trace!("Average time per image: {:.2} nanoseconds", (image_load_time_milliseconds as f64/files.len() as f64) * 1000.0);
         sender_changer_options
             .send_blocking(true)
             .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
