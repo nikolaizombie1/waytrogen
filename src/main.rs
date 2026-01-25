@@ -27,11 +27,11 @@ fn main() -> glib::ExitCode {
     };
 
     match config_file.write_to_gsettings() {
-	Ok(_) => {},
-	Err(e) => {
-	    error!("Failed to write gsettings from configuration file: {e}");
-	    return glib::ExitCode::FAILURE;
-	}
+        Ok(_) => {}
+        Err(e) => {
+            error!("Failed to write gsettings from configuration file: {e}");
+            return glib::ExitCode::FAILURE;
+        }
     }
 
     if args.external_script.is_none() && !config_file.executable_script.is_empty() {

@@ -1,6 +1,4 @@
-use crate::common::{
-    get_config_file_path, parse_executable_script, Wallpaper, APP_ID,
-};
+use crate::common::{get_config_file_path, parse_executable_script, Wallpaper, APP_ID};
 use anyhow::anyhow;
 use gettextrs::gettext;
 use log::{error, trace, warn};
@@ -77,7 +75,7 @@ pub struct ConfigFile {
     swww_transition_fps_doc: String,
     pub swww_transition_fps: u32,
     hide_changer_options_box_doc: String,
-    pub hide_changer_options_box: bool
+    pub hide_changer_options_box: bool,
 }
 
 impl Default for ConfigFile {
@@ -235,8 +233,8 @@ impl ConfigFile {
         let swww_transition_fps = settings.uint("swww-transition-fps");
 
         trace!("Getting hide-changer-options-box gsetting");
-	let hide_changer_options_box = settings.boolean("hide-changer-options-box");
-	
+        let hide_changer_options_box = settings.boolean("hide-changer-options-box");
+
         Ok(Self {
             executable_script,
             wallpaper_folder,
@@ -269,7 +267,7 @@ impl ConfigFile {
             swww_transition_bezier_p2,
             swww_transition_bezier_p3,
             swww_transition_fps,
-	    hide_changer_options_box,
+            hide_changer_options_box,
             ..Default::default()
         })
     }
@@ -351,8 +349,8 @@ impl ConfigFile {
         settings.set_uint("swww-transition-fps", self.swww_transition_fps)?;
 
         trace!("Setting hide-changer-options-box gsetting");
-	settings.set_boolean("hide-changer-options-box", self.hide_changer_options_box)?;
-	
+        settings.set_boolean("hide-changer-options-box", self.hide_changer_options_box)?;
+
         Ok(())
     }
 }

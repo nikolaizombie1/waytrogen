@@ -140,7 +140,7 @@ impl Display for HyprpaperFitModes {
             HyprpaperFitModes::Tile => "tile",
             HyprpaperFitModes::Fill => "fill",
         };
-	write!(f, "{s}")
+        write!(f, "{s}")
     }
 }
 
@@ -863,7 +863,8 @@ impl WallpaperChanger for WallpaperChangers {
                     "yop".to_owned(),
                     "y4m".to_owned(),
                 ];
-                let mut hyprpaper_formats = Self::Hyprpaper(HyprpaperFitModes::default()).accepted_formats();
+                let mut hyprpaper_formats =
+                    Self::Hyprpaper(HyprpaperFitModes::default()).accepted_formats();
                 let mut swaybg_formats =
                     Self::Swaybg(SwaybgModes::Fill, "FFFFFF".to_owned()).accepted_formats();
                 mpvpaper_formats.append(&mut hyprpaper_formats);

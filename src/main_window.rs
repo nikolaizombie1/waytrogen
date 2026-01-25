@@ -1,5 +1,4 @@
 use crate::{
-    ui_common::DEFAULT_MARGIN,
     cli::Cli,
     common::{
         CacheImageFile, GtkPictureFile, Wallpaper, APP_ID, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH,
@@ -8,7 +7,7 @@ use crate::{
         change_image_button_handlers, compare_image_list_items_by_sort_selection_comparitor,
         generate_changer_bar, generate_image_files, get_available_monitors, get_selected_changer,
         gschema_string_to_string, hide_unsupported_files, sort_images, string_to_gschema_string,
-        SORT_DROPDOWN_STRINGS,
+        DEFAULT_MARGIN, SORT_DROPDOWN_STRINGS,
     },
     wallpaper_changers::{get_available_wallpaper_changers, WallpaperChanger},
 };
@@ -16,8 +15,8 @@ use async_channel::{Receiver, Sender};
 use gettextrs::{gettext, ngettext};
 use gtk::{
     self,
-    gio::{spawn_blocking, Cancellable, ListStore, Settings, self},
-    glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
+    gio::{self, spawn_blocking, Cancellable, ListStore, Settings},
+    glib::{self, clone, spawn_future_local, BoxedAnyObject},
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, Entry, FileDialog, GridView,
     Label, ListItem, ListScrollFlags, MenuButton, Orientation, Picture, Popover, ProgressBar,
@@ -136,11 +135,11 @@ pub fn build_ui(app: &Application, args: &Cli) {
     let hide_changer_options_box = settings.boolean("hide-changer-options-box");
 
     let hide_changer_options_box = if args.hide_bottom_bar.is_some() {
-	args.hide_bottom_bar.unwrap()
+        args.hide_bottom_bar.unwrap()
     } else {
-	hide_changer_options_box
+        hide_changer_options_box
     };
-    
+
     let changer_options_box = create_changer_options_box(hide_changer_options_box);
     changer_options_box.append(&monitors_dropdown);
     changer_options_box.append(&open_folder_button);

@@ -5,7 +5,16 @@ use log::trace;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
-    cell::RefCell, ffi::OsStr, fmt::Display, io::Cursor, os::unix::fs::PermissionsExt, path::{Path, PathBuf}, process::Command, str::FromStr, time::UNIX_EPOCH, fs::{self, File}
+    cell::RefCell,
+    ffi::OsStr,
+    fmt::Display,
+    fs,
+    io::Cursor,
+    os::unix::fs::PermissionsExt,
+    path::{Path, PathBuf},
+    process::Command,
+    str::FromStr,
+    time::UNIX_EPOCH,
 };
 use uuid::Uuid;
 
@@ -48,10 +57,10 @@ impl CacheImageFile {
         Ok((path.to_str().unwrap().to_string(), name, date))
     }
 
-    fn create_gtk_image(path: &Path, image: &PathBuf) -> anyhow::Result<CacheImageFile> {
+    fn create_gtk_image(path: &Path, image: &Path) -> anyhow::Result<CacheImageFile> {
         let fields = Self::get_metadata(path)?;
         let image_file = CacheImageFile {
-            cached_image_path: image.clone(),
+            cached_image_path: image.to_path_buf(),
             path: fields.0,
             name: fields.1,
             date: fields.2,
@@ -103,14 +112,18 @@ impl CacheImageFile {
             .decode()?
             .thumbnail(THUMBNAIL_WIDTH as u32, THUMBNAIL_HEIGHT as u32)
             .to_rgb8();
-	let image_name = format!("{}.{}", Uuid::new_v4().to_string(), path.extension().and_then(OsStr::to_str).unwrap());
-	let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME)?;
-	let cache_dir = xdg_dirs.get_cache_home();
-	let image_file = cache_dir.join(Path::new(&image_name));
-	let mut buff: Vec<u8> = vec![];
-	thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;
-	fs::write(&image_file, buff)?;
-	Ok(image_file)
+        let image_name = format!(
+            "{}.{}",
+            Uuid::new_v4(),
+            path.extension().and_then(OsStr::to_str).unwrap()
+        );
+        let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME)?;
+        let cache_dir = xdg_dirs.get_cache_home();
+        let image_file = cache_dir.join(Path::new(&image_name));
+        let mut buff: Vec<u8> = vec![];
+        thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;
+        fs::write(&image_file, buff)?;
+        Ok(image_file)
     }
 }
 

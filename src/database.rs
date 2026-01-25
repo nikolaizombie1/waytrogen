@@ -1,4 +1,4 @@
-use crate::{cli::delete_image_cache, common::{CACHE_FILE_NAME, CONFIG_APP_NAME, CacheImageFile}};
+use crate::common::{CacheImageFile, CACHE_FILE_NAME, CONFIG_APP_NAME};
 use anyhow::anyhow;
 use gettextrs::gettext;
 use log::{debug, trace, warn};
@@ -45,7 +45,7 @@ impl DatabaseConnection {
         if pix_buf_bytes.is_empty() {
             return Err(anyhow!("No result could be found"));
         }
-	let image = pix_buf_bytes[0].clone();
+        let image = pix_buf_bytes[0].clone();
         Ok(image)
     }
 

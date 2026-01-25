@@ -1,20 +1,24 @@
 {
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    naersk.url = "github:nix-community/naersk";
     rust-overlay.url = "github:oxalica/rust-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };
-  outputs = { self, flake-utils, naersk, nixpkgs, rust-overlay }:
+  outputs = { self, flake-utils, nixpkgs, rust-overlay }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [ (import rust-overlay) ];
         pkgs = (import nixpkgs) { inherit system overlays; };
-        naersk' = pkgs.callPackage naersk { };
       in {
         packages = rec {
-          waytrogen = naersk'.buildPackage {
+          waytrogen = pkgs.rustPlatform.buildRustPackage {
+            pname = "waytrogen";
+            version = "0.8.0";
             src = ./.;
+
+            cargoLock = {
+              lockFile = ./Cargo.lock;
+            };
 
             nativeBuildInputs = with pkgs; [
               pkg-config
@@ -22,6 +26,9 @@
               wrapGAppsHook4
               sqlite
               bash
+              meson
+              ninja
+              desktop-file-utils
             ];
             buildInputs = with pkgs; [
               glib
@@ -35,20 +42,21 @@
             ];
 
             preBuild = "export OUT_PATH=$out";
-            cargoBuildOptions = p: p ++ [ "--features nixos" ];
 
-            env = { OPENSSL_NO_VENDOR = 1; };
-
-            postInstall = ''
-              install -Dm644 org.Waytrogen.Waytrogen.gschema.xml -t $out/share/gsettings-schemas/$name/glib-2.0/schemas
-              glib-compile-schemas $out/share/gsettings-schemas/$name/glib-2.0/schemas
-              install -Dm644 waytrogen.desktop $out/share/applications/waytrogen.desktop
-              install -Dm644 README-Assets/WaytrogenLogo.svg $out/share/icons/hicolor/scalable/apps/waytrogen.svg
-              while IFS= read -r lang; do
-                    mkdir -p $out/share/locale/$lang/LC_MESSAGES
-                    msgfmt po/$lang.po -o $out/share/locale/$lang/LC_MESSAGES/waytrogen.mo
-              done < po/LINGUAS
+            buildPhase = ''
+            runHook preBuild
+            meson setup --prefix $out -Dcargo_features=nixos build
+            meson compile -C build
+            runHook postBuild
             '';
+
+            installPhase = ''
+            runHook preInstall
+            meson install -C build
+            runHook postInstall
+            '';
+            
+            env = { OPENSSL_NO_VENDOR = 1; };
 
             meta = {
               description = "A lightning fast wallpaper setter for Wayland.";
@@ -88,6 +96,7 @@
             cargo
             gettext
             clippy
+            sqlite
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };

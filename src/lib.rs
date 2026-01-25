@@ -1,3 +1,4 @@
+pub mod changers;
 pub mod cli;
 pub mod common;
 pub mod database;
@@ -6,4 +7,3 @@ pub mod fs;
 pub mod main_window;
 pub mod ui_common;
 pub mod wallpaper_changers;
-pub mod changers;

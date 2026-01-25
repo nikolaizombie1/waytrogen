@@ -1,5 +1,5 @@
 use gettextrs::gettext;
-use gtk::{Align, Box, DropDown, gio::Settings, prelude::*};
+use gtk::{gio::Settings, prelude::*, Align, Box, DropDown};
 use log::{debug, error, warn};
 use std::{path::Path, process::Command, thread, time::Duration};
 use which::which;
@@ -80,10 +80,10 @@ pub fn change_hyprpaper_wallpaper(
 
 pub fn generate_hyprpaper_changer_bar(changer_specific_options_box: &Box, settings: &Settings) {
     let dropdown = DropDown::from_strings(&[
-	&gettext("contain"),
-	&gettext("cover"),
-	&gettext("tile"),
-	&gettext("fill")
+        &gettext("contain"),
+        &gettext("cover"),
+        &gettext("tile"),
+        &gettext("fill"),
     ]);
     dropdown.set_halign(Align::Start);
     dropdown.set_valign(Align::Center);
@@ -92,5 +92,7 @@ pub fn generate_hyprpaper_changer_bar(changer_specific_options_box: &Box, settin
     dropdown.set_margin_bottom(DEFAULT_MARGIN);
     dropdown.set_margin_end(DEFAULT_MARGIN);
     changer_specific_options_box.append(&dropdown);
-    settings.bind("hyprpaper-fit-mode", &dropdown, "selected").build();
+    settings
+        .bind("hyprpaper-fit-mode", &dropdown, "selected")
+        .build();
 }

@@ -1,12 +1,15 @@
 use crate::{
     changers::{
-        hyprpaper::generate_hyprpaper_changer_bar, mpvpaper::generate_mpvpaper_changer_bar, swaybg::generate_swaybg_changer_bar, swww::generate_swww_changer_bar
+        hyprpaper::generate_hyprpaper_changer_bar, mpvpaper::generate_mpvpaper_changer_bar,
+        swaybg::generate_swaybg_changer_bar, swww::generate_swww_changer_bar,
     },
     common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     fs::get_image_files,
     wallpaper_changers::{
-        HyprpaperFitModes, MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave, SwaybgModes, U32Enum, WallpaperChanger, WallpaperChangers
+        HyprpaperFitModes, MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode,
+        SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType,
+        SWWWTransitionWave, SwaybgModes, U32Enum, WallpaperChanger, WallpaperChangers,
     },
 };
 use async_channel::Sender;
@@ -47,7 +50,7 @@ pub fn generate_image_files(
             .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
         let files = get_image_files(&path, &sort_dropdown, invert_sort_switch_state);
 
-	let time_before_load = Local::now();
+        let time_before_load = Local::now();
         for (index, file) in files.iter().enumerate() {
             sender_images_loading_progress_bar
                 .send_blocking((index as f64) / (files.len() as f64))
@@ -58,9 +61,16 @@ pub fn generate_image_files(
                     .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
             }
         }
-	let image_load_time_milliseconds = (Local::now() - time_before_load).num_milliseconds();
-	trace!("Image grid took {} milliseconds to load {} images", image_load_time_milliseconds, files.len());
-	trace!("Average time per image: {:.2} nanoseconds", (image_load_time_milliseconds as f64/files.len() as f64) * 1000.0);
+        let image_load_time_milliseconds = (Local::now() - time_before_load).num_milliseconds();
+        trace!(
+            "Image grid took {} milliseconds to load {} images",
+            image_load_time_milliseconds,
+            files.len()
+        );
+        trace!(
+            "Average time per image: {:.2} nanoseconds",
+            (image_load_time_milliseconds as f64 / files.len() as f64) * 1000.0
+        );
         sender_changer_options
             .send_blocking(true)
             .unwrap_or_else(|_| panic!("{}", gettext("The channel must be open")));
@@ -102,8 +112,8 @@ pub fn generate_changer_bar(
     }
     match selected_changer {
         WallpaperChangers::Hyprpaper(_) => {
-	    generate_hyprpaper_changer_bar(changer_specific_options_box, &settings)
-	}
+            generate_hyprpaper_changer_bar(changer_specific_options_box, &settings)
+        }
         WallpaperChangers::Swaybg(_, _) => {
             generate_swaybg_changer_bar(changer_specific_options_box, &settings);
         }
@@ -198,10 +208,10 @@ pub fn get_selected_changer(
             )
         }
         _ => {
-	    let fit_mode = settings.uint("hyprpaper-fit-mode");
-	    let fit_mode = HyprpaperFitModes::from_u32(fit_mode);
-	    WallpaperChangers::Hyprpaper(fit_mode)
-	},
+            let fit_mode = settings.uint("hyprpaper-fit-mode");
+            let fit_mode = HyprpaperFitModes::from_u32(fit_mode);
+            WallpaperChangers::Hyprpaper(fit_mode)
+        }
     }
 }
 

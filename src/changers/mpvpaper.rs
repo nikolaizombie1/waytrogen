@@ -1,6 +1,9 @@
-use crate::{ui_common::DEFAULT_MARGIN, wallpaper_changers::{
-    MpvPaperPauseModes, MpvPaperSlideshowSettings, WallpaperChanger, WallpaperChangers,
-}};
+use crate::{
+    ui_common::DEFAULT_MARGIN,
+    wallpaper_changers::{
+        MpvPaperPauseModes, MpvPaperSlideshowSettings, WallpaperChanger, WallpaperChangers,
+    },
+};
 use gettextrs::gettext;
 use gtk::{
     gio::Settings, glib::clone, prelude::*, Adjustment, Align, Box, DropDown, Entry, SpinButton,

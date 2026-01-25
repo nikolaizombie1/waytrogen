@@ -1,4 +1,4 @@
-use crate::{ui_common::DEFAULT_MARGIN, common::RGB, wallpaper_changers::WallpaperChangers};
+use crate::{common::RGB, ui_common::DEFAULT_MARGIN, wallpaper_changers::WallpaperChangers};
 use gettextrs::gettext;
 use gtk::{
     gdk::RGBA,

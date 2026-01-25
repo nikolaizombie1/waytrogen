@@ -14,7 +14,7 @@ use log::debug;
 use rand::Rng;
 use std::{
     env::current_exe,
-    fs::{File, remove_dir_all, remove_file},
+    fs::{remove_dir_all, File},
     io::{BufRead, BufReader},
     path::{Path, PathBuf},
     thread,
