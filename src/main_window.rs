@@ -16,8 +16,7 @@ use async_channel::{Receiver, Sender};
 use gettextrs::{gettext, ngettext};
 use gtk::{
     self,
-    gdk::Texture,
-    gio::{spawn_blocking, Cancellable, ListStore, Settings},
+    gio::{spawn_blocking, Cancellable, ListStore, Settings, self},
     glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, Entry, FileDialog, GridView,
@@ -752,9 +751,7 @@ fn create_cache_image_future(
         async move {
             while let Ok(image) = receiver_cache_images.recv().await {
                 image_list_store.append(&BoxedAnyObject::new(GtkPictureFile {
-                    picture: Picture::for_paintable(
-                        &Texture::from_bytes(&Bytes::from(&image.image)).unwrap(),
-                    ),
+                    picture: Picture::for_file(&gio::File::for_path(&image.cached_image_path)),
                     cache_image_file: image,
                     button_signal_handler: RefCell::new(None),
                 }));

@@ -14,7 +14,7 @@ use log::debug;
 use rand::Rng;
 use std::{
     env::current_exe,
-    fs::{remove_file, File},
+    fs::{File, remove_dir_all, remove_file},
     io::{BufRead, BufReader},
     path::{Path, PathBuf},
     thread,
@@ -241,7 +241,8 @@ pub fn delete_image_cache() -> glib::ExitCode {
         error!("Failed to get cache path, {}", cache_path.err().unwrap());
         return glib::ExitCode::FAILURE;
     }
-    match remove_file(cache_path.unwrap()) {
+
+    match remove_dir_all(xdg_dirs.get_cache_home()) {
         Ok(_) => glib::ExitCode::SUCCESS,
         Err(e) => {
             error!("Failed to delete cache {e}");

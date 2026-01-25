@@ -5,15 +5,9 @@ use log::trace;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
-    cell::RefCell,
-    fmt::Display,
-    io::Cursor,
-    os::unix::fs::PermissionsExt,
-    path::{Path, PathBuf},
-    process::Command,
-    str::FromStr,
-    time::UNIX_EPOCH,
+    cell::RefCell, ffi::OsStr, fmt::Display, io::Cursor, os::unix::fs::PermissionsExt, path::{Path, PathBuf}, process::Command, str::FromStr, time::UNIX_EPOCH, fs::{self, File}
 };
+use uuid::Uuid;
 
 use crate::wallpaper_changers::WallpaperChangers;
 use gettextrs::gettext;
@@ -34,7 +28,7 @@ pub struct GtkPictureFile {
 
 #[derive(Clone, Default, PartialEq)]
 pub struct CacheImageFile {
-    pub image: Vec<u8>,
+    pub cached_image_path: PathBuf,
     pub name: String,
     pub date: u64,
     pub path: String,
@@ -43,7 +37,7 @@ pub struct CacheImageFile {
 impl CacheImageFile {
     pub fn from_file(path: &Path) -> anyhow::Result<CacheImageFile> {
         let image = Self::generate_thumbnail(path)?;
-        Self::create_gtk_image(path, image)
+        Self::create_gtk_image(path, &image)
     }
 
     fn get_metadata(path: &Path) -> anyhow::Result<(String, String, u64)> {
@@ -54,10 +48,10 @@ impl CacheImageFile {
         Ok((path.to_str().unwrap().to_string(), name, date))
     }
 
-    fn create_gtk_image(path: &Path, image: Vec<u8>) -> anyhow::Result<CacheImageFile> {
+    fn create_gtk_image(path: &Path, image: &PathBuf) -> anyhow::Result<CacheImageFile> {
         let fields = Self::get_metadata(path)?;
         let image_file = CacheImageFile {
-            image,
+            cached_image_path: image.clone(),
             path: fields.0,
             name: fields.1,
             date: fields.2,
@@ -65,11 +59,11 @@ impl CacheImageFile {
         Ok(image_file)
     }
 
-    fn generate_thumbnail(path: &Path) -> anyhow::Result<Vec<u8>> {
-        if let Ok(i) = Self::try_create_thumbnail_with_image(path) {
+    fn generate_thumbnail(path: &Path) -> anyhow::Result<PathBuf> {
+        if let Ok(i) = Self::try_write_thumbnail_with_image(path) {
             return Ok(i);
         }
-        if let Ok(i) = Self::try_create_thumbnail_with_ffmpeg(path) {
+        if let Ok(i) = Self::try_write_thumbnail_with_ffmpeg(path) {
             return Ok(i);
         }
         Err(anyhow::anyhow!(
@@ -78,7 +72,7 @@ impl CacheImageFile {
             path.as_os_str().to_str().unwrap_or_default()
         ))
     }
-    fn try_create_thumbnail_with_ffmpeg(path: &Path) -> anyhow::Result<Vec<u8>> {
+    fn try_write_thumbnail_with_ffmpeg(path: &Path) -> anyhow::Result<PathBuf> {
         let temp_dir = String::from_utf8(Command::new("mktemp").arg("-d").output()?.stdout)?;
         let output_path = PathBuf::from(temp_dir.trim()).join("temp.png");
         trace!("ffmpeg Output Path: {}", output_path.to_str().unwrap());
@@ -96,22 +90,27 @@ impl CacheImageFile {
             .code()
             .unwrap_or(255);
         match code {
-            0 => Self::try_create_thumbnail_with_image(&output_path),
+            0 => Self::try_write_thumbnail_with_image(&output_path),
             _ => Err(anyhow::anyhow!(gettext(
                 "Thumbnail could not be generated using ffmpg."
             ))),
         }
     }
 
-    fn try_create_thumbnail_with_image(path: &Path) -> anyhow::Result<Vec<u8>> {
+    fn try_write_thumbnail_with_image(path: &Path) -> anyhow::Result<PathBuf> {
         let thumbnail = ImageReader::open(path)?
             .with_guessed_format()?
             .decode()?
             .thumbnail(THUMBNAIL_WIDTH as u32, THUMBNAIL_HEIGHT as u32)
             .to_rgb8();
-        let mut buff: Vec<u8> = vec![];
-        thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;
-        Ok(buff)
+	let image_name = format!("{}.{}", Uuid::new_v4().to_string(), path.extension().and_then(OsStr::to_str).unwrap());
+	let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME)?;
+	let cache_dir = xdg_dirs.get_cache_home();
+	let image_file = cache_dir.join(Path::new(&image_name));
+	let mut buff: Vec<u8> = vec![];
+	thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;
+	fs::write(&image_file, buff)?;
+	Ok(image_file)
     }
 }
 

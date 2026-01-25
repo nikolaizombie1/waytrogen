@@ -34,6 +34,7 @@ clap = { version = "4.5.23", features = ["derive"] }
 gettext-rs = { version = ">= 0.7.0", features = ["gettext-system"] }
 rand = "0.8.5"
 chrono = "0.4.43"
+uuid = { version = "1.19.0", features = ["v4"] }
 
 [features]
 nixos = []
