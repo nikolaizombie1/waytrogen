@@ -888,7 +888,8 @@ Please install one or more of the following:\n\n
 - Hyprpaper\n
 - Swaybg\n
 - Mpvpaper\n
-- SWWW\n\n
+- SWWW\n
+- gSlapper\n\n
 If waytrogen continues failing to detect an installed changer,\n
 please feel free open issue on the GitHub repository:\n
 https://github.com/nikolaizombie1/waytrogen/issues",

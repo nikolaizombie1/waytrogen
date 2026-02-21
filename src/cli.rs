@@ -43,7 +43,8 @@ pub fn restore_wallpapers() -> glib::ExitCode {
             }
             WallpaperChangers::Swaybg(_, _)
             | WallpaperChangers::MpvPaper(_, _, _)
-            | WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {}
+            | WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _)
+            | WallpaperChangers::GSlapper(_, _, _, _) => {}
         }
     }
     glib::ExitCode::SUCCESS

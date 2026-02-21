@@ -1,9 +1,7 @@
 use crate::{
-    changers::{
-        hyprpaper::change_hyprpaper_wallpaper, mpvpaper::change_mpvpaper_wallpaper,
-        swaybg::change_swaybg_wallpaper, swww::change_swww_wallpaper,
-    },
-    common::RGB,
+    changers::{hyprpaper::change_hyprpaper_wallpaper, mpvpaper::change_mpvpaper_wallpaper,
+    swaybg::change_swaybg_wallpaper, swww::change_swww_wallpaper, gslapper::change_gslapper_wallpaper},
+    common::RGB, 
 };
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -42,6 +40,116 @@ pub enum WallpaperChangers {
         SWWWTransitionBezier,
         SWWWTransitionWave,
     ),
+    GSlapper(GSllapperScaleMode, GSllapperPauseMode, bool, String),
+}
+
+#[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize, PartialEq)]
+pub enum GSllapperScaleMode {
+    #[default]
+    Fill,
+    Stretch,
+    Original,
+    Panscan,
+}
+
+impl U32Enum for GSllapperScaleMode {
+    fn from_u32(i: u32) -> Self {
+        #[allow(clippy::cast_possible_truncation)]
+        let i = i % Self::VARIANTS.len() as u32;
+        match i {
+            0 => Self::Fill,
+            1 => Self::Stretch,
+            2 => Self::Original,
+            3 => Self::Panscan,
+            _ => Self::default(),
+        }
+    }
+
+    fn to_u32(&self) -> u32 {
+        match self {
+            Self::Fill => 0,
+            Self::Stretch => 1,
+            Self::Original => 2,
+            Self::Panscan => 3,
+        }
+    }
+}
+
+impl Display for GSllapperScaleMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Fill => write!(f, "fill"),
+            Self::Stretch => write!(f, "stretch"),
+            Self::Original => write!(f, "original"),
+            Self::Panscan => write!(f, "panscan"),
+        }
+    }
+}
+
+impl FromStr for GSllapperScaleMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match &s.to_ascii_lowercase()[..] {
+            "fill" => Ok(Self::Fill),
+            "stretch" => Ok(Self::Stretch),
+            "original" => Ok(Self::Original),
+            "panscan" => Ok(Self::Panscan),
+            _ => Err(format!("Unknown gslapper scale mode: {s}")),
+        }
+    }
+}
+
+#[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize, PartialEq)]
+pub enum GSllapperPauseMode {
+    #[default]
+    None,
+    AutoPause,
+    AutoStop,
+}
+
+impl U32Enum for GSllapperPauseMode {
+    fn from_u32(i: u32) -> Self {
+        #[allow(clippy::cast_possible_truncation)]
+        let i = i % Self::VARIANTS.len() as u32;
+        match i {
+            0 => Self::None,
+            1 => Self::AutoPause,
+            2 => Self::AutoStop,
+            _ => Self::default(),
+        }
+    }
+
+    fn to_u32(&self) -> u32 {
+        match self {
+            Self::None => 0,
+            Self::AutoPause => 1,
+            Self::AutoStop => 2,
+        }
+    }
+}
+
+impl Display for GSllapperPauseMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::None => write!(f, "none"),
+            Self::AutoPause => write!(f, "auto-pause"),
+            Self::AutoStop => write!(f, "auto-stop"),
+        }
+    }
+}
+
+impl FromStr for GSllapperPauseMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match &s.to_lowercase()[..] {
+            "none" => Ok(Self::None),
+            "auto-pause" => Ok(Self::AutoPause),
+            "auto-stop" => Ok(Self::AutoStop),
+            _ => Err("Invalid gslapper pause mode".to_owned()),
+        }
+    }
 }
 
 impl Default for WallpaperChangers {
@@ -78,6 +186,12 @@ impl WallpaperChangers {
                 bool::default(),
                 SWWWTransitionBezier::default(),
                 SWWWTransitionWave::default(),
+            ),
+            Self::GSlapper(_, _, _, _) => Self::GSlapper(
+                GSllapperScaleMode::default(),
+                GSllapperPauseMode::default(),
+                bool::default(),
+                String::default(),
             ),
         };
         WallpaperChangers::iter().for_each(|w| {
@@ -524,6 +638,9 @@ impl WallpaperChanger for WallpaperChangers {
             Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
                 change_swww_wallpaper(self, image, monitor);
             }
+            Self::GSlapper(_, _, _, _) => {
+                change_gslapper_wallpaper(&self, image, &monitor);
+            }
         });
     }
 
@@ -885,38 +1002,91 @@ impl WallpaperChanger for WallpaperChangers {
                     "farbfeld".to_owned(),
                 ]
             }
+            Self::GSlapper(_, _, _, _) => {
+                vec![
+                    // Images
+                    "jpg".to_owned(),
+                    "jpeg".to_owned(),
+                    "png".to_owned(),
+                    "webp".to_owned(),
+                    "gif".to_owned(),
+                    "bmp".to_owned(),
+                    "tiff".to_owned(),
+                    "tif".to_owned(),
+                    // Videos (common formats supported by GStreamer)
+                    "mp4".to_owned(),
+                    "mkv".to_owned(),
+                    "webm".to_owned(),
+                    "avi".to_owned(),
+                    "mov".to_owned(),
+                    "m4v".to_owned(),
+                    "flv".to_owned(),
+                    "wmv".to_owned(),
+                    "ogv".to_owned(),
+                    "3gp".to_owned(),
+                    "3g2".to_owned(),
+                    "ts".to_owned(),
+                    "mts".to_owned(),
+                    "m2ts".to_owned(),
+                    "vob".to_owned(),
+                    "mpg".to_owned(),
+                    "mpeg".to_owned(),
+                    "m2v".to_owned(),
+                ]
+            }
         }
     }
     fn kill(&self) {
         match self {
-            Self::Hyprpaper(_) => Command::new("pkill")
-                .arg("-9")
-                .arg("hyprpaper")
-                .spawn()
-                .unwrap()
-                .wait()
-                .unwrap(),
-            Self::Swaybg(_, _) => Command::new("pkill")
-                .arg("-9")
-                .arg("swaybg")
-                .spawn()
-                .unwrap()
-                .wait()
-                .unwrap(),
-            Self::MpvPaper(_, _, _) => Command::new("pkill")
-                .arg("mpvpaper")
-                .spawn()
-                .unwrap()
-                .wait()
-                .unwrap(),
-            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => Command::new("pkill")
-                .arg("-9")
-                .arg("swww-daemon")
-                .spawn()
-                .unwrap()
-                .wait()
-                .unwrap(),
-        };
+            Self::Hyprpaper(_) => {
+                let _ = Command::new("pkill")
+                    .arg("-9")
+                    .arg("hyprpaper")
+                    .spawn()
+                    .and_then(|mut c| c.wait());
+            }
+            Self::Swaybg(_, _) => {
+                let _ = Command::new("pkill")
+                    .arg("-9")
+                    .arg("swaybg")
+                    .spawn()
+                    .and_then(|mut c| c.wait());
+            }
+            Self::MpvPaper(_, _, _) => {
+                let _ = Command::new("pkill")
+                    .arg("mpvpaper")
+                    .spawn()
+                    .and_then(|mut c| c.wait());
+            }
+            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+                let _ = Command::new("pkill")
+                    .arg("-9")
+                    .arg("swww-daemon")
+                    .spawn()
+                    .and_then(|mut c| c.wait());
+            }
+            Self::GSlapper(_, _, _, _) => {
+                // Try graceful quit via IPC first (using socat or nc)
+                let socket_path = "/tmp/gslapper.sock";
+                if std::path::Path::new(socket_path).exists() {
+                    let _ = Command::new("bash")
+                        .arg("-c")
+                        .arg(format!("echo quit | socat - UNIX-CONNECT:{socket_path} 2>/dev/null || echo quit | nc -U {socket_path} 2>/dev/null"))
+                        .spawn()
+                        .and_then(|mut c| c.wait());
+                    // Give it a moment to quit gracefully
+                    std::thread::sleep(std::time::Duration::from_millis(200));
+                }
+                // Always pkill to ensure process is dead
+                let _ = Command::new("pkill")
+                    .arg("-9")
+                    .arg("gslapper")
+                    .spawn()
+                    .and_then(|mut c| c.wait());
+                // Clean up socket
+                let _ = std::fs::remove_file(socket_path);
+            }
+        }
     }
 }
 
@@ -932,6 +1102,7 @@ impl Display for WallpaperChangers {
             Self::Swaybg(_, _) => write!(f, "swaybg"),
             Self::MpvPaper(_, _, _) => write!(f, "mpvpaper"),
             Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => write!(f, "swww"),
+            Self::GSlapper(_, _, _, _) => write!(f, "gslapper"),
         }
     }
 }
@@ -968,6 +1139,9 @@ pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
                 append_changer_if_in_path(&mut available_changers, changer)
             }
             WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+                append_changer_if_in_path(&mut available_changers, changer)
+            }
+            WallpaperChangers::GSlapper(_, _, _, _) => {
                 append_changer_if_in_path(&mut available_changers, changer)
             }
         }

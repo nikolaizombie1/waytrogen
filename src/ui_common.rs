@@ -2,14 +2,16 @@ use crate::{
     changers::{
         hyprpaper::generate_hyprpaper_changer_bar, mpvpaper::generate_mpvpaper_changer_bar,
         swaybg::generate_swaybg_changer_bar, swww::generate_swww_changer_bar,
+        gslapper::generate_gslapper_changer_bar,
     },
     common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     fs::get_image_files,
     wallpaper_changers::{
-        HyprpaperFitModes, MpvPaperPauseModes, MpvPaperSlideshowSettings, SWWWResizeMode,
-        SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition, SWWWTransitionType,
-        SWWWTransitionWave, SwaybgModes, U32Enum, WallpaperChanger, WallpaperChangers,
+        GSllapperPauseMode, GSllapperScaleMode, HyprpaperFitModes, MpvPaperPauseModes, MpvPaperSlideshowSettings,
+        SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition,
+        SWWWTransitionType, SWWWTransitionWave, SwaybgModes, U32Enum, WallpaperChanger,
+        WallpaperChangers,
     },
 };
 use async_channel::Sender;
@@ -123,6 +125,9 @@ pub fn generate_changer_bar(
         WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
             generate_swww_changer_bar(changer_specific_options_box, settings);
         }
+        WallpaperChangers::GSlapper(_, _, _, _) => {
+            generate_gslapper_changer_bar(changer_specific_options_box, settings);
+        }
     }
 }
 
@@ -206,6 +211,26 @@ pub fn get_selected_changer(
                 transition_bezier,
                 transition_wave,
             )
+        }
+        "gslapper" => {
+            let scale_mode = GSllapperScaleMode::from_u32(settings.uint("gslapper-scale-mode"));
+            let pause_mode = GSllapperPauseMode::from_u32(settings.uint("gslapper-pause-mode"));
+            let loop_video = settings.boolean("gslapper-loop");
+            let additional_options = settings.string("gslapper-additional-options").to_string();
+            let changer = WallpaperChangers::GSlapper(
+                scale_mode,
+                pause_mode,
+                loop_video,
+                additional_options.clone(),
+            );
+            debug!(
+                "{}: {} loop={} options={}",
+                gettext("Selected changer"),
+                changer,
+                loop_video,
+                additional_options
+            );
+            changer
         }
         _ => {
             let fit_mode = settings.uint("hyprpaper-fit-mode");
