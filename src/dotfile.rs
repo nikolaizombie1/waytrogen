@@ -1,6 +1,4 @@
-use crate::common::{
-    get_config_file_path, parse_executable_script, Wallpaper, APP_ID,
-};
+use crate::common::{get_config_file_path, parse_executable_script, Wallpaper, APP_ID};
 use anyhow::anyhow;
 use gettextrs::gettext;
 use log::{error, trace, warn};
@@ -13,6 +11,7 @@ use std::{
 use gtk::{gio::Settings, prelude::*};
 
 #[derive(Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ConfigFile {
     executable_script_doc: String,
     pub executable_script: String,
@@ -76,8 +75,16 @@ pub struct ConfigFile {
     pub swww_transition_bezier_p3: f64,
     swww_transition_fps_doc: String,
     pub swww_transition_fps: u32,
+    gslapper_scale_mode_doc: String,
+    pub gslapper_scale_mode: u32,
+    gslapper_pause_mode_doc: String,
+    pub gslapper_pause_mode: u32,
+    gslapper_loop_doc: String,
+    pub gslapper_loop: bool,
+    gslapper_additional_options_doc: String,
+    pub gslapper_additional_options: String,
     hide_changer_options_box_doc: String,
-    pub hide_changer_options_box: bool
+    pub hide_changer_options_box: bool,
 }
 
 impl Default for ConfigFile {
@@ -143,11 +150,19 @@ impl Default for ConfigFile {
 	    swww_transition_bezier_p2: 0.34,
 	    swww_transition_bezier_p3_doc: gettext("Point 3 for the Bezier curve to use for the transition"),
 	    swww_transition_bezier_p3: 0.99,
-	    swww_transition_fps_doc: gettext("Frame rate for the transition effect used by swww."),
-	    swww_transition_fps: 30,
-	    hide_changer_options_box_doc: gettext("Hide bottom bar."),
-	    hide_changer_options_box: false
-	}
+ 	    swww_transition_fps_doc: gettext("Frame rate for the transition effect used by swww."),
+ 	    swww_transition_fps: 30,
+ 	    gslapper_scale_mode_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected gslapper scale mode. Do not change unless you know what you are doing."),
+ 	    gslapper_scale_mode: 0,
+ 	    gslapper_pause_mode_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected gslapper pause mode. Do not change unless you know what you are doing."),
+ 	    gslapper_pause_mode: 0,
+ 	    gslapper_loop_doc: gettext("The boolean flag to loop video wallpapers in gslapper used by dconf."),
+ 	    gslapper_loop: true,
+ 	    gslapper_additional_options_doc: gettext("Custom options for gslapper passed as command line arguments."),
+ 	    gslapper_additional_options: String::default(),
+ 	    hide_changer_options_box_doc: gettext("Hide bottom bar."),
+ 	    hide_changer_options_box: false
+ 	}
     }
 }
 
@@ -234,9 +249,19 @@ impl ConfigFile {
         trace!("Getting swww-transition-fps gsetting");
         let swww_transition_fps = settings.uint("swww-transition-fps");
 
+        trace!("Getting gslapper-scale-mode gsetting");
+        let gslapper_scale_mode = settings.uint("gslapper-scale-mode");
+        trace!("Getting gslapper-pause-mode gsetting");
+        let gslapper_pause_mode = settings.uint("gslapper-pause-mode");
+        trace!("Getting gslapper-loop gsetting");
+        let gslapper_loop = settings.boolean("gslapper-loop");
+        trace!("Getting gslapper-additional-options gsetting");
+        let gslapper_additional_options =
+            settings.string("gslapper-additional-options").to_string();
+
         trace!("Getting hide-changer-options-box gsetting");
-	let hide_changer_options_box = settings.boolean("hide-changer-options-box");
-	
+        let hide_changer_options_box = settings.boolean("hide-changer-options-box");
+
         Ok(Self {
             executable_script,
             wallpaper_folder,
@@ -269,7 +294,11 @@ impl ConfigFile {
             swww_transition_bezier_p2,
             swww_transition_bezier_p3,
             swww_transition_fps,
-	    hide_changer_options_box,
+            gslapper_scale_mode,
+            gslapper_pause_mode,
+            gslapper_loop,
+            gslapper_additional_options,
+            hide_changer_options_box,
             ..Default::default()
         })
     }
@@ -350,9 +379,21 @@ impl ConfigFile {
         trace!("Setting swww-transition-fps gsetting");
         settings.set_uint("swww-transition-fps", self.swww_transition_fps)?;
 
+        trace!("Setting gslapper-scale-mode gsetting");
+        settings.set_uint("gslapper-scale-mode", self.gslapper_scale_mode)?;
+        trace!("Setting gslapper-pause-mode gsetting");
+        settings.set_uint("gslapper-pause-mode", self.gslapper_pause_mode)?;
+        trace!("Setting gslapper-loop gsetting");
+        settings.set_boolean("gslapper-loop", self.gslapper_loop)?;
+        trace!("Setting gslapper-additional-options gsetting");
+        settings.set_string(
+            "gslapper-additional-options",
+            &self.gslapper_additional_options,
+        )?;
+
         trace!("Setting hide-changer-options-box gsetting");
-	settings.set_boolean("hide-changer-options-box", self.hide_changer_options_box)?;
-	
+        settings.set_boolean("hide-changer-options-box", self.hide_changer_options_box)?;
+
         Ok(())
     }
 }
