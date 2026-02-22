@@ -1,7 +1,10 @@
 use crate::{
-    changers::{hyprpaper::change_hyprpaper_wallpaper, mpvpaper::change_mpvpaper_wallpaper,
-    swaybg::change_swaybg_wallpaper, swww::change_swww_wallpaper, gslapper::change_gslapper_wallpaper},
-    common::RGB, 
+    changers::{
+        gslapper::change_gslapper_wallpaper, hyprpaper::change_hyprpaper_wallpaper,
+        mpvpaper::change_mpvpaper_wallpaper, swaybg::change_swaybg_wallpaper,
+        swww::change_swww_wallpaper,
+    },
+    common::RGB,
 };
 use lazy_static::lazy_static;
 use regex::Regex;

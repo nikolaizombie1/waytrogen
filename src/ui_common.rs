@@ -1,17 +1,17 @@
 use crate::{
     changers::{
-        hyprpaper::generate_hyprpaper_changer_bar, mpvpaper::generate_mpvpaper_changer_bar,
-        swaybg::generate_swaybg_changer_bar, swww::generate_swww_changer_bar,
-        gslapper::generate_gslapper_changer_bar,
+        gslapper::generate_gslapper_changer_bar, hyprpaper::generate_hyprpaper_changer_bar,
+        mpvpaper::generate_mpvpaper_changer_bar, swaybg::generate_swaybg_changer_bar,
+        swww::generate_swww_changer_bar,
     },
     common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     fs::get_image_files,
     wallpaper_changers::{
-        GSllapperPauseMode, GSllapperScaleMode, HyprpaperFitModes, MpvPaperPauseModes, MpvPaperSlideshowSettings,
-        SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition,
-        SWWWTransitionType, SWWWTransitionWave, SwaybgModes, U32Enum, WallpaperChanger,
-        WallpaperChangers,
+        GSllapperPauseMode, GSllapperScaleMode, HyprpaperFitModes, MpvPaperPauseModes,
+        MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier,
+        SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave, SwaybgModes, U32Enum,
+        WallpaperChanger, WallpaperChangers,
     },
 };
 use async_channel::Sender;

@@ -1,4 +1,4 @@
-use gtk::{glib::SignalHandlerId, Picture};
+use gtk::gdk::Texture;
 use image::ImageReader;
 use lazy_static::lazy_static;
 use log::trace;
@@ -21,8 +21,10 @@ use uuid::Uuid;
 use crate::wallpaper_changers::WallpaperChangers;
 use gettextrs::gettext;
 
-pub const THUMBNAIL_HEIGHT: i32 = 200;
+pub const THUMBNAIL_HEIGHT: i32 = 400;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
+pub const BUTTON_HEIGHT: i32 = 200;
+pub const BUTTON_WIDTH: i32 = BUTTON_HEIGHT;
 pub const APP_ID: &str = "org.Waytrogen.Waytrogen";
 pub const GETTEXT_DOMAIN: &str = "waytrogen";
 pub const CONFIG_APP_NAME: &str = "waytrogen";
@@ -30,9 +32,8 @@ pub const CACHE_FILE_NAME: &str = "cache.db";
 pub const CONFIG_FILE_NAME: &str = "config.json";
 
 pub struct GtkPictureFile {
-    pub picture: Picture,
+    pub picture: RefCell<Option<Texture>>,
     pub cache_image_file: CacheImageFile,
-    pub button_signal_handler: RefCell<Option<SignalHandlerId>>,
 }
 
 #[derive(Clone, Default, PartialEq)]
