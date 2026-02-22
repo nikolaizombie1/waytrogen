@@ -1,30 +1,27 @@
 use crate::{
     cli::Cli,
-    common::{
-        APP_ID, BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, GtkPictureFile, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH, Wallpaper
-    },
+    common::{CacheImageFile, GtkPictureFile, Wallpaper, APP_ID, BUTTON_HEIGHT, BUTTON_WIDTH},
     ui_common::{
-        DEFAULT_MARGIN, SORT_DROPDOWN_STRINGS, change_image_button_handlers, compare_image_list_items_by_sort_selection_comparitor, generate_changer_bar, generate_image_files, get_available_monitors, get_selected_changer, gschema_string_to_string, hide_unsupported_files, sort_images, string_to_gschema_string
+        change_image_button_handlers, compare_image_list_items_by_sort_selection_comparitor,
+        generate_changer_bar, generate_image_files, get_available_monitors, get_selected_changer,
+        gschema_string_to_string, hide_unsupported_files, sort_images, string_to_gschema_string,
+        DEFAULT_MARGIN, SORT_DROPDOWN_STRINGS,
     },
-    wallpaper_changers::{WallpaperChanger, get_available_wallpaper_changers},
+    wallpaper_changers::{get_available_wallpaper_changers, WallpaperChanger},
 };
 use async_channel::{Receiver, Sender};
 use gettextrs::{gettext, ngettext};
 use gtk::{
     self, gdk,
     gio::{self, spawn_blocking, Cancellable, ListStore, Settings},
-    glib::{self, clone, spawn_future_local, BoxedAnyObject, Bytes},
+    glib::{self, clone, spawn_future_local, Bytes},
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, Entry, FileDialog, GridView,
     Label, ListItem, ListScrollFlags, MenuButton, Orientation, Picture, Popover, ProgressBar,
     ScrolledWindow, SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
-use std::{
-    cell::RefCell,
-    path::PathBuf,
-    process::Command,
-};
+use std::{path::PathBuf, process::Command};
 
 #[derive(Clone)]
 struct SensitiveWidgetsHelper {
@@ -48,8 +45,8 @@ pub fn build_ui(app: &Application, args: &Cli) {
         return;
     }
     let settings = Settings::new(APP_ID);
-    let image_list_store = ListStore::new::<BoxedAnyObject>();
-    let removed_images_list_store = ListStore::new::<BoxedAnyObject>();
+    let image_list_store = ListStore::new::<GtkPictureFile>();
+    let removed_images_list_store = ListStore::new::<GtkPictureFile>();
     let folder_path_buffer = create_folder_path_buffer(&settings);
     let path = textbuffer_to_string(&folder_path_buffer);
 
@@ -131,8 +128,8 @@ pub fn build_ui(app: &Application, args: &Cli) {
 
     let hide_changer_options_box = settings.boolean("hide-changer-options-box");
 
-    let hide_changer_options_box = if args.hide_bottom_bar.is_some() {
-        args.hide_bottom_bar.unwrap()
+    let hide_changer_options_box = if let Some(hide_bottom_bar) = args.hide_bottom_bar {
+        hide_bottom_bar
     } else {
         hide_changer_options_box
     };
@@ -243,9 +240,9 @@ fn setup_image_signal_list_item_factory(
                 #[weak]
                 wallpaper_changers_dropdown,
                 move |_| {
-                    if let Some(entry) = list_item.item().and_downcast::<BoxedAnyObject>() {
-                        let data = entry.borrow::<GtkPictureFile>();
-                        let path = &data.cache_image_file.path;
+                    if let Some(entry) = list_item.item().and_downcast::<GtkPictureFile>() {
+                        let data = &entry;
+                        let path = &data.cache_image_file().borrow().path;
 
                         let path = path.clone();
                         let selected_monitor = monitors_dropdown
@@ -311,18 +308,19 @@ fn setup_image_signal_list_item_factory(
     // BIND: This runs every time a widget is recycled for a new image
     factory.connect_bind(move |_factory, list_item| {
         let list_item = list_item.downcast_ref::<ListItem>().unwrap();
-        let entry = list_item.item().and_downcast::<BoxedAnyObject>().unwrap();
-        let data = entry.borrow::<GtkPictureFile>();
+        let entry = list_item.item().and_downcast::<GtkPictureFile>().unwrap();
+        let data = &entry;
 
         // Get the recycled widgets
         let button = list_item.child().and_downcast::<Button>().unwrap();
         let picture = button.child().and_downcast::<Picture>().unwrap();
 
         button.set_size_request(BUTTON_WIDTH, BUTTON_HEIGHT);
-        button.set_tooltip_text(Some(&data.cache_image_file.name));
+        button.set_tooltip_text(Some(&data.cache_image_file().borrow().name));
 
         // Sync visual state: If the texture is loaded, show it.
-        let texture_ref = data.picture.borrow();
+        let texture_ref = data.get_picture();
+        let texture_ref = texture_ref.borrow();
         picture.set_paintable(texture_ref.as_ref());
     });
 
@@ -330,8 +328,8 @@ fn setup_image_signal_list_item_factory(
 }
 
 fn execute_external_script(args: &Cli, path: &str, selected_monitor: &str, settings: &Settings) {
-    if args.external_script.is_some() {
-        match Command::new(args.external_script.as_ref().unwrap())
+    if let Some(external_script) = &args.external_script {
+        match Command::new(external_script)
             .arg(selected_monitor)
             .arg(path)
             .arg(gschema_string_to_string(&gschema_string_to_string(
@@ -746,15 +744,8 @@ fn create_cache_image_future(
         image_list_store,
         async move {
             while let Ok(image) = receiver_cache_images.recv().await {
-                // image_list_store.append(&BoxedAnyObject::new(GtkPictureFile {
-                //     picture: Picture::for_file(&gio::File::for_path(&image.cached_image_path)),
-                //     cache_image_file: image,
-                //     button_signal_handler: RefCell::new(None),
-                // }));
-                let data_object = BoxedAnyObject::new(GtkPictureFile {
-                    picture: RefCell::new(None),
-                    cache_image_file: image.clone(),
-                });
+                let data_object = GtkPictureFile::new();
+                data_object.set_cache_image_file(image.clone());
 
                 image_list_store.append(&data_object);
 
@@ -764,10 +755,7 @@ fn create_cache_image_future(
                 file.load_contents_async(gio::Cancellable::NONE, move |res| {
                     if let Ok((contents, _)) = res {
                         if let Ok(texture) = gdk::Texture::from_bytes(&Bytes::from(&contents)) {
-                            data_object_clone
-                                .borrow_mut::<GtkPictureFile>()
-                                .picture
-                                .replace(Some(texture));
+                            data_object_clone.set_picture(texture);
                         }
                     }
                 })

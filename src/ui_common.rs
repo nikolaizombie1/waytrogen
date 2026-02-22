@@ -20,7 +20,7 @@ use gtk::{
     self,
     gdk::Display,
     gio::{spawn_blocking, ListStore, Settings},
-    glib::{BoxedAnyObject, Object},
+    glib::Object,
     prelude::*,
     Box, DropDown, GridView, ListItem, ListScrollFlags, StringObject, Switch,
 };
@@ -90,8 +90,8 @@ pub fn change_image_button_handlers(
         .filter_map(std::result::Result::ok)
         .filter_map(|o| o.downcast::<ListItem>().ok())
         .for_each(|li| {
-            let entry = li.item().and_downcast::<BoxedAnyObject>().unwrap();
-            let image: Ref<CacheImageFile> = entry.borrow();
+            let entry = li.item().and_downcast::<GtkPictureFile>().unwrap();
+            let image: Ref<CacheImageFile> = entry.cache_image_file().borrow();
             let selected_monitor = selected_monitor_dropdown
                 .selected_item()
                 .unwrap()
@@ -267,7 +267,7 @@ pub fn hide_unsupported_files(
         .into_iter()
         .filter_map(std::result::Result::ok)
         .for_each(|o| {
-            let b = o.downcast::<BoxedAnyObject>().unwrap();
+            let b = o.downcast::<GtkPictureFile>().unwrap();
             image_list_store.insert_sorted(
                 &b,
                 compare_image_list_items_by_sort_selection_comparitor(
@@ -284,27 +284,31 @@ pub fn hide_unsupported_files(
     debug!("Filtered list store size: {}", ls.len());
 
     for o in ls {
-        let item = o.clone().downcast::<BoxedAnyObject>().unwrap();
-        let image_file: Ref<GtkPictureFile> = item.borrow();
+        let image_file = o.clone().downcast::<GtkPictureFile>().unwrap();
         if !current_changer.accepted_formats().contains(
-            &Path::new(&image_file.cache_image_file.path)
+            &Path::new(&image_file.cache_image_file().borrow().path)
                 .extension()
                 .unwrap_or_default()
                 .to_str()
                 .unwrap_or_default()
                 .to_owned(),
         ) || !&image_file
-            .cache_image_file
+            .cache_image_file()
+            .borrow()
             .name
             .to_lowercase()
             .contains(&name_filter.to_lowercase())
         {
             debug!(
                 "Image name: {}, Name Filter: {name_filter}, Contains: {}",
-                &image_file.cache_image_file.name,
-                &image_file.cache_image_file.name.contains(name_filter)
+                &image_file.cache_image_file().borrow().name,
+                &image_file
+                    .cache_image_file()
+                    .borrow()
+                    .name
+                    .contains(name_filter)
             );
-            transfer_and_remove_image(removed_images_list_store, image_list_store, &o, &item);
+            transfer_and_remove_image(removed_images_list_store, image_list_store, &o, &image_file);
         }
     }
 }
@@ -313,9 +317,9 @@ fn transfer_and_remove_image(
     removed_images_list_store: &ListStore,
     image_list_store: &ListStore,
     o: &Object,
-    item: &BoxedAnyObject,
+    image_file: &GtkPictureFile,
 ) {
-    removed_images_list_store.append(item);
+    removed_images_list_store.append(image_file);
     image_list_store.remove(image_list_store.find(o).unwrap());
 }
 
@@ -360,21 +364,21 @@ pub fn compare_image_list_items_by_name_comparitor(
     invert_sort_switch_state: bool,
 ) -> impl Fn(&Object, &Object) -> Ordering {
     move |img1, img2| {
-        let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
-        let image1: Ref<GtkPictureFile> = image1.borrow();
-        let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
-        let image2: Ref<GtkPictureFile> = image2.borrow();
+        let image1 = img1.downcast_ref::<GtkPictureFile>().unwrap();
+        let image2 = img2.downcast_ref::<GtkPictureFile>().unwrap();
         if invert_sort_switch_state {
             image1
-                .cache_image_file
+                .cache_image_file()
+                .borrow()
                 .name
-                .partial_cmp(&image2.cache_image_file.name)
+                .partial_cmp(&image2.cache_image_file().borrow().name)
                 .unwrap()
         } else {
             image2
-                .cache_image_file
+                .cache_image_file()
+                .borrow()
                 .name
-                .partial_cmp(&image1.cache_image_file.name)
+                .partial_cmp(&image1.cache_image_file().borrow().name)
                 .unwrap()
         }
     }
@@ -384,21 +388,21 @@ pub fn compare_image_list_items_by_date_comparitor(
     invert_sort_switch_state: bool,
 ) -> impl Fn(&Object, &Object) -> Ordering {
     move |img1, img2| {
-        let image1 = img1.downcast_ref::<BoxedAnyObject>().unwrap();
-        let image1: Ref<GtkPictureFile> = image1.borrow();
-        let image2 = img2.downcast_ref::<BoxedAnyObject>().unwrap();
-        let image2: Ref<GtkPictureFile> = image2.borrow();
+        let image1 = img1.downcast_ref::<GtkPictureFile>().unwrap();
+        let image2 = img2.downcast_ref::<GtkPictureFile>().unwrap();
         if invert_sort_switch_state {
             image1
-                .cache_image_file
+                .cache_image_file()
+                .borrow()
                 .date
-                .partial_cmp(&image2.cache_image_file.date)
+                .partial_cmp(&image2.cache_image_file().borrow().date)
                 .unwrap()
         } else {
             image2
-                .cache_image_file
+                .cache_image_file()
+                .borrow()
                 .date
-                .partial_cmp(&image1.cache_image_file.date)
+                .partial_cmp(&image1.cache_image_file().borrow().date)
                 .unwrap()
         }
     }

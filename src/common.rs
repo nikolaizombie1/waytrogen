@@ -1,4 +1,8 @@
-use gtk::gdk::Texture;
+use gtk::{
+    self,
+    gdk::Texture,
+    glib::{self, subclass::types::ObjectSubclassIsExt, Object},
+};
 use image::ImageReader;
 use lazy_static::lazy_static;
 use log::trace;
@@ -31,9 +35,63 @@ pub const CONFIG_APP_NAME: &str = "waytrogen";
 pub const CACHE_FILE_NAME: &str = "cache.db";
 pub const CONFIG_FILE_NAME: &str = "config.json";
 
-pub struct GtkPictureFile {
-    pub picture: RefCell<Option<Texture>>,
-    pub cache_image_file: CacheImageFile,
+mod imp {
+    use super::CacheImageFile;
+    use gtk::{self, gdk::Texture, glib, subclass::prelude::*};
+    use std::cell::RefCell;
+
+    #[derive(Default)]
+    pub struct GtkPictureFile {
+        pub picture: RefCell<Option<Texture>>,
+        pub cache_image_file: RefCell<CacheImageFile>,
+    }
+
+    #[glib::object_subclass]
+    impl ObjectSubclass for GtkPictureFile {
+        const NAME: &'static str = "WaytrogenImageButton";
+        type Type = super::GtkPictureFile;
+        type ParentType = gtk::Button;
+    }
+
+    impl ObjectImpl for GtkPictureFile {}
+
+    impl WidgetImpl for GtkPictureFile {}
+
+    impl ButtonImpl for GtkPictureFile {}
+}
+
+glib::wrapper! {
+    pub struct GtkPictureFile(ObjectSubclass<imp::GtkPictureFile>)
+    @extends gtk::Button, gtk::Widget,
+        @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
+}
+
+impl GtkPictureFile {
+    pub fn new() -> Self {
+        Object::builder().build()
+    }
+
+    pub fn cache_image_file(&self) -> &RefCell<CacheImageFile> {
+        &self.imp().cache_image_file
+    }
+
+    pub fn set_cache_image_file(&self, cache_image_file: CacheImageFile) {
+        self.imp().cache_image_file.replace(cache_image_file);
+    }
+
+    pub fn set_picture(&self, texture: Texture) {
+        self.imp().picture.replace(Some(texture));
+    }
+
+    pub fn get_picture(&self) -> &RefCell<Option<Texture>> {
+        &self.imp().picture
+    }
+}
+
+impl Default for GtkPictureFile {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, Default, PartialEq)]
