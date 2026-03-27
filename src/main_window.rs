@@ -1,6 +1,8 @@
 use crate::{
     cli::Cli,
-    common::{CacheImageFile, GtkPictureFile, Wallpaper, APP_ID, BUTTON_HEIGHT, BUTTON_WIDTH},
+    common::{
+        CacheImageFile, GtkPictureFile, Wallpaper, APP_ID, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH,
+    },
     ui_common::{
         change_image_button_handlers, compare_image_list_items_by_sort_selection_comparitor,
         generate_changer_bar, generate_image_files, get_available_monitors, get_selected_changer,
@@ -12,16 +14,20 @@ use crate::{
 use async_channel::{Receiver, Sender};
 use gettextrs::{gettext, ngettext};
 use gtk::{
-    self, gdk,
+    self,
     gio::{self, spawn_blocking, Cancellable, ListStore, Settings},
-    glib::{self, clone, spawn_future_local, Bytes},
+    glib::{self, clone, spawn_future_local, BoxedAnyObject},
     prelude::*,
     Align, Application, ApplicationWindow, Box, Button, DropDown, Entry, FileDialog, GridView,
     Label, ListItem, ListScrollFlags, MenuButton, Orientation, Picture, Popover, ProgressBar,
     ScrolledWindow, SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer,
 };
 use log::debug;
-use std::{path::PathBuf, process::Command};
+use std::{
+    cell::{Ref, RefCell},
+    path::PathBuf,
+    process::Command,
+};
 
 #[derive(Clone)]
 struct SensitiveWidgetsHelper {
@@ -45,8 +51,8 @@ pub fn build_ui(app: &Application, args: &Cli) {
         return;
     }
     let settings = Settings::new(APP_ID);
-    let image_list_store = ListStore::new::<GtkPictureFile>();
-    let removed_images_list_store = ListStore::new::<GtkPictureFile>();
+    let image_list_store = ListStore::new::<BoxedAnyObject>();
+    let removed_images_list_store = ListStore::new::<BoxedAnyObject>();
     let folder_path_buffer = create_folder_path_buffer(&settings);
     let path = textbuffer_to_string(&folder_path_buffer);
 
@@ -128,8 +134,8 @@ pub fn build_ui(app: &Application, args: &Cli) {
 
     let hide_changer_options_box = settings.boolean("hide-changer-options-box");
 
-    let hide_changer_options_box = if let Some(hide_bottom_bar) = args.hide_bottom_bar {
-        hide_bottom_bar
+    let hide_changer_options_box = if args.hide_bottom_bar.is_some() {
+        args.hide_bottom_bar.unwrap()
     } else {
         hide_changer_options_box
     };
@@ -199,137 +205,136 @@ fn setup_image_signal_list_item_factory(
     settings: &Settings,
     args: Cli,
 ) -> SignalListItemFactory {
-    // let image_signal_list_item_factory = SignalListItemFactory::new();
+    let image_signal_list_item_factory = SignalListItemFactory::new();
 
     let previous_wallpapers_text_buffer = TextBuffer::builder().build();
     settings
         .bind("saved-wallpapers", &previous_wallpapers_text_buffer, "text")
         .build();
-    let factory = SignalListItemFactory::new();
+    image_signal_list_item_factory.connect_setup(clone!(move |_factory, item| {
+        let item = item.downcast_ref::<ListItem>().unwrap();
+        let button = Button::builder()
+            .vexpand(true)
+            .hexpand(true)
+            .can_shrink(true)
+            .has_tooltip(true)
+            .build();
+        item.set_child(Some(&button));
+    }));
 
-    // SETUP: This runs once per VISIBLE slot (reused for all items)
-    factory.connect_setup(clone!(
+    bind_image_list_item_factory(
+        &image_signal_list_item_factory,
+        monitors_dropdown,
+        wallpaper_changers_dropdown,
+        settings,
+        args,
+        previous_wallpapers_text_buffer,
+    );
+    image_signal_list_item_factory
+}
+
+fn bind_image_list_item_factory(
+    image_signal_list_item_factory: &SignalListItemFactory,
+    monitors_dropdown: &DropDown,
+    wallpaper_changers_dropdown: &DropDown,
+    settings: &Settings,
+    args: Cli,
+    previous_wallpapers_text_buffer: TextBuffer,
+) {
+    image_signal_list_item_factory.connect_bind(clone!(
         #[weak]
         monitors_dropdown,
         #[weak]
-        settings,
-        #[weak]
         wallpaper_changers_dropdown,
-        move |_factory, list_item| {
-            let list_item = list_item.downcast_ref::<ListItem>().unwrap();
-
-            // Build the widget skeleton once
-            let button = Button::builder().hexpand(true).vexpand(true).build();
-            let picture = Picture::builder()
-                .content_fit(gtk::ContentFit::Cover)
-                .build();
-            button.set_child(Some(&picture));
-            list_item.set_child(Some(&button));
-
-            // PERSISTENT CLICK LOGIC
-            // By connecting here, we avoid signal accumulation.
-            // list_item.item() dynamically points to the data currently in this slot.
+        #[weak]
+        settings,
+        move |_factory, item| {
+            let item = item.downcast_ref::<ListItem>().unwrap();
+            let button = item.child().and_downcast::<Button>().unwrap();
+            let entry = item.item().and_downcast::<BoxedAnyObject>().unwrap();
+            let image: Ref<GtkPictureFile> = entry.borrow();
+            let path = &image.cache_image_file.path;
             let args = args.clone();
-            button.connect_clicked(clone!(
-                #[weak]
-                list_item,
-                #[weak]
-                settings,
-                #[weak]
-                previous_wallpapers_text_buffer,
-                #[weak]
-                wallpaper_changers_dropdown,
-                move |_| {
-                    if let Some(entry) = list_item.item().and_downcast::<GtkPictureFile>() {
-                        let data = &entry;
-                        let path = &data.cache_image_file().borrow().path;
-
-                        let path = path.clone();
-                        let selected_monitor = monitors_dropdown
-                            .selected_item()
-                            .unwrap()
-                            .downcast::<StringObject>()
-                            .unwrap()
-                            .string()
-                            .to_string();
-                        let selected_changer =
-                            get_selected_changer(&wallpaper_changers_dropdown, &settings);
-                        let mut previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(
-                            &gschema_string_to_string(settings.string("saved-wallpapers").as_ref()),
-                        )
-                        .unwrap();
-                        let mut new_monitor_wallpapers: Vec<Wallpaper> = vec![];
-                        if !previous_wallpapers
-                            .iter()
-                            .any(|w| w.monitor == selected_monitor.clone())
-                        {
-                            new_monitor_wallpapers.push(Wallpaper {
-                                monitor: selected_monitor.clone(),
-                                path: path.clone(),
-                                changer: selected_changer.clone(),
-                            });
-                        }
-                        for wallpaper in &mut previous_wallpapers {
-                            if wallpaper.monitor == selected_monitor {
-                                wallpaper.path.clone_from(&path);
-                                wallpaper.changer = selected_changer.clone();
+            button.set_size_request(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+            let previous_wallpapers_text_buffer = previous_wallpapers_text_buffer.clone();
+            let handler = image.button_signal_handler.take();
+            match handler {
+                Some(h) => image.button_signal_handler.replace(Some(h)),
+                None => image
+                    .button_signal_handler
+                    .replace(Some(button.connect_clicked(clone!(
+                        #[strong]
+                        path,
+                        move |_| {
+                            let path = path.clone();
+                            let selected_monitor = monitors_dropdown
+                                .selected_item()
+                                .unwrap()
+                                .downcast::<StringObject>()
+                                .unwrap()
+                                .string()
+                                .to_string();
+                            let selected_changer =
+                                get_selected_changer(&wallpaper_changers_dropdown, &settings);
+                            let mut previous_wallpapers =
+                                serde_json::from_str::<Vec<Wallpaper>>(&gschema_string_to_string(
+                                    settings.string("saved-wallpapers").as_ref(),
+                                ))
+                                .unwrap();
+                            let mut new_monitor_wallpapers: Vec<Wallpaper> = vec![];
+                            if !previous_wallpapers
+                                .iter()
+                                .any(|w| w.monitor == selected_monitor.clone())
+                            {
+                                new_monitor_wallpapers.push(Wallpaper {
+                                    monitor: selected_monitor.clone(),
+                                    path: path.clone(),
+                                    changer: selected_changer.clone(),
+                                });
                             }
+                            for wallpaper in &mut previous_wallpapers {
+                                if wallpaper.monitor == selected_monitor {
+                                    wallpaper.path.clone_from(&path);
+                                    wallpaper.changer = selected_changer.clone();
+                                }
+                            }
+                            previous_wallpapers.append(&mut new_monitor_wallpapers);
+                            let previous_wallpapers = previous_wallpapers
+                                .clone()
+                                .into_iter()
+                                .map(|w| Wallpaper {
+                                    monitor: w.monitor,
+                                    path: w.path,
+                                    changer: selected_changer.clone(),
+                                })
+                                .collect::<Vec<_>>();
+                            debug!(
+                                "{}: {:#?}",
+                                gettext("Saved wallpapers"),
+                                previous_wallpapers
+                            );
+                            let saved_wallpapers = string_to_gschema_string(
+                                &serde_json::to_string::<Vec<Wallpaper>>(&previous_wallpapers)
+                                    .unwrap(),
+                            );
+                            previous_wallpapers_text_buffer.set_text(&saved_wallpapers);
+                            debug!("{}: {}", gettext("Stored Text"), saved_wallpapers);
+                            selected_changer
+                                .clone()
+                                .change(PathBuf::from(&path.clone()), selected_monitor.clone());
+                            execute_external_script(&args, &path, &selected_monitor, &settings);
                         }
-                        previous_wallpapers.append(&mut new_monitor_wallpapers);
-                        let previous_wallpapers = previous_wallpapers
-                            .clone()
-                            .into_iter()
-                            .map(|w| Wallpaper {
-                                monitor: w.monitor,
-                                path: w.path,
-                                changer: selected_changer.clone(),
-                            })
-                            .collect::<Vec<_>>();
-                        debug!(
-                            "{}: {:#?}",
-                            gettext("Saved wallpapers"),
-                            previous_wallpapers
-                        );
-                        let saved_wallpapers = string_to_gschema_string(
-                            &serde_json::to_string::<Vec<Wallpaper>>(&previous_wallpapers).unwrap(),
-                        );
-                        previous_wallpapers_text_buffer.set_text(&saved_wallpapers);
-                        debug!("{}: {}", gettext("Stored Text"), saved_wallpapers);
-                        selected_changer
-                            .clone()
-                            .change(PathBuf::from(&path.clone()), selected_monitor.clone());
-                        execute_external_script(&args, &path, &selected_monitor, &settings);
-                    }
-                }
-            ));
+                    )))),
+            };
+            button.set_tooltip_text(Some(&image.cache_image_file.name));
+            button.set_child(Some(&image.picture));
         }
     ));
-
-    // BIND: This runs every time a widget is recycled for a new image
-    factory.connect_bind(move |_factory, list_item| {
-        let list_item = list_item.downcast_ref::<ListItem>().unwrap();
-        let entry = list_item.item().and_downcast::<GtkPictureFile>().unwrap();
-        let data = &entry;
-
-        // Get the recycled widgets
-        let button = list_item.child().and_downcast::<Button>().unwrap();
-        let picture = button.child().and_downcast::<Picture>().unwrap();
-
-        button.set_size_request(BUTTON_WIDTH, BUTTON_HEIGHT);
-        button.set_tooltip_text(Some(&data.cache_image_file().borrow().name));
-
-        // Sync visual state: If the texture is loaded, show it.
-        let texture_ref = data.get_picture();
-        let texture_ref = texture_ref.borrow();
-        picture.set_paintable(texture_ref.as_ref());
-    });
-
-    factory
 }
 
 fn execute_external_script(args: &Cli, path: &str, selected_monitor: &str, settings: &Settings) {
-    if let Some(external_script) = &args.external_script {
-        match Command::new(external_script)
+    if args.external_script.is_some() {
+        match Command::new(args.external_script.as_ref().unwrap())
             .arg(selected_monitor)
             .arg(path)
             .arg(gschema_string_to_string(&gschema_string_to_string(
@@ -744,21 +749,11 @@ fn create_cache_image_future(
         image_list_store,
         async move {
             while let Ok(image) = receiver_cache_images.recv().await {
-                let data_object = GtkPictureFile::new();
-                data_object.set_cache_image_file(image.clone());
-
-                image_list_store.append(&data_object);
-
-                let file = gio::File::for_path(&image.cached_image_path);
-                let data_object_clone = data_object.clone();
-
-                file.load_contents_async(gio::Cancellable::NONE, move |res| {
-                    if let Ok((contents, _)) = res {
-                        if let Ok(texture) = gdk::Texture::from_bytes(&Bytes::from(&contents)) {
-                            data_object_clone.set_picture(texture);
-                        }
-                    }
-                })
+                image_list_store.append(&BoxedAnyObject::new(GtkPictureFile {
+                    picture: Picture::for_file(&gio::File::for_path(&image.cached_image_path)),
+                    cache_image_file: image,
+                    button_signal_handler: RefCell::new(None),
+                }));
             }
         }
     ));

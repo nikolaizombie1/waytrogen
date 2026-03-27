@@ -1,7 +1,10 @@
 use crate::wallpaper_changers::{GSllapperPauseMode, WallpaperChangers};
 use gettextrs::gettext;
 use gtk::{
-    gio::Settings, glib::clone, prelude::*, Align, Box, DropDown, Entry, Switch, TextBuffer,
+    gio::Settings,
+    glib::clone,
+    prelude::*,
+    Align, Box, DropDown, Entry, Switch, TextBuffer,
 };
 use log::debug;
 use std::{path::PathBuf, process::Command};
@@ -11,7 +14,7 @@ const GSLAPPER_SOCKET: &str = "/tmp/gslapper.sock";
 /// Kill any existing gslapper instance before starting a new one
 fn kill_existing_gslapper() {
     let socket_path = std::path::Path::new(GSLAPPER_SOCKET);
-
+    
     // Try graceful quit via IPC first (using socat if available)
     if socket_path.exists() {
         debug!("gSlapper: Attempting graceful quit via IPC");
@@ -21,13 +24,13 @@ fn kill_existing_gslapper() {
             .arg(format!("echo quit | socat - UNIX-CONNECT:{GSLAPPER_SOCKET} 2>/dev/null || echo quit | nc -U {GSLAPPER_SOCKET} 2>/dev/null"))
             .spawn()
             .and_then(|mut c| c.wait());
-
+        
         if ipc_result.is_ok() {
             // Give it a moment to quit gracefully
             std::thread::sleep(std::time::Duration::from_millis(200));
         }
     }
-
+    
     // Always use pkill as fallback/confirmation to ensure process is dead
     debug!("gSlapper: Ensuring process is killed with pkill");
     let _ = Command::new("pkill")
@@ -35,10 +38,10 @@ fn kill_existing_gslapper() {
         .arg("gslapper")
         .spawn()
         .and_then(|mut c| c.wait());
-
+    
     // Small delay to ensure process is fully terminated
     std::thread::sleep(std::time::Duration::from_millis(100));
-
+    
     // Clean up socket file if it still exists
     if socket_path.exists() {
         let _ = std::fs::remove_file(GSLAPPER_SOCKET);
@@ -195,7 +198,11 @@ fn create_additional_options_textbox(settings: &Settings) -> Entry {
 
     let options_text_buffer = TextBuffer::builder().build();
     settings
-        .bind("gslapper-additional-options", &options_text_buffer, "text")
+        .bind(
+            "gslapper-additional-options",
+            &options_text_buffer,
+            "text",
+        )
         .build();
 
     additional_options.connect_changed(clone!(
