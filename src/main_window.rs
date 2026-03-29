@@ -745,28 +745,20 @@ fn create_cache_image_future(
         image_list_store,
         async move {
             while let Ok(image) = receiver_cache_images.recv().await {
-                let texture = match std::fs::read(&image.cached_image_path) {
-                    Ok(contents) => match gdk::Texture::from_bytes(&Bytes::from(&contents)) {
-                        Ok(t) => {
-                            trace!("Created texture for {}", image.cached_image_path.display());
-                            t
-                        }
-                        Err(e) => {
-                            debug!("Failed to create texture for {}: {:?}", image.cached_image_path.display(), e);
-                            return;
-                        }
-                    },
-                    Err(e) => {
-                        debug!("Failed to read cached image {}: {:?}", image.cached_image_path.display(), e);
-                        return;
-                    }
-                };
-
                 let data_object = GtkPictureFile::new();
-                data_object.set_cache_image_file(image.clone());
-                data_object.set_picture(texture);
-                trace!("Appending image model: {}", image.path);
-                image_list_store.append(&data_object);
+
+                let file = gio::File::for_path(&image.cached_image_path);
+
+                let image_list_store_clone = image_list_store.clone();
+                file.load_contents_async(gio::Cancellable::NONE, move |res| {
+                    if let Ok((contents, _)) = res {
+                        if let Ok(texture) = gdk::Texture::from_bytes(&Bytes::from(&contents)) {
+                            data_object.set_picture(texture);
+                            data_object.set_cache_image_file(image.clone());
+                            image_list_store_clone.append(&data_object);
+                        }
+                    }
+                })
             }
         }
     ));
