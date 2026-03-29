@@ -20,7 +20,7 @@ use gtk::{
     Label, ListItem, ListScrollFlags, MenuButton, Orientation, Picture, Popover, ProgressBar,
     ScrolledWindow, SignalListItemFactory, SingleSelection, StringObject, Switch, Text, TextBuffer,
 };
-use log::debug;
+use log::{debug, trace};
 use std::{path::PathBuf, process::Command};
 
 #[derive(Clone)]
@@ -321,6 +321,7 @@ fn setup_image_signal_list_item_factory(
         // Sync visual state: If the texture is loaded, show it.
         let texture_ref = data.get_picture();
         let texture_ref = texture_ref.borrow();
+        trace!("Bind: image='{}' texture_present={}", data.cache_image_file().borrow().path, texture_ref.is_some());
         picture.set_paintable(texture_ref.as_ref());
     });
 
@@ -744,21 +745,28 @@ fn create_cache_image_future(
         image_list_store,
         async move {
             while let Ok(image) = receiver_cache_images.recv().await {
+                let texture = match std::fs::read(&image.cached_image_path) {
+                    Ok(contents) => match gdk::Texture::from_bytes(&Bytes::from(&contents)) {
+                        Ok(t) => {
+                            trace!("Created texture for {}", image.cached_image_path.display());
+                            t
+                        }
+                        Err(e) => {
+                            debug!("Failed to create texture for {}: {:?}", image.cached_image_path.display(), e);
+                            return;
+                        }
+                    },
+                    Err(e) => {
+                        debug!("Failed to read cached image {}: {:?}", image.cached_image_path.display(), e);
+                        return;
+                    }
+                };
+
                 let data_object = GtkPictureFile::new();
                 data_object.set_cache_image_file(image.clone());
-
+                data_object.set_picture(texture);
+                trace!("Appending image model: {}", image.path);
                 image_list_store.append(&data_object);
-
-                let file = gio::File::for_path(&image.cached_image_path);
-                let data_object_clone = data_object.clone();
-
-                file.load_contents_async(gio::Cancellable::NONE, move |res| {
-                    if let Ok((contents, _)) = res {
-                        if let Ok(texture) = gdk::Texture::from_bytes(&Bytes::from(&contents)) {
-                            data_object_clone.set_picture(texture);
-                        }
-                    }
-                })
             }
         }
     ));
