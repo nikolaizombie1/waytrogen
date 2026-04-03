@@ -20,7 +20,7 @@ msgstr ""
 #: src/changers/hyprpaper.rs:65 src/changers/mpvpaper.rs:24
 #: src/changers/mpvpaper.rs:32 src/changers/mpvpaper.rs:72
 #: src/changers/mpvpaper.rs:80 src/changers/swaybg.rs:16
-#: src/changers/swww.rs:46 src/main_window.rs:393
+#: src/changers/awww.rs:46 src/main_window.rs:393
 msgid "All"
 msgstr "Todos"
 
@@ -40,7 +40,7 @@ msgstr "en cuadrillo"
 msgid "fill"
 msgstr "llenar"
 
-#: src/changers/mpvpaper.rs:97 src/changers/swww.rs:431
+#: src/changers/mpvpaper.rs:97 src/changers/awww.rs:431
 msgid "none"
 msgstr "nulo"
 
@@ -76,11 +76,11 @@ msgstr "Argumentos adicionales de linea de comando para mpv"
 msgid "stretch"
 msgstr "estirar"
 
-#: src/changers/swaybg.rs:36 src/changers/swww.rs:82
+#: src/changers/swaybg.rs:36 src/changers/awww.rs:82
 msgid "fit"
 msgstr "caber"
 
-#: src/changers/swaybg.rs:38 src/changers/swww.rs:441
+#: src/changers/swaybg.rs:38 src/changers/awww.rs:441
 msgid "center"
 msgstr "centralizar"
 
@@ -92,95 +92,95 @@ msgstr "color_solido"
 msgid "Serialized RGB"
 msgstr "RGB serializado"
 
-#: src/changers/swww.rs:82
+#: src/changers/awww.rs:82
 msgid "no"
 msgstr "no"
 
-#: src/changers/swww.rs:82
+#: src/changers/awww.rs:82
 msgid "crop"
 msgstr "cortar"
 
-#: src/changers/swww.rs:135
-msgid "SWWW Advanced Image Settings"
-msgstr "Configuración avanzada para images con SWWW"
+#: src/changers/awww.rs:135
+msgid "AWWW Advanced Image Settings"
+msgstr "Configuración avanzada para images con AWWW"
 
-#: src/changers/swww.rs:143
+#: src/changers/awww.rs:143
 msgid "Advanced Settings"
 msgstr "Configuración avanzada"
 
-#: src/changers/swww.rs:410
+#: src/changers/awww.rs:410
 msgid "nearest"
 msgstr "mas cerca"
 
-#: src/changers/swww.rs:411
+#: src/changers/awww.rs:411
 msgid "bilinear"
 msgstr "bilinear"
 
-#: src/changers/swww.rs:412
+#: src/changers/awww.rs:412
 msgid "catmullrom"
 msgstr "catmullrom"
 
-#: src/changers/swww.rs:413
+#: src/changers/awww.rs:413
 msgid "mitchell"
 msgstr "mitchell"
 
-#: src/changers/swww.rs:414
+#: src/changers/awww.rs:414
 msgid "lanczos3"
 msgstr "lanczos3"
 
-#: src/changers/swww.rs:432
+#: src/changers/awww.rs:432
 msgid "simple"
 msgstr "simple"
 
-#: src/changers/swww.rs:433
+#: src/changers/awww.rs:433
 msgid "fade"
 msgstr "desteñir"
 
-#: src/changers/swww.rs:434
+#: src/changers/awww.rs:434
 msgid "left"
 msgstr "izquierda"
 
-#: src/changers/swww.rs:435
+#: src/changers/awww.rs:435
 msgid "right"
 msgstr "derecha"
 
-#: src/changers/swww.rs:436
+#: src/changers/awww.rs:436
 msgid "top"
 msgstr "tope"
 
-#: src/changers/swww.rs:437
+#: src/changers/awww.rs:437
 msgid "bottom"
 msgstr "piso"
 
-#: src/changers/swww.rs:438
+#: src/changers/awww.rs:438
 msgid "wipe"
 msgstr "limpiar"
 
-#: src/changers/swww.rs:439
+#: src/changers/awww.rs:439
 msgid "wave"
 msgstr "ola"
 
-#: src/changers/swww.rs:440
+#: src/changers/awww.rs:440
 msgid "grow"
 msgstr "crecer"
 
-#: src/changers/swww.rs:442
+#: src/changers/awww.rs:442
 msgid "any"
 msgstr "cualquiera"
 
-#: src/changers/swww.rs:443
+#: src/changers/awww.rs:443
 msgid "outer"
 msgstr "externo"
 
-#: src/changers/swww.rs:444
+#: src/changers/awww.rs:444
 msgid "random"
 msgstr "aleatorio"
 
-#: src/changers/swww.rs:553
+#: src/changers/awww.rs:553
 msgid "Transition position"
 msgstr "Posición de transición"
 
-#: src/changers/swww.rs:555
+#: src/changers/awww.rs:555
 msgid ""
 "Can either be floating point number between 0 and 0.99, integer coordinate "
 "like 200,200 or one of the following: center, top, left, right, bottom, top-"
@@ -347,7 +347,7 @@ msgstr ""
 #: src/dotfile.rs:116
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
-"the currently selected swww resize option. Do not change unless you know "
+"the currently selected awww resize option. Do not change unless you know "
 "what you are doing."
 msgstr ""
 "El identificator numerico interno en el menu de algoritmo de cambiar tamaño "
@@ -355,92 +355,92 @@ msgstr ""
 "no cambie el valorde esta variable si no entienes que hace."
 
 #: src/dotfile.rs:118
-msgid "The hex color for swww background fill. Must be six characters long."
+msgid "The hex color for awww background fill. Must be six characters long."
 msgstr ""
-"El color ultilizado para el relleno de fondo para swww. Tiene que ser 6 "
+"El color ultilizado para el relleno de fondo para awww. Tiene que ser 6 "
 "characteres."
 
 #: src/dotfile.rs:120
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
-"the currently selected swww scaling filter option. Do not change unless you "
+"the currently selected awww scaling filter option. Do not change unless you "
 "know what you are doing."
 msgstr ""
 "El identificator numerico interno en el menu de filtro de escalamiento para "
-"swww ultilizado por dconfpara la opcion mas recientemente ultilizado. Por "
+"awww ultilizado por dconfpara la opcion mas recientemente ultilizado. Por "
 "favor, no cambie el valorde esta variable si no entienes que hace."
 
 #: src/dotfile.rs:122
 msgid ""
 "The internal numeric identifier in the changer dropdown used by dconf for "
-"the currently selected swww transition type option. Do not change unless you "
+"the currently selected awww transition type option. Do not change unless you "
 "know what you are doing."
 msgstr ""
 "El identificator numerico interno en el menu de opcion de transicion para "
-"swww ultilizado por dconfpara la opcion mas recientemente ultilizado. Por "
+"awww ultilizado por dconfpara la opcion mas recientemente ultilizado. Por "
 "favor, no cambie el valorde esta variable si no entienes que hace."
 
 #: src/dotfile.rs:124
-msgid "How fast the transition approaches the new image used by swww."
+msgid "How fast the transition approaches the new image used by awww."
 msgstr ""
-"Cuan rapido la imagen transiciona a la imagen nueva ultilizada por swww."
+"Cuan rapido la imagen transiciona a la imagen nueva ultilizada por awww."
 
 #: src/dotfile.rs:126
-msgid "How long the transition takes to complete in seconds used by swww."
+msgid "How long the transition takes to complete in seconds used by awww."
 msgstr ""
 "Cuanto se tarda en completar la transicion, en segundos, a la nueva imagen. "
-"Ultilizada por swww."
+"Ultilizada por awww."
 
 #: src/dotfile.rs:128
 msgid ""
-"Used for the 'wipe' and 'wave' transitions used by swww. It controls the "
+"Used for the 'wipe' and 'wave' transitions used by awww. It controls the "
 "angle of the wipe."
-msgstr "El angulo de transicion en swww para las opciones 'wipe' y 'wave'."
+msgstr "El angulo de transicion en awww para las opciones 'wipe' y 'wave'."
 
 #: src/dotfile.rs:130
 msgid ""
-"This is only used for the 'grow','outer' transitions used by swww. It "
+"This is only used for the 'grow','outer' transitions used by awww. It "
 "controls the center of circle."
 msgstr ""
 "El centro del circulo ultilizado para las tranciciones 'grow' y 'outer' de "
-"swww."
+"awww."
 
 #: src/dotfile.rs:132
 #, fuzzy
-msgid "Inverts the y position sent in 'transition_pos' flag used by swww."
+msgid "Inverts the y position sent in 'transition_pos' flag used by awww."
 msgstr "Invertir la posición del eje Y durante la transición."
 
 #: src/dotfile.rs:134
 msgid ""
 "Currently only used for 'wave' transition to control the width of each wave "
-"used by swww."
-msgstr "Controla cuan ancho cada ola es para la trancicion 'wave' de swww."
+"used by awww."
+msgstr "Controla cuan ancho cada ola es para la trancicion 'wave' de awww."
 
 #: src/dotfile.rs:136
 msgid ""
 "Currently only used for 'wave' transition to control the height of each wave "
-"used by swww."
-msgstr "Controla cuan alto cada ola es para la trancicion 'wave' de swww."
+"used by awww."
+msgstr "Controla cuan alto cada ola es para la trancicion 'wave' de awww."
 
 #: src/dotfile.rs:138
 msgid "Point 0 for the Bezier curve to use for the transition"
-msgstr "Punto 0 para la curva Bezier ultilizada para la transicion de swww."
+msgstr "Punto 0 para la curva Bezier ultilizada para la transicion de awww."
 
 #: src/dotfile.rs:140
 msgid "Point 1 for the Bezier curve to use for the transition"
-msgstr "Punto 1 para la curva Bezier ultilizada para la transicion de swww."
+msgstr "Punto 1 para la curva Bezier ultilizada para la transicion de awww."
 
 #: src/dotfile.rs:142
 msgid "Point 2 for the Bezier curve to use for the transition"
-msgstr "Punto 2 para la curva Bezier ultilizada para la transicion de swww."
+msgstr "Punto 2 para la curva Bezier ultilizada para la transicion de awww."
 
 #: src/dotfile.rs:144
 msgid "Point 3 for the Bezier curve to use for the transition"
-msgstr "Punto 3 para la curva Bezier ultilizada para la transicion de swww."
+msgstr "Punto 3 para la curva Bezier ultilizada para la transicion de awww."
 
 #: src/dotfile.rs:146
-msgid "Frame rate for the transition effect used by swww."
-msgstr "La velocidad de fotogramas ultilizado en la tranciciones de swww."
+msgid "Frame rate for the transition effect used by awww."
+msgstr "La velocidad de fotogramas ultilizado en la tranciciones de awww."
 
 #: src/dotfile.rs:148
 msgid "Hide bottom bar."
@@ -506,7 +506,7 @@ msgid ""
 "\n"
 "- Mpvpaper\n"
 "\n"
-"- SWWW\n"
+"- AWWW\n"
 "\n"
 "\n"
 "If waytrogen continues failing to detect an installed changer,\n"
@@ -526,7 +526,7 @@ msgstr ""
 "\n"
 "- Mpvpaper\n"
 "\n"
-"- SWWW\n"
+"- AWWW\n"
 "\n"
 "\n"
 "Si waytrogen continua fallar en detectar un cambiador de imagen de fondo,\n"

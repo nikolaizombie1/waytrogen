@@ -43,38 +43,38 @@ pub struct ConfigFile {
     pub mpvpaper_additional_options: String,
     selected_monitor_item_doc: String,
     pub selected_monitor_item: String,
-    swww_resize_doc: String,
-    pub swww_resize: u32,
-    swww_fill_color_doc: String,
-    pub swww_fill_color: String,
-    swww_scaling_filter_doc: String,
-    pub swww_scaling_filter: u32,
-    swww_transition_type_doc: String,
-    pub swww_transition_type: u32,
-    swww_transition_step_doc: String,
-    pub swww_transition_step: f64,
-    swww_transition_duration_doc: String,
-    pub swww_transition_duration: f64,
-    swww_transition_angle_doc: String,
-    pub swww_transition_angle: f64,
-    swww_transition_position_doc: String,
-    pub swww_transition_position: String,
-    swww_invert_y_doc: String,
-    pub swww_invert_y: bool,
-    swww_transition_wave_width_doc: String,
-    pub swww_transition_wave_width: f64,
-    swww_transition_wave_height_doc: String,
-    pub swww_transition_wave_height: f64,
-    swww_transition_bezier_p0_doc: String,
-    pub swww_transition_bezier_p0: f64,
-    swww_transition_bezier_p1_doc: String,
-    pub swww_transition_bezier_p1: f64,
-    swww_transition_bezier_p2_doc: String,
-    pub swww_transition_bezier_p2: f64,
-    swww_transition_bezier_p3_doc: String,
-    pub swww_transition_bezier_p3: f64,
-    swww_transition_fps_doc: String,
-    pub swww_transition_fps: u32,
+    awww_resize_doc: String,
+    pub awww_resize: u32,
+    awww_fill_color_doc: String,
+    pub awww_fill_color: String,
+    awww_scaling_filter_doc: String,
+    pub awww_scaling_filter: u32,
+    awww_transition_type_doc: String,
+    pub awww_transition_type: u32,
+    awww_transition_step_doc: String,
+    pub awww_transition_step: f64,
+    awww_transition_duration_doc: String,
+    pub awww_transition_duration: f64,
+    awww_transition_angle_doc: String,
+    pub awww_transition_angle: f64,
+    awww_transition_position_doc: String,
+    pub awww_transition_position: String,
+    awww_invert_y_doc: String,
+    pub awww_invert_y: bool,
+    awww_transition_wave_width_doc: String,
+    pub awww_transition_wave_width: f64,
+    awww_transition_wave_height_doc: String,
+    pub awww_transition_wave_height: f64,
+    awww_transition_bezier_p0_doc: String,
+    pub awww_transition_bezier_p0: f64,
+    awww_transition_bezier_p1_doc: String,
+    pub awww_transition_bezier_p1: f64,
+    awww_transition_bezier_p2_doc: String,
+    pub awww_transition_bezier_p2: f64,
+    awww_transition_bezier_p3_doc: String,
+    pub awww_transition_bezier_p3: f64,
+    awww_transition_fps_doc: String,
+    pub awww_transition_fps: u32,
     gslapper_scale_mode_doc: String,
     pub gslapper_scale_mode: u32,
     gslapper_pause_mode_doc: String,
@@ -120,38 +120,38 @@ impl Default for ConfigFile {
 	    mpvpaper_additional_options: String::default(),
 	    selected_monitor_item_doc: gettext("The currently selected monitor as a string. Note: The name must coincide with the monitor numeric identifier."),
 	    selected_monitor_item: String::default(),
-	    swww_resize_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected swww resize option. Do not change unless you know what you are doing."),
-	    swww_resize: u32::default(),
-	    swww_fill_color_doc:  gettext("The hex color for swww background fill. Must be six characters long."),
-	    swww_fill_color: String::from("000000"),
-	    swww_scaling_filter_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected swww scaling filter option. Do not change unless you know what you are doing."),
-	    swww_scaling_filter: u32::default(),
-	    swww_transition_type_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected swww transition type option. Do not change unless you know what you are doing."),
-	    swww_transition_type: 1,
-	    swww_transition_step_doc: gettext("How fast the transition approaches the new image used by swww."),
-	    swww_transition_step: 90.0,
-	    swww_transition_duration_doc: gettext("How long the transition takes to complete in seconds used by swww."),
-	    swww_transition_duration: 3.0,
-	    swww_transition_angle_doc: gettext("Used for the 'wipe' and 'wave' transitions used by swww. It controls the angle of the wipe."),
-	    swww_transition_angle: 45.0,
-	    swww_transition_position_doc: gettext("This is only used for the 'grow','outer' transitions used by swww. It controls the center of circle."),
-	    swww_transition_position: String::from("center"),
-	    swww_invert_y_doc: gettext("Inverts the y position sent in 'transition_pos' flag used by swww."),
-	    swww_invert_y: bool::default(),
-	    swww_transition_wave_width_doc: gettext("Currently only used for 'wave' transition to control the width of each wave used by swww."),
-	    swww_transition_wave_width: 200.0,
-	    swww_transition_wave_height_doc: gettext("Currently only used for 'wave' transition to control the height of each wave used by swww."),
-	    swww_transition_wave_height: 200.0,
-	    swww_transition_bezier_p0_doc: gettext("Point 0 for the Bezier curve to use for the transition"),
-	    swww_transition_bezier_p0: 0.54,
-	    swww_transition_bezier_p1_doc: gettext("Point 1 for the Bezier curve to use for the transition"),
-	    swww_transition_bezier_p1: 0.0,
-	    swww_transition_bezier_p2_doc: gettext("Point 2 for the Bezier curve to use for the transition"),
-	    swww_transition_bezier_p2: 0.34,
-	    swww_transition_bezier_p3_doc: gettext("Point 3 for the Bezier curve to use for the transition"),
-	    swww_transition_bezier_p3: 0.99,
- 	    swww_transition_fps_doc: gettext("Frame rate for the transition effect used by swww."),
- 	    swww_transition_fps: 30,
+	    awww_resize_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected awww resize option. Do not change unless you know what you are doing."),
+	    awww_resize: u32::default(),
+	    awww_fill_color_doc:  gettext("The hex color for awww background fill. Must be six characters long."),
+	    awww_fill_color: String::from("000000"),
+	    awww_scaling_filter_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected awww scaling filter option. Do not change unless you know what you are doing."),
+	    awww_scaling_filter: u32::default(),
+	    awww_transition_type_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected awww transition type option. Do not change unless you know what you are doing."),
+	    awww_transition_type: 1,
+	    awww_transition_step_doc: gettext("How fast the transition approaches the new image used by awww."),
+	    awww_transition_step: 90.0,
+	    awww_transition_duration_doc: gettext("How long the transition takes to complete in seconds used by awww."),
+	    awww_transition_duration: 3.0,
+	    awww_transition_angle_doc: gettext("Used for the 'wipe' and 'wave' transitions used by awww. It controls the angle of the wipe."),
+	    awww_transition_angle: 45.0,
+	    awww_transition_position_doc: gettext("This is only used for the 'grow','outer' transitions used by awww. It controls the center of circle."),
+	    awww_transition_position: String::from("center"),
+	    awww_invert_y_doc: gettext("Inverts the y position sent in 'transition_pos' flag used by awww."),
+	    awww_invert_y: bool::default(),
+	    awww_transition_wave_width_doc: gettext("Currently only used for 'wave' transition to control the width of each wave used by awww."),
+	    awww_transition_wave_width: 200.0,
+	    awww_transition_wave_height_doc: gettext("Currently only used for 'wave' transition to control the height of each wave used by awww."),
+	    awww_transition_wave_height: 200.0,
+	    awww_transition_bezier_p0_doc: gettext("Point 0 for the Bezier curve to use for the transition"),
+	    awww_transition_bezier_p0: 0.54,
+	    awww_transition_bezier_p1_doc: gettext("Point 1 for the Bezier curve to use for the transition"),
+	    awww_transition_bezier_p1: 0.0,
+	    awww_transition_bezier_p2_doc: gettext("Point 2 for the Bezier curve to use for the transition"),
+	    awww_transition_bezier_p2: 0.34,
+	    awww_transition_bezier_p3_doc: gettext("Point 3 for the Bezier curve to use for the transition"),
+	    awww_transition_bezier_p3: 0.99,
+ 	    awww_transition_fps_doc: gettext("Frame rate for the transition effect used by awww."),
+ 	    awww_transition_fps: 30,
  	    gslapper_scale_mode_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected gslapper scale mode. Do not change unless you know what you are doing."),
  	    gslapper_scale_mode: 0,
  	    gslapper_pause_mode_doc: gettext("The internal numeric identifier in the changer dropdown used by dconf for the currently selected gslapper pause mode. Do not change unless you know what you are doing."),
@@ -216,38 +216,38 @@ impl ConfigFile {
             settings.string("mpvpaper-additional-options").to_string();
         trace!("Getting selected-monitor-item gsetting");
         let selected_monitor_item = settings.string("selected-monitor-item").to_string();
-        trace!("Getting swww-resize gsetting");
-        let swww_resize = settings.uint("swww-resize");
-        trace!("Getting swww-fill-color gsetting");
-        let swww_fill_color = settings.string("swww-fill-color").to_string();
-        trace!("Getting swww-scaling-filter gsetting");
-        let swww_scaling_filter = settings.uint("swww-scaling-filter");
-        trace!("Getting swww-transition-type gsetting");
-        let swww_transition_type = settings.uint("swww-transition-type");
-        trace!("Getting swww-transition-step gsetting");
-        let swww_transition_step = settings.double("swww-transition-step");
-        trace!("Getting swww-transition-duration gsetting");
-        let swww_transition_duration = settings.double("swww-transition-duration");
-        trace!("Getting swww-transition-angle gsetting");
-        let swww_transition_angle = settings.double("swww-transition-angle");
-        trace!("Getting swww-transition-position gsetting");
-        let swww_transition_position = settings.string("swww-transition-position").to_string();
-        trace!("Getting swww-invert-y gsetting");
-        let swww_invert_y = settings.boolean("swww-invert-y");
-        trace!("Getting swww-transition-wave-width gsetting");
-        let swww_transition_wave_width = settings.double("swww-transition-wave-width");
-        trace!("Getting swww-transition-wave-height gsetting");
-        let swww_transition_wave_height = settings.double("swww-transition-wave-height");
-        trace!("Getting swww-transition-bezier-p0 gsetting");
-        let swww_transition_bezier_p0 = settings.double("swww-transition-bezier-p0");
-        trace!("Getting swww-transition-bezier-p1 gsetting");
-        let swww_transition_bezier_p1 = settings.double("swww-transition-bezier-p1");
-        trace!("Getting swww-transition-bezier-p2 gsetting");
-        let swww_transition_bezier_p2 = settings.double("swww-transition-bezier-p2");
-        trace!("Getting swww-transition-bezier-p3 gsetting");
-        let swww_transition_bezier_p3 = settings.double("swww-transition-bezier-p3");
-        trace!("Getting swww-transition-fps gsetting");
-        let swww_transition_fps = settings.uint("swww-transition-fps");
+        trace!("Getting awww-resize gsetting");
+        let awww_resize = settings.uint("awww-resize");
+        trace!("Getting awww-fill-color gsetting");
+        let awww_fill_color = settings.string("awww-fill-color").to_string();
+        trace!("Getting awww-scaling-filter gsetting");
+        let awww_scaling_filter = settings.uint("awww-scaling-filter");
+        trace!("Getting awww-transition-type gsetting");
+        let awww_transition_type = settings.uint("awww-transition-type");
+        trace!("Getting awww-transition-step gsetting");
+        let awww_transition_step = settings.double("awww-transition-step");
+        trace!("Getting awww-transition-duration gsetting");
+        let awww_transition_duration = settings.double("awww-transition-duration");
+        trace!("Getting awww-transition-angle gsetting");
+        let awww_transition_angle = settings.double("awww-transition-angle");
+        trace!("Getting awww-transition-position gsetting");
+        let awww_transition_position = settings.string("awww-transition-position").to_string();
+        trace!("Getting awww-invert-y gsetting");
+        let awww_invert_y = settings.boolean("awww-invert-y");
+        trace!("Getting awww-transition-wave-width gsetting");
+        let awww_transition_wave_width = settings.double("awww-transition-wave-width");
+        trace!("Getting awww-transition-wave-height gsetting");
+        let awww_transition_wave_height = settings.double("awww-transition-wave-height");
+        trace!("Getting awww-transition-bezier-p0 gsetting");
+        let awww_transition_bezier_p0 = settings.double("awww-transition-bezier-p0");
+        trace!("Getting awww-transition-bezier-p1 gsetting");
+        let awww_transition_bezier_p1 = settings.double("awww-transition-bezier-p1");
+        trace!("Getting awww-transition-bezier-p2 gsetting");
+        let awww_transition_bezier_p2 = settings.double("awww-transition-bezier-p2");
+        trace!("Getting awww-transition-bezier-p3 gsetting");
+        let awww_transition_bezier_p3 = settings.double("awww-transition-bezier-p3");
+        trace!("Getting awww-transition-fps gsetting");
+        let awww_transition_fps = settings.uint("awww-transition-fps");
 
         trace!("Getting gslapper-scale-mode gsetting");
         let gslapper_scale_mode = settings.uint("gslapper-scale-mode");
@@ -278,22 +278,22 @@ impl ConfigFile {
             mpvpaper_slideshow_interval,
             mpvpaper_additional_options,
             selected_monitor_item,
-            swww_resize,
-            swww_fill_color,
-            swww_scaling_filter,
-            swww_transition_type,
-            swww_transition_step,
-            swww_transition_duration,
-            swww_transition_angle,
-            swww_transition_position,
-            swww_invert_y,
-            swww_transition_wave_width,
-            swww_transition_wave_height,
-            swww_transition_bezier_p0,
-            swww_transition_bezier_p1,
-            swww_transition_bezier_p2,
-            swww_transition_bezier_p3,
-            swww_transition_fps,
+            awww_resize,
+            awww_fill_color,
+            awww_scaling_filter,
+            awww_transition_type,
+            awww_transition_step,
+            awww_transition_duration,
+            awww_transition_angle,
+            awww_transition_position,
+            awww_invert_y,
+            awww_transition_wave_width,
+            awww_transition_wave_height,
+            awww_transition_bezier_p0,
+            awww_transition_bezier_p1,
+            awww_transition_bezier_p2,
+            awww_transition_bezier_p3,
+            awww_transition_fps,
             gslapper_scale_mode,
             gslapper_pause_mode,
             gslapper_loop,
@@ -340,44 +340,44 @@ impl ConfigFile {
         )?;
         trace!("Setting selected-monitor-item gsetting");
         settings.set_string("selected-monitor-item", &self.selected_monitor_item)?;
-        trace!("Setting swww-resize gsetting");
-        settings.set_uint("swww-resize", self.swww_resize)?;
-        trace!("Setting swww-fill-color gsetting");
-        settings.set_string("swww-fill-color", &self.swww_fill_color)?;
-        trace!("Setting swww-scaling-filter gsetting");
-        settings.set_uint("swww-scaling-filter", self.swww_scaling_filter)?;
-        trace!("Setting swww-transition-type gsetting");
-        settings.set_uint("swww-transition-type", self.swww_transition_type)?;
-        trace!("Setting swww-transition-step gsetting");
-        settings.set_double("swww-transition-step", self.swww_transition_step)?;
-        trace!("Setting swww-transition-duration gsetting");
-        settings.set_double("swww-transition-duration", self.swww_transition_duration)?;
-        trace!("Setting swww-transition-angle gsetting");
-        settings.set_double("swww-transition-angle", self.swww_transition_angle)?;
-        trace!("Setting swww-transition-position gsetting");
-        settings.set_string("swww-transition-position", &self.swww_transition_position)?;
-        trace!("Setting swww-invert-y gsetting");
-        settings.set_boolean("swww-invert-y", self.swww_invert_y)?;
-        trace!("Setting swww-transition-wave-width gsetting");
+        trace!("Setting awww-resize gsetting");
+        settings.set_uint("awww-resize", self.awww_resize)?;
+        trace!("Setting awww-fill-color gsetting");
+        settings.set_string("awww-fill-color", &self.awww_fill_color)?;
+        trace!("Setting awww-scaling-filter gsetting");
+        settings.set_uint("awww-scaling-filter", self.awww_scaling_filter)?;
+        trace!("Setting awww-transition-type gsetting");
+        settings.set_uint("awww-transition-type", self.awww_transition_type)?;
+        trace!("Setting awww-transition-step gsetting");
+        settings.set_double("awww-transition-step", self.awww_transition_step)?;
+        trace!("Setting awww-transition-duration gsetting");
+        settings.set_double("awww-transition-duration", self.awww_transition_duration)?;
+        trace!("Setting awww-transition-angle gsetting");
+        settings.set_double("awww-transition-angle", self.awww_transition_angle)?;
+        trace!("Setting awww-transition-position gsetting");
+        settings.set_string("awww-transition-position", &self.awww_transition_position)?;
+        trace!("Setting awww-invert-y gsetting");
+        settings.set_boolean("awww-invert-y", self.awww_invert_y)?;
+        trace!("Setting awww-transition-wave-width gsetting");
         settings.set_double(
-            "swww-transition-wave-width",
-            self.swww_transition_wave_width,
+            "awww-transition-wave-width",
+            self.awww_transition_wave_width,
         )?;
-        trace!("Setting swww-transition-wave-height gsetting");
+        trace!("Setting awww-transition-wave-height gsetting");
         settings.set_double(
-            "swww-transition-wave-height",
-            self.swww_transition_wave_height,
+            "awww-transition-wave-height",
+            self.awww_transition_wave_height,
         )?;
-        trace!("Setting swww-transition-bezier-p0 gsetting");
-        settings.set_double("swww-transition-bezier-p0", self.swww_transition_bezier_p0)?;
-        trace!("Setting swww-transition-bezier-p1 gsetting");
-        settings.set_double("swww-transition-bezier-p1", self.swww_transition_bezier_p1)?;
-        trace!("Setting swww-transition-bezier-p2 gsetting");
-        settings.set_double("swww-transition-bezier-p2", self.swww_transition_bezier_p2)?;
-        trace!("Setting swww-transition-bezier-p3 gsetting");
-        settings.set_double("swww-transition-bezier-p3", self.swww_transition_bezier_p3)?;
-        trace!("Setting swww-transition-fps gsetting");
-        settings.set_uint("swww-transition-fps", self.swww_transition_fps)?;
+        trace!("Setting awww-transition-bezier-p0 gsetting");
+        settings.set_double("awww-transition-bezier-p0", self.awww_transition_bezier_p0)?;
+        trace!("Setting awww-transition-bezier-p1 gsetting");
+        settings.set_double("awww-transition-bezier-p1", self.awww_transition_bezier_p1)?;
+        trace!("Setting awww-transition-bezier-p2 gsetting");
+        settings.set_double("awww-transition-bezier-p2", self.awww_transition_bezier_p2)?;
+        trace!("Setting awww-transition-bezier-p3 gsetting");
+        settings.set_double("awww-transition-bezier-p3", self.awww_transition_bezier_p3)?;
+        trace!("Setting awww-transition-fps gsetting");
+        settings.set_uint("awww-transition-fps", self.awww_transition_fps)?;
 
         trace!("Setting gslapper-scale-mode gsetting");
         settings.set_uint("gslapper-scale-mode", self.gslapper_scale_mode)?;
