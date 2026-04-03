@@ -938,7 +938,7 @@ fn create_image_filter_entry(
     settings
         .bind("image-filter", &entry.buffer(), "text")
         .build();
-    entry.connect_activate(clone!(
+    entry.connect_changed(clone!(
         #[strong]
         image_list_store,
         #[strong]
