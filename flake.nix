@@ -61,7 +61,7 @@
             meta = {
               description = "A lightning fast wallpaper setter for Wayland.";
               longDescription =
-                "A GUI wallpaper setter for Wayland that is a spiritual successor for the minimalistic wallpaper changer for X11 nitrogen. Written purely in the Rust 🦀 programming language. Supports hyprpaper, swaybg, mpvpaper and swww wallpaper changers.";
+                "A GUI wallpaper setter for Wayland that is a spiritual successor for the minimalistic wallpaper changer for X11 nitrogen. Written purely in the Rust 🦀 programming language. Supports hyprpaper, swaybg, mpvpaper and awww wallpaper changers.";
               homepage = "https://github.com/nikolaizombie1/waytrogen";
             };
           };

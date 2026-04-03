@@ -24,14 +24,14 @@ A GUI wallpaper setter for Wayland that is a spiritual successor for the minimal
   - `hyprpaper` (hyprland - png, jpeg, webp, jxl)
   - `swaybg` (sway - png, jpeg, tiff, tga, gif)
   - `mpvpaper` (any video/image format with mpv config)
-  - `swww` (jpeg, png, gif, pnm, tga, tiff, webp, bmp, farbfeld with transitions)
+  - `awww` (jpeg, png, gif, pnm, tga, tiff, webp, bmp, farbfeld with transitions)
 
 ## Installation
 1. Install required wallpaper changer(s) based on your needs:
     - `hyprpaper` for Hyprland
     - `swaybg` for Sway
     - `mpvpaper` for video support
-    - `swww` for transition effects
+    - `awww` for transition effects
 2. Install `waytrogen`:
     - Arch Linux: Available on [`AUR`](https://aur.archlinux.org/packages/waytrogen)
     - NixOS: Available on [`Nixpkgs`](https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&type=packages&query=waytrogen)

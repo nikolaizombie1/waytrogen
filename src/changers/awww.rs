@@ -2,7 +2,7 @@ use crate::{
     common::RGB,
     ui_common::DEFAULT_MARGIN,
     wallpaper_changers::{
-        SWWWScallingFilter, SWWWTransitionBezier, SWWWTransitionPosition, U32Enum,
+        AWWWScallingFilter, AWWWTransitionBezier, AWWWTransitionPosition, U32Enum,
         WallpaperChangers,
     },
 };
@@ -18,8 +18,8 @@ use gtk::{
 use log::debug;
 use std::{path::PathBuf, process::Command};
 
-pub fn change_swww_wallpaper(swww_changer: WallpaperChangers, image: PathBuf, monitor: String) {
-    if let WallpaperChangers::Swww(
+pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, monitor: String) {
+    if let WallpaperChangers::Awww(
         resize_modes,
         fill_color,
         scalling_filter,
@@ -32,11 +32,11 @@ pub fn change_swww_wallpaper(swww_changer: WallpaperChangers, image: PathBuf, mo
         invert_y,
         transition_bezier,
         transition_wave,
-    ) = swww_changer
+    ) = awww_changer
     {
-        debug!("Starting swww daemon");
-        Command::new("swww-daemon").spawn().unwrap().wait().unwrap();
-        let mut command = Command::new("swww");
+        debug!("Starting awww daemon");
+        Command::new("awww-daemon").spawn().unwrap().wait().unwrap();
+        let mut command = Command::new("awww");
         command
             .arg("img")
             .arg("--resize")
@@ -77,7 +77,7 @@ pub fn change_swww_wallpaper(swww_changer: WallpaperChangers, image: PathBuf, mo
     }
 }
 
-pub fn generate_swww_changer_bar(changer_specific_options_box: &Box, settings: Settings) {
+pub fn generate_awww_changer_bar(changer_specific_options_box: &Box, settings: Settings) {
     let resize_dropdown =
         DropDown::from_strings(&[&gettext("no"), &gettext("crop"), &gettext("fit")]);
     resize_dropdown.set_margin_top(DEFAULT_MARGIN);
@@ -88,7 +88,7 @@ pub fn generate_swww_changer_bar(changer_specific_options_box: &Box, settings: S
     resize_dropdown.set_valign(Align::Center);
     changer_specific_options_box.append(&resize_dropdown);
     settings
-        .bind("swww-resize", &resize_dropdown, "selected")
+        .bind("awww-resize", &resize_dropdown, "selected")
         .build();
     let color_dialog = ColorDialog::builder().with_alpha(false).build();
     let color_picker = ColorDialogButton::builder()
@@ -114,12 +114,12 @@ pub fn generate_swww_changer_bar(changer_specific_options_box: &Box, settings: S
             .to_string();
             rgb_text_buffer.set_text(&serialize_struct);
             settings
-                .bind("swww-fill-color", &rgb_text_buffer, "text")
+                .bind("awww-fill-color", &rgb_text_buffer, "text")
                 .build();
         }
     ));
     let rgb = settings
-        .string("swww-fill-color")
+        .string("awww-fill-color")
         .to_string()
         .parse::<RGB>()
         .unwrap();
@@ -132,7 +132,7 @@ pub fn generate_swww_changer_bar(changer_specific_options_box: &Box, settings: S
     );
     changer_specific_options_box.append(&color_picker);
     let advanced_settings_window = Window::builder()
-        .title(gettext("SWWW Advanced Image Settings"))
+        .title(gettext("AWWW Advanced Image Settings"))
         .hide_on_close(true)
         .build();
     let advanced_settings_button = Button::builder()
@@ -188,7 +188,7 @@ fn connect_advanced_settings_window_signals(
         let transition_step_spinbutton = create_spinbutton(&transition_step_adjustment);
 
         settings
-            .bind("swww-transition-step", &transition_step_spinbutton, "value")
+            .bind("awww-transition-step", &transition_step_spinbutton, "value")
             .build();
 
         let transition_duration_label = create_label("Transition duration");
@@ -198,7 +198,7 @@ fn connect_advanced_settings_window_signals(
         let transition_duration_spinbutton = create_spinbutton(&transition_duration_adjustment);
         settings
             .bind(
-                "swww-transition-duration",
+                "awww-transition-duration",
                 &transition_duration_spinbutton,
                 "value",
             )
@@ -210,7 +210,7 @@ fn connect_advanced_settings_window_signals(
         let transition_angle_spinbutton = create_spinbutton(&transition_angle_adjustment);
         settings
             .bind(
-                "swww-transition-angle",
+                "awww-transition-angle",
                 &transition_angle_spinbutton,
                 "value",
             )
@@ -233,7 +233,7 @@ fn connect_advanced_settings_window_signals(
         let transition_position_entry_text_buffer = TextBuffer::builder().build();
         settings
             .bind(
-                "swww-transition-position",
+                "awww-transition-position",
                 &transition_position_entry_text_buffer,
                 "text",
             )
@@ -251,7 +251,7 @@ fn connect_advanced_settings_window_signals(
 
         transition_position_entry.connect_changed(move |e| {
             let text = e.text().to_string();
-            if SWWWTransitionPosition::new(&text).is_ok() {
+            if AWWWTransitionPosition::new(&text).is_ok() {
                 transition_position_entry_text_buffer.set_text(&text);
             }
         });
@@ -261,7 +261,7 @@ fn connect_advanced_settings_window_signals(
         let invert_y_switch = create_switch("Invert y position in transition position flag");
 
         settings
-            .bind("swww-invert-y", &invert_y_switch, "active")
+            .bind("awww-invert-y", &invert_y_switch, "active")
             .build();
 
         let transition_wave_label = create_label("Transition wave");
@@ -272,7 +272,7 @@ fn connect_advanced_settings_window_signals(
 
         settings
             .bind(
-                "swww-transition-wave-width",
+                "awww-transition-wave-width",
                 &transition_wave_width_spinbutton,
                 "value",
             )
@@ -285,7 +285,7 @@ fn connect_advanced_settings_window_signals(
 
         settings
             .bind(
-                "swww-transition-wave-height",
+                "awww-transition-wave-height",
                 &transition_wave_height_spinbutton,
                 "value",
             )
@@ -310,7 +310,7 @@ fn connect_advanced_settings_window_signals(
             create_point_spinbutton(&transition_bezier_adjustments);
         settings
             .bind(
-                "swww-transition-bezier-p0",
+                "awww-transition-bezier-p0",
                 &transition_bezier_p0_spinbutton,
                 "value",
             )
@@ -319,7 +319,7 @@ fn connect_advanced_settings_window_signals(
             create_point_spinbutton(&transition_bezier_adjustments);
         settings
             .bind(
-                "swww-transition-bezier-p1",
+                "awww-transition-bezier-p1",
                 &transition_bezier_p1_spinbutton,
                 "value",
             )
@@ -328,7 +328,7 @@ fn connect_advanced_settings_window_signals(
             create_point_spinbutton(&transition_bezier_adjustments);
         settings
             .bind(
-                "swww-transition-bezier-p2",
+                "awww-transition-bezier-p2",
                 &transition_bezier_p2_spinbutton,
                 "value",
             )
@@ -337,7 +337,7 @@ fn connect_advanced_settings_window_signals(
             create_point_spinbutton(&transition_bezier_adjustments);
         settings
             .bind(
-                "swww-transition-bezier-p3",
+                "awww-transition-bezier-p3",
                 &transition_bezier_p3_spinbutton,
                 "value",
             )
@@ -355,7 +355,7 @@ fn connect_advanced_settings_window_signals(
 
         settings
             .bind(
-                "swww-transition-fps",
+                "awww-transition-fps",
                 &transition_frames_per_second_spinbutton,
                 "value",
             )
@@ -375,18 +375,18 @@ fn connect_advanced_settings_window_signals(
         let restore_defaults_button = create_button("Restore Defaults");
 
         restore_defaults_button.connect_clicked(move |_| {
-            filter_dropdown.set_selected(SWWWScallingFilter::default().to_u32());
+            filter_dropdown.set_selected(AWWWScallingFilter::default().to_u32());
             transition_step_spinbutton.set_value(90.0);
             transition_duration_spinbutton.set_value(3.0);
             transition_angle_spinbutton.set_value(45.0);
-            transition_position_entry.set_text(&SWWWTransitionPosition::default().to_string());
+            transition_position_entry.set_text(&AWWWTransitionPosition::default().to_string());
             invert_y_switch.set_state(false);
             transition_wave_width_spinbutton.set_value(200.0);
             transition_wave_height_spinbutton.set_value(200.0);
-            transition_bezier_p0_spinbutton.set_value(SWWWTransitionBezier::default().p0);
-            transition_bezier_p1_spinbutton.set_value(SWWWTransitionBezier::default().p1);
-            transition_bezier_p2_spinbutton.set_value(SWWWTransitionBezier::default().p2);
-            transition_bezier_p3_spinbutton.set_value(SWWWTransitionBezier::default().p3);
+            transition_bezier_p0_spinbutton.set_value(AWWWTransitionBezier::default().p0);
+            transition_bezier_p1_spinbutton.set_value(AWWWTransitionBezier::default().p1);
+            transition_bezier_p2_spinbutton.set_value(AWWWTransitionBezier::default().p2);
+            transition_bezier_p3_spinbutton.set_value(AWWWTransitionBezier::default().p3);
             transition_frames_per_second_spinbutton.set_value(30.0);
         });
 
@@ -420,7 +420,7 @@ fn create_filter_dropdown(settings: &Settings) -> DropDown {
     filter_dropdown.set_halign(Align::Start);
     filter_dropdown.set_valign(Align::Center);
     settings
-        .bind("swww-scaling-filter", &filter_dropdown, "selected")
+        .bind("awww-scaling-filter", &filter_dropdown, "selected")
         .build();
 
     filter_dropdown
@@ -451,7 +451,7 @@ fn create_transition_type_dropdown(settings: &Settings) -> DropDown {
     transition_type_dropdown.set_valign(Align::Center);
     settings
         .bind(
-            "swww-transition-type",
+            "awww-transition-type",
             &transition_type_dropdown,
             "selected",
         )

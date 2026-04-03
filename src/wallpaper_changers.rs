@@ -2,7 +2,7 @@ use crate::{
     changers::{
         gslapper::change_gslapper_wallpaper, hyprpaper::change_hyprpaper_wallpaper,
         mpvpaper::change_mpvpaper_wallpaper, swaybg::change_swaybg_wallpaper,
-        swww::change_swww_wallpaper,
+        awww::change_awww_wallpaper,
     },
     common::RGB,
 };
@@ -29,19 +29,19 @@ pub enum WallpaperChangers {
     Hyprpaper(HyprpaperFitModes),
     Swaybg(SwaybgModes, String),
     MpvPaper(MpvPaperPauseModes, MpvPaperSlideshowSettings, String),
-    Swww(
-        SWWWResizeMode,
+    Awww(
+        AWWWResizeMode,
         RGB,
-        SWWWScallingFilter,
-        SWWWTransitionType,
+        AWWWScallingFilter,
+        AWWWTransitionType,
         u8,
         u32,
         u32,
         u16,
-        SWWWTransitionPosition,
+        AWWWTransitionPosition,
         bool,
-        SWWWTransitionBezier,
-        SWWWTransitionWave,
+        AWWWTransitionBezier,
+        AWWWTransitionWave,
     ),
     GSlapper(GSllapperScaleMode, GSllapperPauseMode, bool, String),
 }
@@ -176,19 +176,19 @@ impl WallpaperChangers {
                 MpvPaperSlideshowSettings::default(),
                 String::default(),
             ),
-            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => Self::Swww(
-                SWWWResizeMode::default(),
+            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => Self::Awww(
+                AWWWResizeMode::default(),
                 RGB::default(),
-                SWWWScallingFilter::default(),
-                SWWWTransitionType::default(),
+                AWWWScallingFilter::default(),
+                AWWWTransitionType::default(),
                 u8::default(),
                 u32::default(),
                 u32::default(),
                 u16::default(),
-                SWWWTransitionPosition::default(),
+                AWWWTransitionPosition::default(),
                 bool::default(),
-                SWWWTransitionBezier::default(),
-                SWWWTransitionWave::default(),
+                AWWWTransitionBezier::default(),
+                AWWWTransitionWave::default(),
             ),
             Self::GSlapper(_, _, _, _) => Self::GSlapper(
                 GSllapperScaleMode::default(),
@@ -287,14 +287,14 @@ pub struct MpvPaperSlideshowSettings {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray, PartialEq)]
-pub enum SWWWResizeMode {
+pub enum AWWWResizeMode {
     No,
     #[default]
     Crop,
     Fit,
 }
 
-impl U32Enum for SWWWResizeMode {
+impl U32Enum for AWWWResizeMode {
     fn from_u32(i: u32) -> Self {
         #[allow(clippy::cast_possible_truncation)]
         let i = i % Self::VARIANTS.len() as u32;
@@ -315,7 +315,7 @@ impl U32Enum for SWWWResizeMode {
     }
 }
 
-impl Display for SWWWResizeMode {
+impl Display for AWWWResizeMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::No => write!(f, "no"),
@@ -326,7 +326,7 @@ impl Display for SWWWResizeMode {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray, PartialEq)]
-pub enum SWWWScallingFilter {
+pub enum AWWWScallingFilter {
     Nearest,
     Bilinear,
     CatmullRom,
@@ -335,7 +335,7 @@ pub enum SWWWScallingFilter {
     Lanczos3,
 }
 
-impl U32Enum for SWWWScallingFilter {
+impl U32Enum for AWWWScallingFilter {
     fn from_u32(i: u32) -> Self {
         #[allow(clippy::cast_possible_truncation)]
         let i = i % Self::VARIANTS.len() as u32;
@@ -360,7 +360,7 @@ impl U32Enum for SWWWScallingFilter {
     }
 }
 
-impl Display for SWWWScallingFilter {
+impl Display for AWWWScallingFilter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Nearest => write!(f, "Nearest"),
@@ -373,7 +373,7 @@ impl Display for SWWWScallingFilter {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, VariantArray, PartialEq)]
-pub enum SWWWTransitionType {
+pub enum AWWWTransitionType {
     None,
     #[default]
     Simple,
@@ -391,7 +391,7 @@ pub enum SWWWTransitionType {
     Random,
 }
 
-impl U32Enum for SWWWTransitionType {
+impl U32Enum for AWWWTransitionType {
     fn from_u32(i: u32) -> Self {
         #[allow(clippy::cast_possible_truncation)]
         let i = i % Self::VARIANTS.len() as u32;
@@ -434,7 +434,7 @@ impl U32Enum for SWWWTransitionType {
     }
 }
 
-impl Display for SWWWTransitionType {
+impl Display for AWWWTransitionType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::None => write!(f, "none"),
@@ -456,24 +456,24 @@ impl Display for SWWWTransitionType {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
-pub struct SWWWTransitionPosition {
+pub struct AWWWTransitionPosition {
     pub position: String,
 }
 
-impl Display for SWWWTransitionPosition {
+impl Display for AWWWTransitionPosition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.position)
     }
 }
 
 lazy_static! {
-    static ref swww_transition_pos_regex: Regex =
+    static ref awww_transition_pos_regex: Regex =
         Regex::new(r"(0.\d\d?,0\.\d\d?)|(\d+,\d+)|(center|top|left|right|bottom|top-left|top-right|bottom-left|bottom-right)").unwrap();
 }
 
-impl SWWWTransitionPosition {
-    pub fn new(s: &str) -> anyhow::Result<SWWWTransitionPosition> {
-        if swww_transition_pos_regex.is_match(s) {
+impl AWWWTransitionPosition {
+    pub fn new(s: &str) -> anyhow::Result<AWWWTransitionPosition> {
+        if awww_transition_pos_regex.is_match(s) {
             Ok(Self {
                 position: s.to_owned(),
             })
@@ -484,20 +484,20 @@ impl SWWWTransitionPosition {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct SWWWTransitionBezier {
+pub struct AWWWTransitionBezier {
     pub p0: f64,
     pub p1: f64,
     pub p2: f64,
     pub p3: f64,
 }
 
-impl Display for SWWWTransitionBezier {
+impl Display for AWWWTransitionBezier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{},{},{},{}", self.p0, self.p1, self.p2, self.p3)
     }
 }
 
-impl Default for SWWWTransitionBezier {
+impl Default for AWWWTransitionBezier {
     fn default() -> Self {
         Self {
             p0: 0.54,
@@ -509,18 +509,18 @@ impl Default for SWWWTransitionBezier {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct SWWWTransitionWave {
+pub struct AWWWTransitionWave {
     pub width: u32,
     pub height: u32,
 }
 
-impl Display for SWWWTransitionWave {
+impl Display for AWWWTransitionWave {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{},{}", self.width, self.height)
     }
 }
 
-impl Default for SWWWTransitionWave {
+impl Default for AWWWTransitionWave {
     fn default() -> Self {
         Self {
             width: 20,
@@ -638,8 +638,8 @@ impl WallpaperChanger for WallpaperChangers {
             Self::MpvPaper(_, _, _) => {
                 change_mpvpaper_wallpaper(&self, image, &monitor);
             }
-            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
-                change_swww_wallpaper(self, image, monitor);
+            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+                change_awww_wallpaper(self, image, monitor);
             }
             Self::GSlapper(_, _, _, _) => {
                 change_gslapper_wallpaper(&self, image, &monitor);
@@ -991,7 +991,7 @@ impl WallpaperChanger for WallpaperChangers {
                 mpvpaper_formats.append(&mut swaybg_formats);
                 mpvpaper_formats
             }
-            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => {
                 vec![
                     "gif".to_owned(),
                     "jpeg".to_owned(),
@@ -1061,10 +1061,10 @@ impl WallpaperChanger for WallpaperChangers {
                     .spawn()
                     .and_then(|mut c| c.wait());
             }
-            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => {
                 let _ = Command::new("pkill")
                     .arg("-9")
-                    .arg("swww-daemon")
+                    .arg("awww-daemon")
                     .spawn()
                     .and_then(|mut c| c.wait());
             }
@@ -1104,7 +1104,7 @@ impl Display for WallpaperChangers {
             Self::Hyprpaper(_) => write!(f, "hyprpaper"),
             Self::Swaybg(_, _) => write!(f, "swaybg"),
             Self::MpvPaper(_, _, _) => write!(f, "mpvpaper"),
-            Self::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => write!(f, "swww"),
+            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => write!(f, "awww"),
             Self::GSlapper(_, _, _, _) => write!(f, "gslapper"),
         }
     }
@@ -1141,7 +1141,7 @@ pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
             WallpaperChangers::MpvPaper(_, _, _) => {
                 append_changer_if_in_path(&mut available_changers, changer)
             }
-            WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+            WallpaperChangers::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => {
                 append_changer_if_in_path(&mut available_changers, changer)
             }
             WallpaperChangers::GSlapper(_, _, _, _) => {

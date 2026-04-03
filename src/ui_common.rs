@@ -2,15 +2,15 @@ use crate::{
     changers::{
         gslapper::generate_gslapper_changer_bar, hyprpaper::generate_hyprpaper_changer_bar,
         mpvpaper::generate_mpvpaper_changer_bar, swaybg::generate_swaybg_changer_bar,
-        swww::generate_swww_changer_bar,
+        awww::generate_awww_changer_bar,
     },
     common::{CacheImageFile, GtkPictureFile, RGB},
     database::DatabaseConnection,
     fs::get_image_files,
     wallpaper_changers::{
         GSllapperPauseMode, GSllapperScaleMode, HyprpaperFitModes, MpvPaperPauseModes,
-        MpvPaperSlideshowSettings, SWWWResizeMode, SWWWScallingFilter, SWWWTransitionBezier,
-        SWWWTransitionPosition, SWWWTransitionType, SWWWTransitionWave, SwaybgModes, U32Enum,
+        MpvPaperSlideshowSettings, AWWWResizeMode, AWWWScallingFilter, AWWWTransitionBezier,
+        AWWWTransitionPosition, AWWWTransitionType, AWWWTransitionWave, SwaybgModes, U32Enum,
         WallpaperChanger, WallpaperChangers,
     },
 };
@@ -122,8 +122,8 @@ pub fn generate_changer_bar(
         WallpaperChangers::MpvPaper(_, _, _) => {
             generate_mpvpaper_changer_bar(changer_specific_options_box, settings);
         }
-        WallpaperChangers::Swww(_, _, _, _, _, _, _, _, _, _, _, _) => {
-            generate_swww_changer_bar(changer_specific_options_box, settings);
+        WallpaperChangers::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+            generate_awww_changer_bar(changer_specific_options_box, settings);
         }
         WallpaperChangers::GSlapper(_, _, _, _) => {
             generate_gslapper_changer_bar(changer_specific_options_box, settings);
@@ -173,31 +173,31 @@ pub fn get_selected_changer(
             );
             changer
         }
-        "swww" => {
-            let resize = SWWWResizeMode::from_u32(settings.uint("swww-resize"));
-            let fill_color = RGB::from_str(settings.string("swww-fill-color").as_str()).unwrap();
-            let scaling_filter = SWWWScallingFilter::from_u32(settings.uint("swww-scaling-filter"));
+        "awww" => {
+            let resize = AWWWResizeMode::from_u32(settings.uint("awww-resize"));
+            let fill_color = RGB::from_str(settings.string("awww-fill-color").as_str()).unwrap();
+            let scaling_filter = AWWWScallingFilter::from_u32(settings.uint("awww-scaling-filter"));
             let transition_type =
-                SWWWTransitionType::from_u32(settings.uint("swww-transition-type"));
-            let transition_step = settings.double("swww-transition-step") as u8;
-            let transition_duration = settings.double("swww-transition-duration") as u32;
-            let transition_angle = settings.double("swww-transition-angle") as u16;
+                AWWWTransitionType::from_u32(settings.uint("awww-transition-type"));
+            let transition_step = settings.double("awww-transition-step") as u8;
+            let transition_duration = settings.double("awww-transition-duration") as u32;
+            let transition_angle = settings.double("awww-transition-angle") as u16;
             let transition_position =
-                SWWWTransitionPosition::new(settings.string("swww-transition-position").as_str())
+                AWWWTransitionPosition::new(settings.string("awww-transition-position").as_str())
                     .unwrap();
-            let invert_y = settings.boolean("swww-invert-y");
-            let transition_wave = SWWWTransitionWave {
-                width: settings.double("swww-transition-wave-width") as u32,
-                height: settings.double("swww-transition-wave-height") as u32,
+            let invert_y = settings.boolean("awww-invert-y");
+            let transition_wave = AWWWTransitionWave {
+                width: settings.double("awww-transition-wave-width") as u32,
+                height: settings.double("awww-transition-wave-height") as u32,
             };
-            let transition_bezier = SWWWTransitionBezier {
-                p0: settings.double("swww-transition-bezier-p0"),
-                p1: settings.double("swww-transition-bezier-p1"),
-                p2: settings.double("swww-transition-bezier-p2"),
-                p3: settings.double("swww-transition-bezier-p3"),
+            let transition_bezier = AWWWTransitionBezier {
+                p0: settings.double("awww-transition-bezier-p0"),
+                p1: settings.double("awww-transition-bezier-p1"),
+                p2: settings.double("awww-transition-bezier-p2"),
+                p3: settings.double("awww-transition-bezier-p3"),
             };
-            let transition_fps = settings.uint("swww-transition-fps");
-            WallpaperChangers::Swww(
+            let transition_fps = settings.uint("awww-transition-fps");
+            WallpaperChangers::Awww(
                 resize,
                 fill_color,
                 scaling_filter,
