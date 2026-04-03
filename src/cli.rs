@@ -339,7 +339,7 @@ pub struct Cli {
     #[arg(short, long)]
     /// Delete image cache.
     pub delete_cache: bool,
-    #[arg(short, long)]
+    #[arg(short = 'b', long)]
     /// Hide bottom bar
     pub hide_bottom_bar: Option<bool>,
 }
