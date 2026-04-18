@@ -94,7 +94,7 @@ jobs:
         run:
           sed -i "s/pkgver=.*/pkgver=${{ github.ref_name }}/" waytrogen/PKGBUILD
       - name: Publish to AUR
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
+        uses: KSXGitHub/github-actions-deploy-aur@b9329787ad90df1f1377ca3c723632febad7597c
         with:
           pkgname: waytrogen
           pkgbuild: ./waytrogen/PKGBUILD
@@ -116,7 +116,7 @@ jobs:
         run:
           sed -i "s/pkgver=.*/pkgver=${{ github.ref_name }}/" waytrogen-bin/PKGBUILD
       - name: Publish to AUR
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
+        uses: KSXGitHub/github-actions-deploy-aur@b9329787ad90df1f1377ca3c723632febad7597c
         with:
           pkgname: waytrogen-bin
           pkgbuild: ./waytrogen-bin/PKGBUILD
