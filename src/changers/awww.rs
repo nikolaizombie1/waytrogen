@@ -1,6 +1,6 @@
 use crate::{
     common::RGB,
-    ui_common::DEFAULT_MARGIN,
+    common::DEFAULT_MARGIN,
     wallpaper_changers::{
         AWWWScallingFilter, AWWWTransitionBezier, AWWWTransitionPosition, U32Enum,
         WallpaperChangers,

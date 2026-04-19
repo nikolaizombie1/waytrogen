@@ -1,15 +1,10 @@
-use gtk::{
-    self,
-    gdk::Texture,
-    glib::{self, subclass::types::ObjectSubclassIsExt, Object},
-};
+use anyhow::anyhow;
 use image::ImageReader;
 use lazy_static::lazy_static;
 use log::trace;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
-    cell::RefCell,
     ffi::OsStr,
     fmt::Display,
     fs,
@@ -21,10 +16,13 @@ use std::{
     time::UNIX_EPOCH,
 };
 use uuid::Uuid;
-
 use crate::wallpaper_changers::WallpaperChangers;
+
 use gettextrs::gettext;
 
+use crate::app_state::SortBy;
+
+pub const DEFAULT_MARGIN: i32 = 12;
 pub const THUMBNAIL_HEIGHT: i32 = 400;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
 pub const BUTTON_HEIGHT: i32 = 200;
@@ -35,70 +33,11 @@ pub const CONFIG_APP_NAME: &str = "waytrogen";
 pub const CACHE_FILE_NAME: &str = "cache.db";
 pub const CONFIG_FILE_NAME: &str = "config.json";
 
-mod imp {
-    use super::CacheImageFile;
-    use gtk::{self, gdk::Texture, glib, subclass::prelude::*};
-    use std::cell::RefCell;
-
-    #[derive(Default)]
-    pub struct GtkPictureFile {
-        pub picture: RefCell<Option<Texture>>,
-        pub cache_image_file: RefCell<CacheImageFile>,
-    }
-
-    #[glib::object_subclass]
-    impl ObjectSubclass for GtkPictureFile {
-        const NAME: &'static str = "WaytrogenImageButton";
-        type Type = super::GtkPictureFile;
-        type ParentType = gtk::Button;
-    }
-
-    impl ObjectImpl for GtkPictureFile {}
-
-    impl WidgetImpl for GtkPictureFile {}
-
-    impl ButtonImpl for GtkPictureFile {}
-}
-
-glib::wrapper! {
-    pub struct GtkPictureFile(ObjectSubclass<imp::GtkPictureFile>)
-    @extends gtk::Button, gtk::Widget,
-        @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
-}
-
-impl GtkPictureFile {
-    pub fn new() -> Self {
-        Object::builder().build()
-    }
-
-    pub fn cache_image_file(&self) -> &RefCell<CacheImageFile> {
-        &self.imp().cache_image_file
-    }
-
-    pub fn set_cache_image_file(&self, cache_image_file: CacheImageFile) {
-        self.imp().cache_image_file.replace(cache_image_file);
-    }
-
-    pub fn set_picture(&self, texture: Texture) {
-        self.imp().picture.replace(Some(texture));
-    }
-
-    pub fn get_picture(&self) -> &RefCell<Option<Texture>> {
-        &self.imp().picture
-    }
-}
-
-impl Default for GtkPictureFile {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[derive(Clone, Default, PartialEq)]
 pub struct CacheImageFile {
     pub cached_image_path: PathBuf,
     pub name: String,
-    pub date: u64,
+    pub date: u32,
     pub path: String,
 }
 
@@ -108,11 +47,11 @@ impl CacheImageFile {
         Self::create_gtk_image(path, &image)
     }
 
-    fn get_metadata(path: &Path) -> anyhow::Result<(String, String, u64)> {
+    fn get_metadata(path: &Path) -> anyhow::Result<(String, String, u32)> {
         let path = path.to_path_buf();
         let name = path.file_name().unwrap().to_str().unwrap().to_owned();
         let date = std::fs::File::open(path.clone())?.metadata()?.modified()?;
-        let date = date.duration_since(UNIX_EPOCH)?.as_secs();
+        let date = date.duration_since(UNIX_EPOCH)?.as_secs() as u32;
         Ok((path.to_str().unwrap().to_string(), name, date))
     }
 
@@ -176,8 +115,11 @@ impl CacheImageFile {
             Uuid::new_v4(),
             path.extension().and_then(OsStr::to_str).unwrap()
         );
-        let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME)?;
-        let cache_dir = xdg_dirs.get_cache_home();
+        let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
+        let cache_dir = match xdg_dirs.get_cache_home() {
+            Some(c) => c,
+            None => return Err(anyhow!("Failed to get cache directory")),
+        };
         let image_file = cache_dir.join(Path::new(&image_name));
         let mut buff: Vec<u8> = vec![];
         thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;
@@ -237,9 +179,9 @@ pub struct Wallpaper {
 
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub fn sort_by_sort_dropdown_string(files: &mut [PathBuf], sort_by: &str, invert_sort: bool) {
+pub fn sort_by_sort_dropdown_string(files: &mut [PathBuf], sort_by: SortBy, invert_sort: bool) {
     match sort_by {
-        "name" => {
+        SortBy::Name => {
             files.sort_by(|f1, f2| {
                 if invert_sort {
                     f1.file_name().partial_cmp(&f2.file_name()).unwrap()
@@ -248,7 +190,7 @@ pub fn sort_by_sort_dropdown_string(files: &mut [PathBuf], sort_by: &str, invert
                 }
             });
         }
-        "date" => {
+        SortBy::Date => {
             files.sort_by(|f1, f2| {
                 if invert_sort {
                     f1.metadata()
@@ -267,7 +209,6 @@ pub fn sort_by_sort_dropdown_string(files: &mut [PathBuf], sort_by: &str, invert
                 }
             });
         }
-        _ => {}
     }
 }
 
@@ -286,7 +227,7 @@ pub fn parse_executable_script(s: &str) -> anyhow::Result<String> {
 }
 
 pub fn get_config_file_path() -> anyhow::Result<PathBuf> {
-    let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME)?;
+    let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
     let config_file = xdg_dirs.place_config_file(CONFIG_FILE_NAME)?;
     Ok(config_file)
 }

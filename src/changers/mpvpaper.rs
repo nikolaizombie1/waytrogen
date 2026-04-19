@@ -1,5 +1,5 @@
 use crate::{
-    ui_common::DEFAULT_MARGIN,
+    common::DEFAULT_MARGIN,
     wallpaper_changers::{
         MpvPaperPauseModes, MpvPaperSlideshowSettings, WallpaperChanger, WallpaperChangers,
     },

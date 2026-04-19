@@ -1,17 +1,12 @@
 use crate::{
-    common::{
-        parse_executable_script, sort_by_sort_dropdown_string, Wallpaper, APP_ID, APP_VERSION,
-        CACHE_FILE_NAME, CONFIG_APP_NAME, GETTEXT_DOMAIN,
-    },
-    main_window::build_ui,
-    ui_common::{gschema_string_to_string, string_to_gschema_string, SORT_DROPDOWN_STRINGS},
-    wallpaper_changers::{WallpaperChanger, WallpaperChangers},
+    app_state::AppState, common::{
+        APP_VERSION, CACHE_FILE_NAME, CONFIG_APP_NAME, GETTEXT_DOMAIN, Wallpaper, parse_executable_script, sort_by_sort_dropdown_string
+    }, wallpaper_changers::{WallpaperChanger, WallpaperChangers}
 };
+use anyhow::anyhow;
 use clap::Parser;
-use gettextrs::{bind_textdomain_codeset, bindtextdomain, getters, gettext, textdomain};
-use gtk::{gio::Settings, glib, prelude::*, Application};
+use gettextrs::{bind_textdomain_codeset, bindtextdomain, getters, textdomain};
 use log::debug;
-use rand::Rng;
 use std::{
     env::current_exe,
     fs::{remove_dir_all, File},
@@ -23,14 +18,17 @@ use std::{
 
 use log::{error, warn};
 
+// struct AppState {
+//     wallpaper_folder: String,
+//     saved_wallpapers: Vec<Wallpaper>,
+//     monitor: String,
+    
+// }
+
 #[must_use]
-pub fn restore_wallpapers() -> glib::ExitCode {
-    let settings = Settings::new(APP_ID);
+pub fn restore_wallpapers(app_state: &AppState) -> anyhow::Result<()> {
     WallpaperChangers::killall_changers();
-    let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(&gschema_string_to_string(
-        settings.string("saved-wallpapers").as_ref(),
-    ))
-    .unwrap();
+    let previous_wallpapers = app_state.saved_wallpapers.clone();
     for wallpaper in previous_wallpapers {
         debug!("Restoring: {:?}", wallpaper);
         wallpaper.clone().changer.change(
@@ -47,29 +45,20 @@ pub fn restore_wallpapers() -> glib::ExitCode {
             | WallpaperChangers::GSlapper(_, _, _, _) => {}
         }
     }
-    glib::ExitCode::SUCCESS
+    Ok(())
 }
 
 #[must_use]
-pub fn print_wallpaper_state() -> glib::ExitCode {
-    let settings = Settings::new(APP_ID);
+pub fn print_wallpaper_state(app_state: &AppState) -> anyhow::Result<()> {
     println!(
         "{}",
-        gschema_string_to_string(&settings.string("saved-wallpapers"))
-    );
-    glib::ExitCode::SUCCESS
+	serde_json::to_string_pretty(&app_state.saved_wallpapers)?);
+    Ok(())
 }
 
-fn get_previous_wallpapers(settings: &Settings) -> Vec<Wallpaper> {
-    let previous_wallpapers = serde_json::from_str::<Vec<Wallpaper>>(&gschema_string_to_string(
-        settings.string("saved-wallpapers").as_ref(),
-    ))
-    .unwrap();
-    previous_wallpapers
-}
 
-fn get_previous_supported_wallpapers(settings: &Settings) -> Vec<PathBuf> {
-    let previous_wallpapers = get_previous_wallpapers(settings);
+fn get_previous_supported_wallpapers(app_state: &AppState) -> Vec<PathBuf> {
+    let previous_wallpapers = app_state.saved_wallpapers.clone();
     let wallpaper = previous_wallpapers[0].clone();
     let path = Path::new(&wallpaper.path)
         .parent()
@@ -85,7 +74,7 @@ fn get_previous_supported_wallpapers(settings: &Settings) -> Vec<PathBuf> {
             previous_wallpapers
                 .iter()
                 .map(|w| w.changer.clone())
-                .all(|c| {
+                .all(|c: WallpaperChangers| {
                     c.accepted_formats().iter().any(|f| {
                         f == p
                             .extension()
@@ -100,45 +89,34 @@ fn get_previous_supported_wallpapers(settings: &Settings) -> Vec<PathBuf> {
 }
 
 #[must_use]
-pub fn set_random_wallpapers() -> glib::ExitCode {
-    let settings = Settings::new(APP_ID);
-    let mut previous_wallpapers = get_previous_wallpapers(&settings);
-    let files = get_previous_supported_wallpapers(&settings);
+pub fn set_random_wallpapers(app_state: &mut AppState) -> anyhow::Result<()> {
+    let mut previous_wallpapers = app_state.saved_wallpapers.clone();
+    let files = get_previous_supported_wallpapers(app_state);
     WallpaperChangers::killall_changers();
     for w in &mut previous_wallpapers {
-        let mut rng = rand::thread_rng();
-        let index = rng.gen_range(0..files.len());
+        let index = rand::random_range(0..files.len());
         log::debug!("{index}");
         w.changer
             .clone()
             .change(files[index].clone(), w.monitor.clone());
         w.path = files[index].clone().to_str().unwrap_or_default().to_owned();
     }
-    match settings.set_string(
-        "saved-wallpapers",
-        &string_to_gschema_string(&serde_json::to_string(&previous_wallpapers).unwrap_or_default()),
-    ) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("{} {e}", gettext("Unable to save \"next\" wallpapers"));
-        }
-    }
-    glib::ExitCode::SUCCESS
+    app_state.saved_wallpapers = previous_wallpapers;
+    Ok(())
 }
 
 #[must_use]
-pub fn print_app_version() -> glib::ExitCode {
+pub fn print_app_version() -> anyhow::Result<()> {
     println!("{APP_VERSION}");
-    glib::ExitCode::SUCCESS
+    Ok(())
 }
 
 #[must_use]
-pub fn cycle_next_wallpaper(args: &Cli) -> glib::ExitCode {
-    let settings = Settings::new(APP_ID);
-    let mut previous_wallpapers = get_previous_wallpapers(&settings);
-    let sort_dropdown_string = SORT_DROPDOWN_STRINGS[settings.uint("sort-by") as usize];
-    let mut files = get_previous_supported_wallpapers(&settings);
-    let invert_sort_state = settings.boolean("invert-sort");
+pub fn cycle_next_wallpaper(args: &Cli,app_state: &mut AppState) -> anyhow::Result<()> {
+    let mut previous_wallpapers = app_state.saved_wallpapers.clone();
+    let sort_dropdown_string = app_state.sort_by.clone();
+    let mut files = get_previous_supported_wallpapers(app_state);
+    let invert_sort_state = app_state.invert_sort;
     sort_by_sort_dropdown_string(&mut files, sort_dropdown_string, invert_sort_state);
     if args.next.clone().unwrap_or_default() == "All" {
         for previous_wallpaper in &mut previous_wallpapers {
@@ -160,7 +138,7 @@ pub fn cycle_next_wallpaper(args: &Cli) -> glib::ExitCode {
                 "Display \"{}\" does not exist.",
                 args.next.clone().unwrap_or_default()
             );
-            return glib::ExitCode::FAILURE;
+            return Err(anyhow!("Failed to get previous wallpaper"));
         }
         let mut previous_wallpaper = previous_wallpaper.unwrap().clone();
         try_set_next_wallpaper(
@@ -179,16 +157,8 @@ pub fn cycle_next_wallpaper(args: &Cli) -> glib::ExitCode {
             .unwrap();
         previous_wallpapers[index] = previous_wallpaper;
     }
-    match settings.set_string(
-        "saved-wallpapers",
-        &string_to_gschema_string(&serde_json::to_string(&previous_wallpapers).unwrap_or_default()),
-    ) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("{} {e}", gettext("Unable to save \"next\" wallpapers"));
-        }
-    }
-    glib::ExitCode::SUCCESS
+    app_state.saved_wallpapers = previous_wallpapers;
+    Ok(())
 }
 
 fn try_set_next_wallpaper(
@@ -227,34 +197,32 @@ fn try_set_next_wallpaper(
     }
 }
 
-pub fn delete_image_cache() -> glib::ExitCode {
+pub fn delete_image_cache() -> anyhow::Result<()> {
     let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
-    if xdg_dirs.is_err() {
-        error!(
-            "Failed to get XDG base dirrectory, {}",
-            xdg_dirs.err().unwrap()
-        );
-        return glib::ExitCode::FAILURE;
-    }
-    let xdg_dirs = xdg_dirs.unwrap();
     let cache_path = xdg_dirs.place_cache_file(CACHE_FILE_NAME);
     if cache_path.is_err() {
-        error!("Failed to get cache path, {}", cache_path.err().unwrap());
-        return glib::ExitCode::FAILURE;
+	let msg = format!("Failed to get cache path, {}", cache_path.err().unwrap());
+        error!("{msg}");
+        return Err(anyhow!("{msg}"));
     }
 
-    match remove_dir_all(xdg_dirs.get_cache_home()) {
-        Ok(_) => glib::ExitCode::SUCCESS,
+    let cache_home_dir = match xdg_dirs.get_cache_home() {
+        Some(c) => c,
+        None => return Err(anyhow!("Failed to get XDG cache home"))
+    };
+
+    match remove_dir_all(cache_home_dir) {
+        Ok(_) => Ok(()),
         Err(e) => {
-            error!("Failed to delete cache {e}");
-            glib::ExitCode::FAILURE
+	    let msg = format!("Failed to delete cache {e}");
+            error!("{msg}");
+	    Err(anyhow!("{msg}"))
         }
     }
 }
 
 #[must_use]
-pub fn launch_application(args: Cli) -> glib::ExitCode {
-    let app = Application::builder().application_id(APP_ID).build();
+pub fn launch_application(args: Cli) -> anyhow::Result<()>  {
     textdomain("waytrogen").unwrap();
     bind_textdomain_codeset("waytrogen", "UTF-8").unwrap();
     let os_id = get_os_id().unwrap().unwrap_or_default();
@@ -285,13 +253,10 @@ pub fn launch_application(args: Cli) -> glib::ExitCode {
     };
     bindtextdomain(GETTEXT_DOMAIN, domain_directory).unwrap();
 
-    app.connect_activate(move |app| {
-        build_ui(app, &args);
-    });
 
     let empty: Vec<String> = vec![];
     // Run the application
-    app.run_with_args(&empty)
+    todo!()
 }
 
 /// os id is the ID="nixos" parameter in `/etc/os-release`

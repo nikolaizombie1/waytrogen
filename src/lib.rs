@@ -4,6 +4,5 @@ pub mod common;
 pub mod database;
 pub mod dotfile;
 pub mod fs;
-pub mod main_window;
-pub mod ui_common;
+pub mod app_state;
 pub mod wallpaper_changers;

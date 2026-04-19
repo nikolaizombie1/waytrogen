@@ -18,7 +18,11 @@
         commonArgs = {
           inherit src;
           strictDeps = true;
-          nativeBuildInputs = with pkgs; [ pkg-config glib ];
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+            glib
+            wrapGAppsHook4
+          ];
           buildInputs = with pkgs; [
             glib
             gtk4
@@ -26,6 +30,15 @@
             sqlite
             openssl
             gsettings-desktop-schemas
+            rust-bin.nightly.latest.default
+            libX11
+            libXcursor
+            libXrandr
+            libXi
+            libxcb
+            libxkbcommon
+            vulkan-loader
+            wayland
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };
@@ -37,13 +50,13 @@
         # Layer 2: compile the binary
         waytrogen-bin = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
-          cargoExtraArgs = "--features nixos";
+          # cargoExtraArgs = "--features nixos";
           preBuild = "export OUT_PATH=$out";
         });
 
         # Layer 3: Meson handles everything else (i18n, schemas, icons, desktop file)
-        waytrogen = pkgs.stdenv.mkDerivation {
-          pname = "waytrogen";
+        waytrogen_iced = pkgs.stdenv.mkDerivation {
+          pname = "waytrogen_iced";
           version = "0.9.3";
           src = ./.;
 
@@ -59,6 +72,7 @@
             sqlite
             bash
             rustc
+            gtk4
           ];
 
           buildInputs = with pkgs; [
@@ -73,7 +87,7 @@
           mesonFlags = [
             "-Dcargo_features=nixos"
             # Point meson at the pre-built binary from layer 2
-            "-Dprecompiled_binary=${waytrogen-bin}/bin/waytrogen"
+            "-Dprecompiled_binary=${waytrogen-bin}/bin/waytrogen_iced"
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };
@@ -91,9 +105,9 @@
         };
       in {
         packages = {
-          inherit waytrogen;
+          inherit waytrogen_iced;
           inherit waytrogen-bin;
-          default = waytrogen;
+          default = waytrogen_iced;
         };
 
         checks = {
@@ -121,6 +135,7 @@
             ninja
             desktop-file-utils
             gettext
+            cargo
           ];
           buildInputs = with pkgs; [
             glib
@@ -135,6 +150,16 @@
             clippy
             rust-analyzer
             sqlite
+            pkg-config
+            rust-bin.nightly.latest.default
+            libX11
+            libXcursor
+            libXrandr
+            libXi
+            libxcb
+            libxkbcommon
+            vulkan-loader
+            wayland
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };

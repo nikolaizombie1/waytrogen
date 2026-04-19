@@ -11,7 +11,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, thread};
 use strum::{IntoEnumIterator, VariantArray};
-use strum_macros::{EnumIter, IntoStaticStr, VariantArray};
+use strum_macros::{EnumIter, IntoStaticStr};
 use which::which;
 
 pub trait WallpaperChanger {

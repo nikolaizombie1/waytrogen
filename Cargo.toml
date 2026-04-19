@@ -1,40 +1,27 @@
 [package]
-name = "waytrogen"
-version = "0.9.3"
-edition = "2021"
-description = "A GTK graphical user interface for changing your wallpapers on Wayland based compositors."
-license = "Unlicense"
-readme = "README.md"
-authors = ["nikolaizombie1 <fabio.matos999@gmail.com>"]
-homepage = "https://github.com/nikolaizombie1/waytrogen"
-repository = "https://github.com/nikolaizombie1/waytrogen"
-keywords = ["gui", "themeing", "wallpaper", "linux", "wayland"]
-categories = ["gui"]
-exclude = ["README-Assets/*.webp"]
+name = "waytrogen_iced"
+version = "0.1.0"
+edition = "2024"
 
 [dependencies]
-walkdir = "2"
-gtk = { version = "0.9.5", package = "gtk4", features = ["v4_12"] }
-anyhow = "1.0.95"
-rusqlite =  { version = ">= 0.29.0" }
-xdg = "2.5.2"
-stderrlog = ">= 0.5.4"
-log = "0.4.22"
-image = "0.25.5"
-async-channel = "2.3.1"
-which = ">= 6.0.0"
-strum = "0.26.3"
-strum_macros = "0.26.4"
-regex = "1.11.1"
-lazy_static = "1.5.0"
-serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.134"
-hex = "0.4.3"
-clap = { version = "4.5.23", features = ["derive"] }
+clap = { version = "4.6.1", features = ["derive"] }
+iced = "0.14.0"
+log = "0.4.29"
+serde = "1.0.228"
+serde_json = "1.0.149"
+stderrlog = "0.6.0"
 gettext-rs = { version = ">= 0.7.0", features = ["gettext-system"] }
-rand = "0.8.5"
-chrono = "0.4.43"
-uuid = { version = "1.19.0", features = ["v4"] }
-
-[features]
-nixos = []
+anyhow = "1.0.102"
+hex = "0.4.3"
+rand = "0.10.1"
+image = "0.25.10"
+lazy_static = "1.5.0"
+regex = "1.12.3"
+xdg = "3.0.0"
+uuid = { version = "1.23.1", features = ["v4"] }
+walkdir = "2.5.0"
+rusqlite =  { version = ">= 0.29.0" }
+gtk = { version = "0.9.5", package = "gtk4", features = ["v4_12"] }
+which = "8.0.2"
+strum = { version = "0.28.0", features = ["derive"] }
+strum_macros = "0.28.0"

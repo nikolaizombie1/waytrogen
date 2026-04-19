@@ -4,7 +4,7 @@ use log::{debug, error, warn};
 use std::{path::Path, process::Command, thread, time::Duration};
 use which::which;
 
-use crate::{ui_common::DEFAULT_MARGIN, wallpaper_changers::WallpaperChangers};
+use crate::{common::DEFAULT_MARGIN, wallpaper_changers::WallpaperChangers};
 
 pub fn change_hyprpaper_wallpaper(
     hyprpaper_changer: WallpaperChangers,

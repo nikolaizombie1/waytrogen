@@ -11,7 +11,7 @@ pub struct DatabaseConnection {
 
 impl DatabaseConnection {
     fn new() -> anyhow::Result<DatabaseConnection> {
-        let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME)?;
+        let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
         let cache_path = xdg_dirs.place_cache_file(CACHE_FILE_NAME)?;
         let conn = Connection::open(cache_path.to_str().unwrap())?;
         let query = "
