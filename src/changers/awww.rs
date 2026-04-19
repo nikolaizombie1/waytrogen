@@ -1,6 +1,5 @@
 use crate::{
-    common::RGB,
-    common::DEFAULT_MARGIN,
+    common::{DEFAULT_MARGIN, RGB},
     wallpaper_changers::{
         AWWWScallingFilter, AWWWTransitionBezier, AWWWTransitionPosition, U32Enum,
         WallpaperChangers,
@@ -8,12 +7,12 @@ use crate::{
 };
 use gettextrs::gettext;
 use gtk::{
+    Adjustment, Align, Box, Button, ColorDialog, ColorDialogButton, DropDown, Entry, Label,
+    SpinButton, Switch, TextBuffer, Window,
     gdk::RGBA,
     gio::Settings,
     glib::{self, clone},
     prelude::*,
-    Adjustment, Align, Box, Button, ColorDialog, ColorDialogButton, DropDown, Entry, Label,
-    SpinButton, Switch, TextBuffer, Window,
 };
 use log::debug;
 use std::{path::PathBuf, process::Command};

@@ -6,8 +6,8 @@ use crate::{
 };
 use gettextrs::gettext;
 use gtk::{
-    gio::Settings, glib::clone, prelude::*, Adjustment, Align, Box, DropDown, Entry, SpinButton,
-    StringObject, Switch, TextBuffer,
+    Adjustment, Align, Box, DropDown, Entry, SpinButton, StringObject, Switch, TextBuffer,
+    gio::Settings, glib::clone, prelude::*,
 };
 use std::{
     path::{Path, PathBuf},

@@ -1,4 +1,4 @@
-use crate::common::{CacheImageFile, CACHE_FILE_NAME, CONFIG_APP_NAME};
+use crate::common::{CACHE_FILE_NAME, CONFIG_APP_NAME, CacheImageFile};
 use anyhow::anyhow;
 use gettextrs::gettext;
 use log::{debug, trace, warn};
@@ -50,8 +50,7 @@ impl DatabaseConnection {
     }
 
     pub fn insert_image_file(&self, image_file: &CacheImageFile) -> anyhow::Result<()> {
-        let query =
-            "INSERT INTO GtkImageFile(image, name, date, path) VALUES (:image, :name, :date, :path);";
+        let query = "INSERT INTO GtkImageFile(image, name, date, path) VALUES (:image, :name, :date, :path);";
         self.connetion.execute(
             query,
             (
@@ -65,7 +64,7 @@ impl DatabaseConnection {
         Ok(())
     }
 
-    pub fn check_cache(path: &Path) -> Result<CacheImageFile, anyhow::Error> {
+    pub fn check_cache(path: &Path) -> anyhow::Result<CacheImageFile> {
         let conn = DatabaseConnection::new()?;
         match conn.select_image_file(path) {
             Ok(f) => {
@@ -93,7 +92,7 @@ impl DatabaseConnection {
                     Err(e) => {
                         warn!(
                             "{}: {} {}",
-                            gettext("File could not be converted to a GTK Picture"),
+                            gettext("File could not be converted to a Picture"),
                             path.to_str().unwrap(),
                             e
                         );

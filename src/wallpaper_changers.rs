@@ -1,8 +1,8 @@
 use crate::{
     changers::{
-        gslapper::change_gslapper_wallpaper, hyprpaper::change_hyprpaper_wallpaper,
-        mpvpaper::change_mpvpaper_wallpaper, swaybg::change_swaybg_wallpaper,
-        awww::change_awww_wallpaper,
+        awww::change_awww_wallpaper, gslapper::change_gslapper_wallpaper,
+        hyprpaper::change_hyprpaper_wallpaper, mpvpaper::change_mpvpaper_wallpaper,
+        swaybg::change_swaybg_wallpaper,
     },
     common::RGB,
 };

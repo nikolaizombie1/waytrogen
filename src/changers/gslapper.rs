@@ -1,7 +1,7 @@
 use crate::wallpaper_changers::{GSllapperPauseMode, WallpaperChangers};
 use gettextrs::gettext;
 use gtk::{
-    gio::Settings, glib::clone, prelude::*, Align, Box, DropDown, Entry, Switch, TextBuffer,
+    Align, Box, DropDown, Entry, Switch, TextBuffer, gio::Settings, glib::clone, prelude::*,
 };
 use log::debug;
 use std::{path::PathBuf, process::Command};

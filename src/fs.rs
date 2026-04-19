@@ -1,4 +1,6 @@
-use crate::{app_state::SortBy, common::sort_by_sort_dropdown_string, wallpaper_changers::WallpaperChangers};
+use crate::{
+    app_state::SortBy, common::sort_by_sort_dropdown_string, wallpaper_changers::WallpaperChangers,
+};
 use std::path::PathBuf;
 #[must_use]
 pub fn get_image_files(

@@ -135,7 +135,6 @@
             ninja
             desktop-file-utils
             gettext
-            cargo
           ];
           buildInputs = with pkgs; [
             glib
@@ -160,6 +159,7 @@
             libxkbcommon
             vulkan-loader
             wayland
+            cargo
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };

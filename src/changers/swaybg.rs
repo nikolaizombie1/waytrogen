@@ -1,11 +1,14 @@
-use crate::{common::RGB, common::DEFAULT_MARGIN, wallpaper_changers::WallpaperChangers};
+use crate::{
+    common::{DEFAULT_MARGIN, RGB},
+    wallpaper_changers::WallpaperChangers,
+};
 use gettextrs::gettext;
 use gtk::{
+    Align, Box, ColorDialog, ColorDialogButton, DropDown, TextBuffer,
     gdk::RGBA,
     gio::Settings,
     glib::{self, clone},
     prelude::*,
-    Align, Box, ColorDialog, ColorDialogButton, DropDown, TextBuffer,
 };
 use log::debug;
 use std::{path::Path, process::Command};

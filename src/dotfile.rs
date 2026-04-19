@@ -1,9 +1,11 @@
-use crate::common::{get_config_file_path, parse_executable_script};
-use crate::app_state::AppState;
+use crate::{
+    app_state::AppState,
+    common::{get_config_file_path, parse_executable_script},
+};
 use anyhow::anyhow;
 use log::{error, trace, warn};
 use std::{
-    fs::{remove_file, OpenOptions},
+    fs::{OpenOptions, remove_file},
     io::{Read, Write},
 };
 

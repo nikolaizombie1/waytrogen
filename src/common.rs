@@ -1,3 +1,4 @@
+use crate::wallpaper_changers::WallpaperChangers;
 use anyhow::anyhow;
 use image::ImageReader;
 use lazy_static::lazy_static;
@@ -16,7 +17,6 @@ use std::{
     time::UNIX_EPOCH,
 };
 use uuid::Uuid;
-use crate::wallpaper_changers::WallpaperChangers;
 
 use gettextrs::gettext;
 
@@ -25,15 +25,15 @@ use crate::app_state::SortBy;
 pub const DEFAULT_MARGIN: i32 = 12;
 pub const THUMBNAIL_HEIGHT: i32 = 400;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
-pub const BUTTON_HEIGHT: i32 = 200;
-pub const BUTTON_WIDTH: i32 = BUTTON_HEIGHT;
+pub const BUTTON_HEIGHT: f32 = 200.0;
+pub const BUTTON_WIDTH: f32 = BUTTON_HEIGHT;
 pub const APP_ID: &str = "org.Waytrogen.Waytrogen";
 pub const GETTEXT_DOMAIN: &str = "waytrogen";
 pub const CONFIG_APP_NAME: &str = "waytrogen";
 pub const CACHE_FILE_NAME: &str = "cache.db";
 pub const CONFIG_FILE_NAME: &str = "config.json";
 
-#[derive(Clone, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq, Hash)]
 pub struct CacheImageFile {
     pub cached_image_path: PathBuf,
     pub name: String,
@@ -111,9 +111,8 @@ impl CacheImageFile {
             .thumbnail(THUMBNAIL_WIDTH as u32, THUMBNAIL_HEIGHT as u32)
             .to_rgb8();
         let image_name = format!(
-            "{}.{}",
+            "{}.png",
             Uuid::new_v4(),
-            path.extension().and_then(OsStr::to_str).unwrap()
         );
         let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
         let cache_dir = match xdg_dirs.get_cache_home() {

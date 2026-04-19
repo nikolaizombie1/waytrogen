@@ -1,7 +1,10 @@
 use crate::{
-    app_state::AppState, common::{
-        APP_VERSION, CACHE_FILE_NAME, CONFIG_APP_NAME, GETTEXT_DOMAIN, Wallpaper, parse_executable_script, sort_by_sort_dropdown_string
-    }, wallpaper_changers::{WallpaperChanger, WallpaperChangers}
+    app_state::AppState,
+    common::{
+        APP_VERSION, CACHE_FILE_NAME, CONFIG_APP_NAME, GETTEXT_DOMAIN, Wallpaper,
+        parse_executable_script, sort_by_sort_dropdown_string,
+    },
+    wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
 use anyhow::anyhow;
 use clap::Parser;
@@ -9,7 +12,7 @@ use gettextrs::{bind_textdomain_codeset, bindtextdomain, getters, textdomain};
 use log::debug;
 use std::{
     env::current_exe,
-    fs::{remove_dir_all, File},
+    fs::{File, remove_dir_all},
     io::{BufRead, BufReader},
     path::{Path, PathBuf},
     thread,
@@ -22,7 +25,7 @@ use log::{error, warn};
 //     wallpaper_folder: String,
 //     saved_wallpapers: Vec<Wallpaper>,
 //     monitor: String,
-    
+
 // }
 
 #[must_use]
@@ -52,10 +55,10 @@ pub fn restore_wallpapers(app_state: &AppState) -> anyhow::Result<()> {
 pub fn print_wallpaper_state(app_state: &AppState) -> anyhow::Result<()> {
     println!(
         "{}",
-	serde_json::to_string_pretty(&app_state.saved_wallpapers)?);
+        serde_json::to_string_pretty(&app_state.saved_wallpapers)?
+    );
     Ok(())
 }
-
 
 fn get_previous_supported_wallpapers(app_state: &AppState) -> Vec<PathBuf> {
     let previous_wallpapers = app_state.saved_wallpapers.clone();
@@ -112,7 +115,7 @@ pub fn print_app_version() -> anyhow::Result<()> {
 }
 
 #[must_use]
-pub fn cycle_next_wallpaper(args: &Cli,app_state: &mut AppState) -> anyhow::Result<()> {
+pub fn cycle_next_wallpaper(args: &Cli, app_state: &mut AppState) -> anyhow::Result<()> {
     let mut previous_wallpapers = app_state.saved_wallpapers.clone();
     let sort_dropdown_string = app_state.sort_by.clone();
     let mut files = get_previous_supported_wallpapers(app_state);
@@ -191,7 +194,9 @@ fn try_set_next_wallpaper(
                 previous_wallpaper.path = p.to_str().unwrap_or_default().to_owned();
             }
             None => {
-                error!("Wallpaper directory is empty. Please set a wallpaper folder before using --next.");
+                error!(
+                    "Wallpaper directory is empty. Please set a wallpaper folder before using --next."
+                );
             }
         }
     }
@@ -201,28 +206,28 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
     let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
     let cache_path = xdg_dirs.place_cache_file(CACHE_FILE_NAME);
     if cache_path.is_err() {
-	let msg = format!("Failed to get cache path, {}", cache_path.err().unwrap());
+        let msg = format!("Failed to get cache path, {}", cache_path.err().unwrap());
         error!("{msg}");
         return Err(anyhow!("{msg}"));
     }
 
     let cache_home_dir = match xdg_dirs.get_cache_home() {
         Some(c) => c,
-        None => return Err(anyhow!("Failed to get XDG cache home"))
+        None => return Err(anyhow!("Failed to get XDG cache home")),
     };
 
     match remove_dir_all(cache_home_dir) {
         Ok(_) => Ok(()),
         Err(e) => {
-	    let msg = format!("Failed to delete cache {e}");
+            let msg = format!("Failed to delete cache {e}");
             error!("{msg}");
-	    Err(anyhow!("{msg}"))
+            Err(anyhow!("{msg}"))
         }
     }
 }
 
 #[must_use]
-pub fn launch_application(args: Cli) -> anyhow::Result<()>  {
+pub fn launch_application(args: Cli) -> anyhow::Result<()> {
     textdomain("waytrogen").unwrap();
     bind_textdomain_codeset("waytrogen", "UTF-8").unwrap();
     let os_id = get_os_id().unwrap().unwrap_or_default();
@@ -252,7 +257,6 @@ pub fn launch_application(args: Cli) -> anyhow::Result<()>  {
         _ => getters::domain_directory(GETTEXT_DOMAIN).unwrap(),
     };
     bindtextdomain(GETTEXT_DOMAIN, domain_directory).unwrap();
-
 
     let empty: Vec<String> = vec![];
     // Run the application

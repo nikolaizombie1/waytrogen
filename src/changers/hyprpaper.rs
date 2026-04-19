@@ -1,5 +1,5 @@
 use gettextrs::gettext;
-use gtk::{gio::Settings, prelude::*, Align, Box, DropDown};
+use gtk::{Align, Box, DropDown, gio::Settings, prelude::*};
 use log::{debug, error, warn};
 use std::{path::Path, process::Command, thread, time::Duration};
 use which::which;
@@ -32,12 +32,16 @@ pub fn change_hyprpaper_wallpaper(
                 Ok(_) => {}
                 Err(_) => match which("hyprpaper") {
                     Ok(_) => {
-                        warn!("Hyprpaper could not be started using Systemd. Attempting to start using command line interface");
+                        warn!(
+                            "Hyprpaper could not be started using Systemd. Attempting to start using command line interface"
+                        );
                         #[allow(clippy::zombie_processes)]
                         Command::new("hyprpaper").spawn().unwrap();
                     }
                     Err(_) => {
-                        error!("Wallpaper could not be changed: Failed to start hyprpaper using Systemd and command line interface.");
+                        error!(
+                            "Wallpaper could not be changed: Failed to start hyprpaper using Systemd and command line interface."
+                        );
                         return;
                     }
                 },
