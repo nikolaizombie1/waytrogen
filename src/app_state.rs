@@ -1,19 +1,23 @@
 use crate::{
     common::{
-        BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, Wallpaper,
-        get_config_file_path, DEFAULT_MARGIN
+        BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
+        get_config_file_path,
     },
     database::DatabaseConnection,
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
 use gettextrs::gettext;
 use iced::{
-    Element, Length::Fill, Task, application::BootFn, widget::{Row, button, column, image, lazy, row, scrollable, text}
+    Element,
+    Length::Fill,
+    Task,
+    application::BootFn,
+    widget::{Row, button, column, image, lazy, row, scrollable, text},
 };
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{fs::OpenOptions, io::Write, path::PathBuf};
 use walkdir::{DirEntry, WalkDir};
-use rayon::prelude::*;
 
 #[derive(Clone, Serialize, Deserialize, Default)]
 pub enum SortBy {
@@ -253,7 +257,7 @@ impl Default for AppState {
 #[derive(Clone)]
 pub enum Messages {
     PopulateImageGrid,
-    ImageGridPopulated,
+    ImageGridPopulated(Vec<CacheImageFile>),
     ChangeWallpaper,
     ChangeWallpaperFolder,
     WallpaperFolderChanged(PathBuf),
@@ -265,21 +269,25 @@ impl BootFn<AppState, Messages> for AppState {
     }
 }
 
+#[derive(Clone)]
 pub struct AppStateImages {
     pub supported_images: Vec<CacheImageFile>,
     pub unsupported_images: Vec<CacheImageFile>,
 }
 
 impl AppState {
-    fn populate_image_grid(&mut self) -> iced::Task<Messages> {
-        match &self.wallpaper_folder {
+    fn populate_image_grid(&self) -> iced::Task<Messages> {
+        let wallpaper_folder = self.wallpaper_folder.clone();
+        let sort_by = self.sort_by.clone();
+        let invert_sort = self.invert_sort.clone();
+        match wallpaper_folder {
             Some(wf) => {
                 if !wf.is_dir() {
                     return Task::none();
                 }
                 let accepted_formats = WallpaperChangers::all_accepted_formats();
-                let comparator = match self.sort_by {
-                    SortBy::Date => match self.invert_sort {
+                let comparator = match sort_by {
+                    SortBy::Date => match invert_sort {
                         true => |x: &DirEntry, y: &DirEntry| {
                             y.metadata()
                                 .unwrap()
@@ -310,30 +318,30 @@ impl AppState {
                         },
                     },
                 };
-                let images = WalkDir::new(&wf)
-                    .sort_by(move |x, y| comparator(x, y))
-                    .into_iter()
-                    .filter_map(|d| d.ok())
-                    .map(|d| d.into_path())
-                    .filter(|d| d.extension().is_some())
-                    .filter(|p| {
-                        accepted_formats.contains(
-                            &p.extension()
-                                .unwrap()
-                                .to_str()
-                                .unwrap_or_default()
-                                .to_string(),
-                        )
-                    })
-                    .collect::<Vec<_>>();
-                let images = images
-                    .into_par_iter()
-                    .filter_map(|p| DatabaseConnection::check_cache(&p).ok())
-                    .collect::<Vec<_>>();
-                let images = self.catagorize_images(&images);
-                self.image_grid_images = images.supported_images;
-                self.filtered_images = images.unsupported_images;
-                Task::done(Messages::ImageGridPopulated)
+                Task::future(async move {
+                    let images = WalkDir::new(&wf)
+                        .sort_by(move |x, y| comparator(x, y))
+                        .into_iter()
+                        .filter_map(|d| d.ok())
+                        .map(|d| d.into_path())
+                        .filter(|d| d.extension().is_some())
+                        .filter(|p| {
+                            accepted_formats.contains(
+                                &p.extension()
+                                    .unwrap()
+                                    .to_str()
+                                    .unwrap_or_default()
+                                    .to_string(),
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    let images = images
+                        .into_par_iter()
+                        .filter_map(|p| DatabaseConnection::check_cache(&p).ok())
+                        .collect::<Vec<_>>();
+                    images
+                })
+                .then(|images| Task::done(Messages::ImageGridPopulated(images)))
             }
             None => Task::none(),
         }
@@ -375,51 +383,61 @@ impl AppState {
     }
 
     fn open_wallpaper_folder_file_dialog() -> Task<Messages> {
-	Task::future(
-	    rfd::AsyncFileDialog::new().set_title("Select Wallpaper Folder").pick_folder()
-	).then(|f| {
-	    match f {
-		Some(folder) => Task::done(Messages::WallpaperFolderChanged(folder.path().to_path_buf())),
-		None => Task::none(),
-	    }
-	})
+        Task::future(
+            rfd::AsyncFileDialog::new()
+                .set_title("Select Wallpaper Folder")
+                .pick_folder(),
+        )
+        .then(|f| match f {
+            Some(folder) => Task::done(Messages::WallpaperFolderChanged(
+                folder.path().to_path_buf(),
+            )),
+            None => Task::none(),
+        })
     }
 
     pub fn update(&mut self, message: Messages) -> iced::Task<Messages> {
         match message {
             Messages::PopulateImageGrid => self.populate_image_grid(),
-            Messages::ImageGridPopulated => Task::none(),
+            Messages::ImageGridPopulated(i) => {
+                let images = self.catagorize_images(&i);
+                self.image_grid_images = images.supported_images;
+                self.filtered_images = images.unsupported_images;
+                Task::none()
+            }
             Messages::ChangeWallpaper => todo!(),
-            Messages::ChangeWallpaperFolder => {
-		Self::open_wallpaper_folder_file_dialog()
-	    }
+            Messages::ChangeWallpaperFolder => Self::open_wallpaper_folder_file_dialog(),
             Messages::WallpaperFolderChanged(f) => {
-		self.wallpaper_folder = Some(f);
-		self.image_grid_images = vec![];
-		self.filtered_images = vec![];
-		Task::done(Messages::PopulateImageGrid)
-	    },
+                self.wallpaper_folder = Some(f);
+                self.image_grid_images = vec![];
+                self.filtered_images = vec![];
+                Task::done(Messages::PopulateImageGrid)
+            }
         }
     }
 
     pub fn view(&self) -> Element<'_, Messages> {
-        let mut image_grid: Row<_> = row![].padding(DEFAULT_MARGIN as f32).spacing(DEFAULT_MARGIN as f32);
+        let mut image_grid: Row<_> = row![]
+            .padding(DEFAULT_MARGIN as f32)
+            .spacing(DEFAULT_MARGIN as f32);
         for cached_image_file in self.image_grid_images.iter() {
             image_grid = image_grid.push(lazy(cached_image_file, |i| -> Element<'_, Messages> {
-                button(
-                    image(&i.cached_image_path).height(Fill).width(Fill)
-                ).padding(DEFAULT_MARGIN as f32)
-                .width(BUTTON_WIDTH)
-                .height(BUTTON_HEIGHT)
-                .on_press(Messages::ChangeWallpaper)
-                .into()
+                button(image(&i.cached_image_path).content_fit(iced::ContentFit::Cover))
+                    .padding(0)
+                    .width(BUTTON_WIDTH)
+                    .height(BUTTON_HEIGHT)
+                    .on_press(Messages::ChangeWallpaper)
+                    .into()
             }));
         }
         column![
-	    scrollable(image_grid.wrap()),
-	    row![
-	    button(text!["{}", gettext("Images Folder")]).on_press(Messages::ChangeWallpaperFolder)
-	]].into()
+            scrollable(image_grid.wrap()).width(Fill).height(Fill),
+            row![
+                button(text!["{}", gettext("Images Folder")])
+                    .on_press(Messages::ChangeWallpaperFolder)
+            ].padding(DEFAULT_MARGIN as f32).spacing(DEFAULT_MARGIN as f32)
+        ].padding(DEFAULT_MARGIN as f32).spacing(DEFAULT_MARGIN as f32)
+        .into()
     }
 
     pub fn run_application(instance: Self) -> iced::Result {

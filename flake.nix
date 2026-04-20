@@ -55,8 +55,8 @@
         });
 
         # Layer 3: Meson handles everything else (i18n, schemas, icons, desktop file)
-        waytrogen_iced = pkgs.stdenv.mkDerivation {
-          pname = "waytrogen_iced";
+        waytrogen = pkgs.stdenv.mkDerivation {
+          pname = "waytrogen";
           version = "0.9.3";
           src = ./.;
 
@@ -87,7 +87,7 @@
           mesonFlags = [
             "-Dcargo_features=nixos"
             # Point meson at the pre-built binary from layer 2
-            "-Dprecompiled_binary=${waytrogen-bin}/bin/waytrogen_iced"
+            "-Dprecompiled_binary=${waytrogen-bin}/bin/waytrogen"
           ];
 
           env = { OPENSSL_NO_VENDOR = 1; };
@@ -105,9 +105,9 @@
         };
       in {
         packages = {
-          inherit waytrogen_iced;
+          inherit waytrogen;
           inherit waytrogen-bin;
-          default = waytrogen_iced;
+          default = waytrogen;
         };
 
         checks = {

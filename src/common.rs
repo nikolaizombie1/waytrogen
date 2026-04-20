@@ -110,10 +110,7 @@ impl CacheImageFile {
             .decode()?
             .thumbnail(THUMBNAIL_WIDTH as u32, THUMBNAIL_HEIGHT as u32)
             .to_rgb8();
-        let image_name = format!(
-            "{}.png",
-            Uuid::new_v4(),
-        );
+        let image_name = format!("{}.png", Uuid::new_v4(),);
         let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
         let cache_dir = match xdg_dirs.get_cache_home() {
             Some(c) => c,

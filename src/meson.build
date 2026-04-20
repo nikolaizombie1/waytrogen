@@ -17,7 +17,7 @@ if precompiled_binary == ''
         build_by_default: true,
         build_always_stale: true,
         console: true,
-        output: 'waytrogen_iced',
+        output: 'waytrogen',
         install: true,
         install_dir: join_paths(get_option('prefix'), get_option('bindir')),
         command: [
@@ -29,6 +29,6 @@ if precompiled_binary == ''
         ],
     )
 else
-    install_data(precompiled_binary, rename: 'waytrogen_iced', install_dir: join_paths(get_option('prefix'), get_option('bindir')), install_mode: 'rwxr-xr-x')
+    install_data(precompiled_binary, rename: 'waytrogen', install_dir: join_paths(get_option('prefix'), get_option('bindir')), install_mode: 'rwxr-xr-x')
 endif
 

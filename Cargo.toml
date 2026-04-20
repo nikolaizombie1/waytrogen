@@ -1,6 +1,6 @@
 [package]
-name = "waytrogen_iced"
-version = "0.1.0"
+name = "waytrogen"
+version = "0.9.6"
 edition = "2024"
 
 [dependencies]
