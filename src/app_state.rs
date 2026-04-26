@@ -287,6 +287,7 @@ pub enum Messages {
     PopulateImageGrid,
     ImageGridPopulated(Vec<CacheImageFile>),
     ChangeWallpaper(PathBuf),
+    WallpaperChanged,
     ChangeWallpaperFolder,
     PopulateMonitorDropdown,
     MonitorDropdownPopulated(Vec<String>),
@@ -531,7 +532,7 @@ impl AppState {
                     unsupported_images
                         .extend(all_images.extract_if(.., |i| !i.name.contains(&query)));
                 }
-                None => todo!(),
+                None => {}
             }
 
             AppStateImages {
@@ -540,6 +541,24 @@ impl AppState {
             }
         })
         .then(|a| Task::done(Messages::ImagesFiltered(a)))
+    }
+
+    fn change_wallpaper(&self, path: PathBuf) -> Task<Messages> {
+	let changer = match self.changer.clone() {
+	    Some(c) => c,
+	    None => return Task::none(),
+	};
+	let monitor = match self.monitor.clone() {
+	    Some(m) => m,
+	    None => return Task::none(),
+	};
+	Task::future(
+	    async move {
+		changer.change(path,monitor);
+	    }
+	).then(|_|{
+	    Task::done(Messages::WallpaperChanged)
+	})
     }
 
     pub fn update(&mut self, message: Messages) -> iced::Task<Messages> {
@@ -551,7 +570,9 @@ impl AppState {
                 self.filtered_images = images.unsupported_images;
                 Task::done(Messages::PopulateMonitorDropdown)
             }
-            Messages::ChangeWallpaper(p) => todo!(),
+            Messages::ChangeWallpaper(p) => {
+		self.change_wallpaper(p)
+	    },
             Messages::ChangeWallpaperFolder => Self::open_wallpaper_folder_file_dialog(),
             Messages::WallpaperFolderChanged(f) => {
                 self.wallpaper_folder = Some(f);
@@ -594,6 +615,9 @@ impl AppState {
 		self.filter_images(self.image_filter.clone())
             },
             Messages::OptionMenuOpened => {
+		Task::none()
+	    },
+	    Messages::WallpaperChanged => {
 		Task::none()
 	    }
         }
