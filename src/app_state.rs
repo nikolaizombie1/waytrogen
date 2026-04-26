@@ -4,16 +4,23 @@ use crate::{
         get_config_file_path,
     },
     database::DatabaseConnection,
-    wallpaper_changers::{WallpaperChanger, WallpaperChangers},
+    wallpaper_changers::{WallpaperChanger, WallpaperChangers, get_available_wallpaper_changers},
 };
 use gettextrs::gettext;
 use iced::{
     Alignment::Center,
     Element,
-    Length::Fill,
+    Length::{Fill, Shrink},
     Task,
     application::BootFn,
-    widget::{Row, button, column, image, lazy, pick_list, row, scrollable, text, text_input},
+    widget::{
+        Row, button, column, image, lazy, pick_list, row, scrollable, text, text_input, toggler,
+    },
+};
+use iced_aw::{
+    MenuBar,
+    menu::{self, Item, Menu},
+    menu_bar, menu_items,
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -57,7 +64,7 @@ pub struct AppState {
     invert_sort_doc: String,
     pub invert_sort: bool,
     changer_doc: String,
-    pub changer: WallpaperChangers,
+    pub changer: Option<WallpaperChangers>,
     image_filter_doc: String,
     pub image_filter: String,
     swaybg_mode_doc: String,
@@ -122,6 +129,8 @@ pub struct AppState {
     filtered_images: Vec<CacheImageFile>,
     #[serde(skip)]
     available_monitors: Vec<String>,
+    #[serde(skip)]
+    available_changers: Vec<WallpaperChangers>,
 }
 
 impl Default for AppState {
@@ -268,6 +277,7 @@ impl Default for AppState {
             image_grid_images: Default::default(),
             filtered_images: Default::default(),
             available_monitors: Default::default(),
+            available_changers: Default::default(),
         }
     }
 }
@@ -285,6 +295,8 @@ pub enum Messages {
     SortByChanged(SortBy),
     SearchBarInputted(String),
     ImagesFiltered(AppStateImages),
+    WallpaperChangerChanged(WallpaperChangers),
+    InvertSortChanged(bool),
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -293,7 +305,16 @@ impl BootFn<AppState, Messages> for AppState {
         if let None = instance.sort_by {
             instance.sort_by = Some(SortBy::default());
         }
-        (self.clone(), Task::done(Messages::PopulateImageGrid))
+        instance.available_changers = get_available_wallpaper_changers();
+        if let None = instance.changer {
+            match instance.available_changers.first() {
+                Some(c) => {
+                    instance.changer = Some(c.clone());
+                }
+                None => {}
+            }
+        }
+        (instance, Task::done(Messages::PopulateImageGrid))
     }
 }
 
@@ -380,19 +401,25 @@ impl AppState {
     fn catagorize_images(&self, all_images: &[CacheImageFile]) -> AppStateImages {
         let mut supported_images: Vec<CacheImageFile> = vec![];
         let mut unsupported_images: Vec<CacheImageFile> = vec![];
-        for image in all_images {
-            match self.changer.accepted_formats().contains(
-                &image
-                    .cached_image_path
-                    .extension()
-                    .unwrap_or_default()
-                    .to_str()
-                    .unwrap_or_default()
-                    .to_string(),
-            ) {
-                true => supported_images.push(image.clone()),
-                false => unsupported_images.push(image.clone()),
+
+        match &self.changer {
+            Some(changer) => {
+                for image in all_images {
+                    match changer.accepted_formats().contains(
+                        &image
+                            .cached_image_path
+                            .extension()
+                            .unwrap_or_default()
+                            .to_str()
+                            .unwrap_or_default()
+                            .to_string(),
+                    ) {
+                        true => supported_images.push(image.clone()),
+                        false => unsupported_images.push(image.clone()),
+                    }
+                }
             }
+            None => {}
         }
         AppStateImages {
             supported_images,
@@ -487,18 +514,24 @@ impl AppState {
 
             let mut unsupported_images = vec![];
 
-            unsupported_images.extend(all_images.extract_if(.., |i| {
-                !changer.accepted_formats().contains(
-                    &i.path
-                        .extension()
-                        .unwrap_or_default()
-                        .to_str()
-                        .unwrap_or_default()
-                        .to_string(),
-                )
-            }));
+            match changer {
+                Some(changer) => {
+                    unsupported_images.extend(all_images.extract_if(.., |i| {
+                        !changer.accepted_formats().contains(
+                            &i.path
+                                .extension()
+                                .unwrap_or_default()
+                                .to_str()
+                                .unwrap_or_default()
+                                .to_string(),
+                        )
+                    }));
 
-            unsupported_images.extend(all_images.extract_if(.., |i| !i.name.contains(&query)));
+                    unsupported_images
+                        .extend(all_images.extract_if(.., |i| !i.name.contains(&query)));
+                }
+                None => todo!(),
+            }
 
             AppStateImages {
                 supported_images: all_images,
@@ -540,16 +573,24 @@ impl AppState {
                 Task::none()
             }
             Messages::SearchBarInputted(s) => {
-		self.image_filter = s.clone();
-		self.filter_images(s)
-	    },
+                self.image_filter = s.clone();
+                self.filter_images(s)
+            }
             Messages::ImagesFiltered(app_state_images) => {
                 self.image_grid_images = app_state_images.supported_images;
                 self.filtered_images = app_state_images.unsupported_images;
-		if let Some(s) = &self.sort_by {
-		    self.sort_image_grid(s.clone())
-		}
+                if let Some(s) = &self.sort_by {
+                    self.sort_image_grid(s.clone())
+                }
                 Task::none()
+            }
+            Messages::WallpaperChangerChanged(wallpaper_changer) => {
+                self.changer = Some(wallpaper_changer);
+                self.filter_images(self.image_filter.clone())
+            }
+            Messages::InvertSortChanged(invert_sort) => {
+                self.invert_sort = invert_sort;
+		self.filter_images(self.image_filter.clone())
             }
         }
     }
@@ -564,7 +605,9 @@ impl AppState {
                         .padding(0)
                         .width(BUTTON_WIDTH)
                         .height(BUTTON_HEIGHT)
-                        .on_press_with(move || Messages::ChangeWallpaper(path.clone()))
+                        .on_press_with(move || {
+                            Messages::ChangeWallpaper(PathBuf::from(path.clone()))
+                        })
                         .into()
                 }));
         }
@@ -581,7 +624,28 @@ impl AppState {
             Messages::SortByChanged,
         );
 
-        let search_bar = text_input("Find Images", &self.image_filter).on_input(Messages::SearchBarInputted);
+        let search_bar = text_input(&gettext("Find images"), &self.image_filter)
+            .on_input(Messages::SearchBarInputted)
+            .width(Fill);
+
+        let options_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
+            text!["{}", gettext("Options")],
+            Menu::new(
+                [Item::new(
+                    toggler(self.invert_sort)
+                        .label(gettext("Invert Sort"))
+                        .on_toggle(Messages::InvertSortChanged),
+                )]
+                .into(),
+            ).max_width(200.0),
+        )])
+        .into();
+
+        let changer_dropdown = pick_list(
+            self.available_changers.as_slice(),
+            self.changer.clone(),
+            Messages::WallpaperChangerChanged,
+        );
 
         column![
             scrollable(image_grid.wrap()).width(Fill).height(Fill),
@@ -590,7 +654,9 @@ impl AppState {
                 button(text!["{}", gettext("Images Folder")])
                     .on_press(Messages::ChangeWallpaperFolder),
                 sort_dropdown,
-                search_bar
+                search_bar,
+                options_menu,
+                changer_dropdown
             ]
             .padding(DEFAULT_MARGIN as f32)
             .spacing(DEFAULT_MARGIN as f32)

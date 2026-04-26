@@ -6,6 +6,7 @@ use log::trace;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
+    ffi::OsStr,
     fmt::Display,
     fs,
     io::Cursor,
