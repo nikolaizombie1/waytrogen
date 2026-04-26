@@ -6,7 +6,6 @@ use log::trace;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
-    ffi::OsStr,
     fmt::Display,
     fs,
     io::Cursor,
@@ -38,7 +37,7 @@ pub struct CacheImageFile {
     pub cached_image_path: PathBuf,
     pub name: String,
     pub date: u32,
-    pub path: String,
+    pub path: PathBuf,
 }
 
 impl CacheImageFile {
@@ -59,7 +58,7 @@ impl CacheImageFile {
         let fields = Self::get_metadata(path)?;
         let image_file = CacheImageFile {
             cached_image_path: image.to_path_buf(),
-            path: fields.0,
+            path: PathBuf::from(fields.0),
             name: fields.1,
             date: fields.2,
         };

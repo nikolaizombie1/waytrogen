@@ -22,6 +22,8 @@
             pkg-config
             glib
             wrapGAppsHook4
+            bash
+            wayland-utils
           ];
           buildInputs = with pkgs; [
             glib
@@ -73,6 +75,7 @@
             bash
             rustc
             gtk4
+            wayland-utils
           ];
 
           buildInputs = with pkgs; [
@@ -135,6 +138,7 @@
             ninja
             desktop-file-utils
             gettext
+            wayland-utils
           ];
           buildInputs = with pkgs; [
             glib

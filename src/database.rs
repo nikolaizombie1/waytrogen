@@ -2,7 +2,7 @@ use crate::common::{CACHE_FILE_NAME, CONFIG_APP_NAME, CacheImageFile};
 use anyhow::anyhow;
 use gettextrs::gettext;
 use log::{debug, trace, warn};
-use rusqlite::{Connection, Result};
+use rusqlite::Connection;
 use std::path::{Path, PathBuf};
 
 pub struct DatabaseConnection {
@@ -37,7 +37,7 @@ impl DatabaseConnection {
                     cached_image_path: PathBuf::from(row.get::<usize, String>(0)?),
                     name: row.get(1)?,
                     date: row.get(2)?,
-                    path: row.get(3)?,
+                    path: PathBuf::from(row.get::<usize, String>(3)?),
                 })
             })?
             .filter_map(|c| c.ok())
@@ -57,7 +57,7 @@ impl DatabaseConnection {
                 &image_file.cached_image_path.to_str().unwrap(),
                 &image_file.name,
                 &image_file.date,
-                &image_file.path,
+                &image_file.path.to_str().unwrap_or_default(),
             ),
         )?;
 
@@ -68,7 +68,11 @@ impl DatabaseConnection {
         let conn = DatabaseConnection::new()?;
         match conn.select_image_file(path) {
             Ok(f) => {
-                trace!("{}: {}", gettext("Cache Hit"), f.path);
+                trace!(
+                    "{}: {}",
+                    gettext("Cache Hit"),
+                    f.path.to_str().unwrap_or_default()
+                );
                 Ok(f)
             }
             Err(e) => {
@@ -83,10 +87,14 @@ impl DatabaseConnection {
                         trace!(
                             "{} {}",
                             gettext("GTK Picture created successfully."),
-                            g.path
+                            g.path.to_str().unwrap_or_default()
                         );
                         conn.insert_image_file(&g)?;
-                        debug!("{} {}", "Picture inserted into database.", &g.path);
+                        debug!(
+                            "{} {}",
+                            "Picture inserted into database.",
+                            &g.path.to_str().unwrap_or_default()
+                        );
                         Ok(g)
                     }
                     Err(e) => {

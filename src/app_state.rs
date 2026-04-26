@@ -12,7 +12,7 @@ use iced::{
     Length::Fill,
     Task,
     application::BootFn,
-    widget::{Row, button, column, image, lazy, row, scrollable, text},
+    widget::{Row, button, column, image, lazy, pick_list, row, scrollable, text},
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -26,6 +26,9 @@ pub enum SortBy {
     Name,
 }
 
+static WAYLAND_INFO_MONITOR_REGEX: regex_static::once_cell::sync::Lazy<regex::Regex> =
+    regex_static::lazy_regex!(r"\(.*\)");
+
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AppState {
@@ -36,7 +39,7 @@ pub struct AppState {
     saved_wallpapers_doc: String,
     pub saved_wallpapers: Vec<Wallpaper>,
     monitor_doc: String,
-    pub monitor: u32,
+    pub monitor: Option<String>,
     sort_by_doc: String,
     pub sort_by: SortBy,
     invert_sort_doc: String,
@@ -105,6 +108,8 @@ pub struct AppState {
     image_grid_images: Vec<CacheImageFile>,
     #[serde(skip)]
     filtered_images: Vec<CacheImageFile>,
+    #[serde(skip)]
+    available_monitors: Vec<String>,
 }
 
 impl Default for AppState {
@@ -125,7 +130,7 @@ impl Default for AppState {
             monitor_doc: gettext(
                 "The internal numeric identifier in the monitor dropdown used by dconf for the currently selected monitor. Do not change unless you know what you are doing.",
             ),
-            monitor: u32::default(),
+            monitor: Default::default(),
             sort_by_doc: gettext(
                 "The internal numeric identifier in the changer dropdown used by dconf for the currently selected sorting option. Do not change unless you know what you are doing.",
             ),
@@ -250,6 +255,7 @@ impl Default for AppState {
             hide_changer_options_box: false,
             image_grid_images: Default::default(),
             filtered_images: Default::default(),
+            available_monitors: Default::default(),
         }
     }
 }
@@ -258,9 +264,12 @@ impl Default for AppState {
 pub enum Messages {
     PopulateImageGrid,
     ImageGridPopulated(Vec<CacheImageFile>),
-    ChangeWallpaper,
+    ChangeWallpaper(PathBuf),
     ChangeWallpaperFolder,
+    PopulateMonitorDropdown,
+    MonitorDropdownPopulated(Vec<String>),
     WallpaperFolderChanged(PathBuf),
+    MonitorChanged(String),
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -343,7 +352,7 @@ impl AppState {
                 })
                 .then(|images| Task::done(Messages::ImageGridPopulated(images)))
             }
-            None => Task::none(),
+            None => Task::done(Messages::ImageGridPopulated(vec![])),
         }
     }
 
@@ -396,6 +405,40 @@ impl AppState {
         })
     }
 
+    fn get_monitors() -> iced::Task<Messages> {
+        Task::future(async move {
+            match which::which("wayland-info") {
+                Ok(p) => Ok(std::process::Command::new(p)
+                    .arg("-i")
+                    .arg("wl_output")
+                    .output()),
+                Err(e) => Err(e),
+            }
+        })
+        .then(|o| {
+            let output = match o {
+                Ok(o) => o,
+                Err(_) => return Task::none(),
+            };
+            match output {
+                Ok(output) => match String::from_utf8(output.stdout) {
+                    Ok(output) => {
+                        println!("{output}");
+                        let mut monitors = WAYLAND_INFO_MONITOR_REGEX
+                            .find_iter(&output)
+                            .map(|m| m.as_str().to_string().replace("(", "").replace(")", ""))
+                            .collect::<Vec<_>>();
+                        monitors.push(gettext("All"));
+                        monitors.sort();
+                        Task::done(Messages::MonitorDropdownPopulated(monitors))
+                    }
+                    Err(_) => Task::none(),
+                },
+                Err(_) => Task::none(),
+            }
+        })
+    }
+
     pub fn update(&mut self, message: Messages) -> iced::Task<Messages> {
         match message {
             Messages::PopulateImageGrid => self.populate_image_grid(),
@@ -403,9 +446,9 @@ impl AppState {
                 let images = self.catagorize_images(&i);
                 self.image_grid_images = images.supported_images;
                 self.filtered_images = images.unsupported_images;
-                Task::none()
+                Task::done(Messages::PopulateMonitorDropdown)
             }
-            Messages::ChangeWallpaper => todo!(),
+            Messages::ChangeWallpaper(p) => todo!(),
             Messages::ChangeWallpaperFolder => Self::open_wallpaper_folder_file_dialog(),
             Messages::WallpaperFolderChanged(f) => {
                 self.wallpaper_folder = Some(f);
@@ -413,30 +456,52 @@ impl AppState {
                 self.filtered_images = vec![];
                 Task::done(Messages::PopulateImageGrid)
             }
+            Messages::PopulateMonitorDropdown => Self::get_monitors(),
+            Messages::MonitorDropdownPopulated(monitors) => {
+                self.available_monitors = monitors;
+                self.monitor = self.available_monitors.first().cloned();
+                Task::none()
+            }
+            Messages::MonitorChanged(m) => {
+                self.monitor = Some(m);
+                Task::none()
+            }
         }
     }
 
     pub fn view(&self) -> Element<'_, Messages> {
-        let mut image_grid: Row<_> = row![]
-            .padding(DEFAULT_MARGIN as f32)
-            .spacing(DEFAULT_MARGIN as f32);
+        let mut image_grid: Row<_> = row![].spacing(DEFAULT_MARGIN as f32);
         for cached_image_file in self.image_grid_images.iter() {
-            image_grid = image_grid.push(lazy(cached_image_file, |i| -> Element<'_, Messages> {
-                button(image(&i.cached_image_path).content_fit(iced::ContentFit::Cover))
-                    .padding(0)
-                    .width(BUTTON_WIDTH)
-                    .height(BUTTON_HEIGHT)
-                    .on_press(Messages::ChangeWallpaper)
-                    .into()
-            }));
+            image_grid =
+                image_grid.push(lazy(cached_image_file, move |i| -> Element<'_, Messages> {
+                    let path = i.path.clone();
+                    button(image(&i.cached_image_path).content_fit(iced::ContentFit::Cover))
+                        .padding(0)
+                        .width(BUTTON_WIDTH)
+                        .height(BUTTON_HEIGHT)
+                        .on_press_with(move || Messages::ChangeWallpaper(path.clone()))
+                        .into()
+                }));
         }
+
+        let monitors_dropdown = pick_list(
+            self.available_monitors.as_slice(),
+            self.monitor.clone(),
+            Messages::MonitorChanged,
+        );
+
         column![
             scrollable(image_grid.wrap()).width(Fill).height(Fill),
             row![
+                monitors_dropdown,
                 button(text!["{}", gettext("Images Folder")])
                     .on_press(Messages::ChangeWallpaperFolder)
-            ].padding(DEFAULT_MARGIN as f32).spacing(DEFAULT_MARGIN as f32)
-        ].padding(DEFAULT_MARGIN as f32).spacing(DEFAULT_MARGIN as f32)
+            ]
+            .padding(DEFAULT_MARGIN as f32)
+            .spacing(DEFAULT_MARGIN as f32)
+        ]
+        .padding(DEFAULT_MARGIN as f32)
+        .spacing(DEFAULT_MARGIN as f32)
         .into()
     }
 
