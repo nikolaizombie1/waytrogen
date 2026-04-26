@@ -297,6 +297,7 @@ pub enum Messages {
     ImagesFiltered(AppStateImages),
     WallpaperChangerChanged(WallpaperChangers),
     InvertSortChanged(bool),
+    OptionMenuOpened
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -591,7 +592,10 @@ impl AppState {
             Messages::InvertSortChanged(invert_sort) => {
                 self.invert_sort = invert_sort;
 		self.filter_images(self.image_filter.clone())
-            }
+            },
+            Messages::OptionMenuOpened => {
+		Task::none()
+	    }
         }
     }
 
@@ -629,7 +633,7 @@ impl AppState {
             .width(Fill);
 
         let options_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
-            text!["{}", gettext("Options")],
+            button(text!["{}", gettext("Options")]).on_press(Messages::OptionMenuOpened),
             Menu::new(
                 [Item::new(
                     toggler(self.invert_sort)
