@@ -117,7 +117,7 @@ pub fn print_app_version() -> anyhow::Result<()> {
 #[must_use]
 pub fn cycle_next_wallpaper(args: &Cli, app_state: &mut AppState) -> anyhow::Result<()> {
     let mut previous_wallpapers = app_state.saved_wallpapers.clone();
-    let sort_dropdown_string = app_state.sort_by.clone();
+    let sort_dropdown_string = app_state.sort_by.clone().unwrap_or_default();
     let mut files = get_previous_supported_wallpapers(app_state);
     let invert_sort_state = app_state.invert_sort;
     sort_by_sort_dropdown_string(&mut files, sort_dropdown_string, invert_sort_state);

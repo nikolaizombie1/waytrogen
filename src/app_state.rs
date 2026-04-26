@@ -8,22 +8,29 @@ use crate::{
 };
 use gettextrs::gettext;
 use iced::{
-    Element,
-    Length::Fill,
-    Task,
-    application::BootFn,
-    widget::{Row, button, column, image, lazy, pick_list, row, scrollable, text},
+    Alignment::Center, Element, Length::Fill, Task, application::BootFn, widget::{Row, button, column, image, lazy, pick_list, row, scrollable, text}
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::{fs::OpenOptions, io::Write, path::PathBuf};
+use std::{fmt::Display, fs::OpenOptions, io::Write, path::PathBuf};
+use strum::VariantArray;
 use walkdir::{DirEntry, WalkDir};
 
-#[derive(Clone, Serialize, Deserialize, Default)]
+#[derive(Clone, Serialize, Deserialize, Default, VariantArray, PartialEq)]
 pub enum SortBy {
     #[default]
     Date,
     Name,
+}
+
+impl Display for SortBy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ret = match self {
+            SortBy::Date => gettext("Date"),
+            SortBy::Name => gettext("Name"),
+        };
+        write!(f, "{ret}")
+    }
 }
 
 static WAYLAND_INFO_MONITOR_REGEX: regex_static::once_cell::sync::Lazy<regex::Regex> =
@@ -41,7 +48,7 @@ pub struct AppState {
     monitor_doc: String,
     pub monitor: Option<String>,
     sort_by_doc: String,
-    pub sort_by: SortBy,
+    pub sort_by: Option<SortBy>,
     invert_sort_doc: String,
     pub invert_sort: bool,
     changer_doc: String,
@@ -134,7 +141,7 @@ impl Default for AppState {
             sort_by_doc: gettext(
                 "The internal numeric identifier in the changer dropdown used by dconf for the currently selected sorting option. Do not change unless you know what you are doing.",
             ),
-            sort_by: SortBy::default(),
+            sort_by: Default::default(),
             invert_sort_doc: gettext(
                 "The boolean flag to invert the currently selected sort-by option in the sort dropdown used by dconf.",
             ),
@@ -270,10 +277,15 @@ pub enum Messages {
     MonitorDropdownPopulated(Vec<String>),
     WallpaperFolderChanged(PathBuf),
     MonitorChanged(String),
+    SortByChanged(SortBy),
 }
 
 impl BootFn<AppState, Messages> for AppState {
     fn boot(&self) -> (AppState, iced::Task<Messages>) {
+        let mut instance = self.clone();
+        if let None = instance.sort_by {
+            instance.sort_by = Some(SortBy::default());
+        }
         (self.clone(), Task::done(Messages::PopulateImageGrid))
     }
 }
@@ -287,72 +299,74 @@ pub struct AppStateImages {
 impl AppState {
     fn populate_image_grid(&self) -> iced::Task<Messages> {
         let wallpaper_folder = self.wallpaper_folder.clone();
-        let sort_by = self.sort_by.clone();
         let invert_sort = self.invert_sort.clone();
-        match wallpaper_folder {
-            Some(wf) => {
-                if !wf.is_dir() {
-                    return Task::none();
-                }
-                let accepted_formats = WallpaperChangers::all_accepted_formats();
-                let comparator = match sort_by {
-                    SortBy::Date => match invert_sort {
-                        true => |x: &DirEntry, y: &DirEntry| {
-                            y.metadata()
-                                .unwrap()
-                                .created()
-                                .unwrap()
-                                .cmp(&x.metadata().unwrap().created().unwrap())
-                        },
-                        false => |x: &DirEntry, y: &DirEntry| {
-                            x.metadata()
-                                .unwrap()
-                                .created()
-                                .unwrap()
-                                .cmp(&y.metadata().unwrap().created().unwrap())
-                        },
-                    },
-                    SortBy::Name => match self.invert_sort {
-                        true => |x: &DirEntry, y: &DirEntry| {
-                            y.file_name()
-                                .to_str()
-                                .unwrap_or_default()
-                                .cmp(&x.file_name().to_str().unwrap_or_default())
-                        },
-                        false => |x: &DirEntry, y: &DirEntry| {
-                            x.file_name()
-                                .to_str()
-                                .unwrap_or_default()
-                                .cmp(&y.file_name().to_str().unwrap_or_default())
-                        },
-                    },
-                };
-                Task::future(async move {
-                    let images = WalkDir::new(&wf)
-                        .sort_by(move |x, y| comparator(x, y))
-                        .into_iter()
-                        .filter_map(|d| d.ok())
-                        .map(|d| d.into_path())
-                        .filter(|d| d.extension().is_some())
-                        .filter(|p| {
-                            accepted_formats.contains(
-                                &p.extension()
+        match &self.sort_by {
+            Some(sort_by) => match wallpaper_folder {
+                Some(wf) => {
+                    if !wf.is_dir() {
+                        return Task::none();
+                    }
+                    let accepted_formats = WallpaperChangers::all_accepted_formats();
+                    let comparator = match sort_by {
+                        SortBy::Date => match invert_sort {
+                            true => |x: &DirEntry, y: &DirEntry| {
+                                y.metadata()
                                     .unwrap()
+                                    .created()
+                                    .unwrap()
+                                    .cmp(&x.metadata().unwrap().created().unwrap())
+                            },
+                            false => |x: &DirEntry, y: &DirEntry| {
+                                x.metadata()
+                                    .unwrap()
+                                    .created()
+                                    .unwrap()
+                                    .cmp(&y.metadata().unwrap().created().unwrap())
+                            },
+                        },
+                        SortBy::Name => match self.invert_sort {
+                            true => |x: &DirEntry, y: &DirEntry| {
+                                y.file_name()
                                     .to_str()
                                     .unwrap_or_default()
-                                    .to_string(),
-                            )
-                        })
-                        .collect::<Vec<_>>();
-                    let images = images
-                        .into_par_iter()
-                        .filter_map(|p| DatabaseConnection::check_cache(&p).ok())
-                        .collect::<Vec<_>>();
-                    images
-                })
-                .then(|images| Task::done(Messages::ImageGridPopulated(images)))
-            }
-            None => Task::done(Messages::ImageGridPopulated(vec![])),
+                                    .cmp(&x.file_name().to_str().unwrap_or_default())
+                            },
+                            false => |x: &DirEntry, y: &DirEntry| {
+                                x.file_name()
+                                    .to_str()
+                                    .unwrap_or_default()
+                                    .cmp(&y.file_name().to_str().unwrap_or_default())
+                            },
+                        },
+                    };
+                    Task::future(async move {
+                        let images = WalkDir::new(&wf)
+                            .sort_by(move |x, y| comparator(x, y))
+                            .into_iter()
+                            .filter_map(|d| d.ok())
+                            .map(|d| d.into_path())
+                            .filter(|d| d.extension().is_some())
+                            .filter(|p| {
+                                accepted_formats.contains(
+                                    &p.extension()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap_or_default()
+                                        .to_string(),
+                                )
+                            })
+                            .collect::<Vec<_>>();
+                        let images = images
+                            .into_par_iter()
+                            .filter_map(|p| DatabaseConnection::check_cache(&p).ok())
+                            .collect::<Vec<_>>();
+                        images
+                    })
+                    .then(|images| Task::done(Messages::ImageGridPopulated(images)))
+                }
+                None => Task::done(Messages::ImageGridPopulated(vec![])),
+            },
+            None => Task::none(),
         }
     }
 
@@ -423,7 +437,6 @@ impl AppState {
             match output {
                 Ok(output) => match String::from_utf8(output.stdout) {
                     Ok(output) => {
-                        println!("{output}");
                         let mut monitors = WAYLAND_INFO_MONITOR_REGEX
                             .find_iter(&output)
                             .map(|m| m.as_str().to_string().replace("(", "").replace(")", ""))
@@ -437,6 +450,20 @@ impl AppState {
                 Err(_) => Task::none(),
             }
         })
+    }
+
+    fn sort_image_grid(&mut self, sort_by: SortBy) {
+        let comparator = match sort_by {
+            SortBy::Date => match &self.invert_sort {
+                true => |x: &CacheImageFile, y: &CacheImageFile| y.date.cmp(&x.date),
+                false => |x: &CacheImageFile, y: &CacheImageFile| x.date.cmp(&y.date),
+            },
+            SortBy::Name => match &self.invert_sort {
+                true => |x: &CacheImageFile, y: &CacheImageFile| y.name.cmp(&x.name),
+                false => |x: &CacheImageFile, y: &CacheImageFile| x.name.cmp(&y.name),
+            },
+        };
+        self.image_grid_images.sort_by(|x, y| comparator(x, y));
     }
 
     pub fn update(&mut self, message: Messages) -> iced::Task<Messages> {
@@ -466,6 +493,10 @@ impl AppState {
                 self.monitor = Some(m);
                 Task::none()
             }
+            Messages::SortByChanged(sort_by) => {
+                self.sort_image_grid(sort_by);
+                Task::none()
+            }
         }
     }
 
@@ -490,16 +521,25 @@ impl AppState {
             Messages::MonitorChanged,
         );
 
+        let sort_dropdown = pick_list(
+            SortBy::VARIANTS,
+            self.sort_by.clone(),
+            Messages::SortByChanged,
+        );
+
         column![
             scrollable(image_grid.wrap()).width(Fill).height(Fill),
             row![
                 monitors_dropdown,
                 button(text!["{}", gettext("Images Folder")])
-                    .on_press(Messages::ChangeWallpaperFolder)
+                    .on_press(Messages::ChangeWallpaperFolder),
+                sort_dropdown
             ]
             .padding(DEFAULT_MARGIN as f32)
             .spacing(DEFAULT_MARGIN as f32)
+	    .align_y(Center)
         ]
+	.align_x(Center)
         .padding(DEFAULT_MARGIN as f32)
         .spacing(DEFAULT_MARGIN as f32)
         .into()
