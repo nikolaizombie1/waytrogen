@@ -8,7 +8,12 @@ use crate::{
 };
 use gettextrs::gettext;
 use iced::{
-    Alignment::Center, Element, Length::Fill, Task, application::BootFn, widget::{Row, button, column, image, lazy, pick_list, row, scrollable, text}
+    Alignment::Center,
+    Element,
+    Length::Fill,
+    Task,
+    application::BootFn,
+    widget::{Row, button, column, image, lazy, pick_list, row, scrollable, text, text_input},
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -278,6 +283,8 @@ pub enum Messages {
     WallpaperFolderChanged(PathBuf),
     MonitorChanged(String),
     SortByChanged(SortBy),
+    SearchBarInputted(String),
+    ImagesFiltered(AppStateImages),
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -466,6 +473,41 @@ impl AppState {
         self.image_grid_images.sort_by(|x, y| comparator(x, y));
     }
 
+    fn filter_images(&self, query: String) -> iced::Task<Messages> {
+        let mut images = AppStateImages {
+            supported_images: self.image_grid_images.clone(),
+            unsupported_images: self.filtered_images.clone(),
+        };
+
+        let changer = self.changer.clone();
+
+        Task::future(async move {
+            let mut all_images = images.supported_images;
+            all_images.append(&mut images.unsupported_images);
+
+            let mut unsupported_images = vec![];
+
+            unsupported_images.extend(all_images.extract_if(.., |i| {
+                !changer.accepted_formats().contains(
+                    &i.path
+                        .extension()
+                        .unwrap_or_default()
+                        .to_str()
+                        .unwrap_or_default()
+                        .to_string(),
+                )
+            }));
+
+            unsupported_images.extend(all_images.extract_if(.., |i| !i.name.contains(&query)));
+
+            AppStateImages {
+                supported_images: all_images,
+                unsupported_images,
+            }
+        })
+        .then(|a| Task::done(Messages::ImagesFiltered(a)))
+    }
+
     pub fn update(&mut self, message: Messages) -> iced::Task<Messages> {
         match message {
             Messages::PopulateImageGrid => self.populate_image_grid(),
@@ -495,6 +537,18 @@ impl AppState {
             }
             Messages::SortByChanged(sort_by) => {
                 self.sort_image_grid(sort_by);
+                Task::none()
+            }
+            Messages::SearchBarInputted(s) => {
+		self.image_filter = s.clone();
+		self.filter_images(s)
+	    },
+            Messages::ImagesFiltered(app_state_images) => {
+                self.image_grid_images = app_state_images.supported_images;
+                self.filtered_images = app_state_images.unsupported_images;
+		if let Some(s) = &self.sort_by {
+		    self.sort_image_grid(s.clone())
+		}
                 Task::none()
             }
         }
@@ -527,19 +581,22 @@ impl AppState {
             Messages::SortByChanged,
         );
 
+        let search_bar = text_input("Find Images", &self.image_filter).on_input(Messages::SearchBarInputted);
+
         column![
             scrollable(image_grid.wrap()).width(Fill).height(Fill),
             row![
                 monitors_dropdown,
                 button(text!["{}", gettext("Images Folder")])
                     .on_press(Messages::ChangeWallpaperFolder),
-                sort_dropdown
+                sort_dropdown,
+                search_bar
             ]
             .padding(DEFAULT_MARGIN as f32)
             .spacing(DEFAULT_MARGIN as f32)
-	    .align_y(Center)
+            .align_y(Center)
         ]
-	.align_x(Center)
+        .align_x(Center)
         .padding(DEFAULT_MARGIN as f32)
         .spacing(DEFAULT_MARGIN as f32)
         .into()
