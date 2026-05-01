@@ -8,7 +8,6 @@ use waytrogen::{
         Cli, cycle_next_wallpaper, delete_image_cache, print_app_version, print_wallpaper_state,
         restore_wallpapers, set_random_wallpapers,
     },
-    dotfile::get_config_file,
 };
 
 fn main() -> anyhow::Result<()> {
@@ -19,7 +18,7 @@ fn main() -> anyhow::Result<()> {
         .init()
         .unwrap();
 
-    let mut config_file: AppState = match get_config_file() {
+    let mut config_file: AppState = match AppState::get_config_file() {
         Ok(c) => c,
         Err(e) => {
             error!("Failed to get config file: {e}");

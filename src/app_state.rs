@@ -1,32 +1,39 @@
 use crate::{
-    changers::{hyprpaper::generate_hyprpaper_changer_bar, swaybg::generate_swaybg_changer_bar}, common::{
+    changers::{hyprpaper::generate_hyprpaper_changer_bar, swaybg::generate_swaybg_changer_bar},
+    common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
         get_config_file_path,
-    }, database::DatabaseConnection, wallpaper_changers::{
-        HyprpaperFitModes, SwaybgModes, WallpaperChanger, WallpaperChangers, get_available_wallpaper_changers
-    }
+    },
+    database::DatabaseConnection,
+    wallpaper_changers::{
+        HyprpaperFitModes, SwaybgModes, WallpaperChanger, WallpaperChangers,
+        get_available_wallpaper_changers,
+    },
 };
 use gettextrs::gettext;
 use iced::{
-    Alignment::Center,
-    Element,
-    Length::Fill,
-    Task,
-    Color,
-    application::BootFn,
-    widget::{
+    Alignment::Center, Color, Element, Length::Fill, Subscription, Task, application::BootFn, event, widget::{
         Row, button, column, image, lazy, pick_list, row, scrollable, text, text_input, toggler,
-    },
+    }, window
 };
 use iced_aw::{
     MenuBar,
-    menu::{Item, Menu}
+    menu::{Item, Menu},
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, fs::OpenOptions, io::Write, path::PathBuf};
 use strum::VariantArray;
 use walkdir::{DirEntry, WalkDir};
+use crate::{
+    common::{parse_executable_script},
+};
+use anyhow::anyhow;
+use log::{error, trace, warn};
+use std::{
+    fs::remove_file,
+    io::Read
+};
 
 #[derive(Clone, Serialize, Deserialize, Default, VariantArray, PartialEq)]
 pub enum SortBy {
@@ -135,7 +142,7 @@ pub struct AppState {
     #[serde(skip)]
     pub sway_bg_color_internal: Color,
     #[serde(skip)]
-    pub show_swaybg_color_picker: bool
+    pub show_swaybg_color_picker: bool,
 }
 
 impl Default for AppState {
@@ -284,8 +291,8 @@ impl Default for AppState {
             available_monitors: Default::default(),
             available_changers: Default::default(),
             hyprpaper_fill_mode: Default::default(),
-	    sway_bg_color_internal: Default::default(),
-	    show_swaybg_color_picker: Default::default()
+            sway_bg_color_internal: Default::default(),
+            show_swaybg_color_picker: Default::default(),
         }
     }
 }
@@ -307,6 +314,7 @@ pub enum Messages {
     WallpaperChangerChanged(WallpaperChangers),
     InvertSortChanged(bool),
     OptionMenuOpened,
+    CloseRequested,
     HyprpaperFitModeChanged(HyprpaperFitModes),
     SwaybgModeChanged(SwaybgModes),
     ShowSwaybgColorPicker,
@@ -329,20 +337,22 @@ impl BootFn<AppState, Messages> for AppState {
                 None => {}
             }
         }
-	if let None = instance.hyprpaper_fill_mode {
-	    match HyprpaperFitModes::VARIANTS.first() {
-		Some(h) => {
-		    instance.hyprpaper_fill_mode = Some(h.clone());
-		},
-		None => {},
-	    }
-	}
-	if let None = instance.swaybg_mode {
-	    match SwaybgModes::VARIANTS.first() {
-		Some(s) => {instance.swaybg_mode = Some(s.clone());}
-		None => {},
-	    }
-	}
+        if let None = instance.hyprpaper_fill_mode {
+            match HyprpaperFitModes::VARIANTS.first() {
+                Some(h) => {
+                    instance.hyprpaper_fill_mode = Some(h.clone());
+                }
+                None => {}
+            }
+        }
+        if let None = instance.swaybg_mode {
+            match SwaybgModes::VARIANTS.first() {
+                Some(s) => {
+                    instance.swaybg_mode = Some(s.clone());
+                }
+                None => {}
+            }
+        }
         (instance, Task::done(Messages::PopulateImageGrid))
     }
 }
@@ -354,6 +364,59 @@ pub struct AppStateImages {
 }
 
 impl AppState {
+    pub fn get_config_file() -> anyhow::Result<AppState> {
+        let config_file = get_config_file_path()?;
+        let mut config = match config_file.exists() {
+            true => OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(false)
+                .open(&config_file)?,
+            false => {
+                warn!("Config file was not found: Attempting to create a new one.");
+                OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .create(true)
+                    .truncate(true)
+                    .open(&config_file)?
+            }
+        };
+        let mut config_contents = String::new();
+        let _ = config.read_to_string(&mut config_contents)?;
+
+        let config_file_struct = match serde_json::from_str::<AppState>(&config_contents) {
+            Ok(s) => {
+                trace!("{}", "Successfully obtained configuration file");
+                s
+            }
+            Err(_) => {
+                remove_file(&config_file)?;
+                config = OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .create(true)
+                    .truncate(true)
+                    .open(&config_file)?;
+                let config_file = AppState::default();
+                let config_string = serde_json::to_string_pretty::<AppState>(&config_file)?;
+                config.write_all(config_string.as_bytes())?;
+                config_file
+            }
+        };
+
+        match parse_executable_script(&config_file_struct.executable_script) {
+            Ok(_) => {
+                trace!("{}", "Successfully parsed executable script");
+            }
+            Err(e) => {
+                error!("Failed to parse executable script: {e}");
+                return Err(anyhow!("Failed to parse executable script: {e}"));
+            }
+        };
+        Ok(config_file_struct)
+    }
+
     fn populate_image_grid(&self) -> iced::Task<Messages> {
         let wallpaper_folder = self.wallpaper_folder.clone();
         let invert_sort = self.invert_sort.clone();
@@ -638,43 +701,55 @@ impl AppState {
             }
             Messages::OptionMenuOpened => Task::none(),
             Messages::WallpaperChanged => Task::none(),
+	    Messages::CloseRequested  => {
+		if let Err(e) = self.write_to_config_file() {
+		    error!("Failed to write to config file: {e}");
+		}
+		window::latest().and_then(window::close)
+	    }
             Messages::HyprpaperFitModeChanged(hyprpaper_fit_modes) => {
-		self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes.clone());
-		if let Some(changer) = &self.changer {
-		    if let WallpaperChangers::Hyprpaper(_) = changer {
-			self.changer = Some(WallpaperChangers::Hyprpaper(hyprpaper_fit_modes));
-		    }
-		}
-		Task::none()
-	    },
+                self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes.clone());
+                if let Some(changer) = &self.changer {
+                    if let WallpaperChangers::Hyprpaper(_) = changer {
+                        self.changer = Some(WallpaperChangers::Hyprpaper(hyprpaper_fit_modes));
+                    }
+                }
+                Task::none()
+            }
             Messages::SwaybgModeChanged(swaybg_modes) => {
-		self.swaybg_mode = Some(swaybg_modes.clone());
-		if let Some(changer) = &self.changer {
-		    if let WallpaperChangers::Swaybg(_, color_string) = changer {
-			self.changer = Some(WallpaperChangers::Swaybg(swaybg_modes, color_string.clone()));
-		    }
-		}
-		Task::none()
-	    },
+                self.swaybg_mode = Some(swaybg_modes.clone());
+                if let Some(changer) = &self.changer {
+                    if let WallpaperChangers::Swaybg(_, color_string) = changer {
+                        self.changer = Some(WallpaperChangers::Swaybg(
+                            swaybg_modes,
+                            color_string.clone(),
+                        ));
+                    }
+                }
+                Task::none()
+            }
             Messages::SwaybgFillColorSubmitted(color) => {
-		self.sway_bg_color_internal = color;
-		self.swaybg_color = color.to_string()[0..= color.to_string().len() - 3].to_string();
-		self.show_swaybg_color_picker = false;
-		if let Some(changer) = &self.changer {
-		    if let WallpaperChangers::Swaybg(modes, _) = changer {
-			self.changer = Some(WallpaperChangers::Swaybg(modes.clone(), self.swaybg_color.clone()));
-		    }
-		}
-		Task::none()
-	    },
+                self.sway_bg_color_internal = color;
+                self.swaybg_color = color.to_string()[0..=color.to_string().len() - 3].to_string();
+                self.show_swaybg_color_picker = false;
+                if let Some(changer) = &self.changer {
+                    if let WallpaperChangers::Swaybg(modes, _) = changer {
+                        self.changer = Some(WallpaperChangers::Swaybg(
+                            modes.clone(),
+                            self.swaybg_color.clone(),
+                        ));
+                    }
+                }
+                Task::none()
+            }
             Messages::ShowSwaybgColorPicker => {
-		self.show_swaybg_color_picker = true;
-		Task::none()
-	    },
+                self.show_swaybg_color_picker = true;
+                Task::none()
+            }
             Messages::SwaybgFillColorCancelled => {
-		self.show_swaybg_color_picker = false;
-		Task::none()
-	    },
+                self.show_swaybg_color_picker = false;
+                Task::none()
+            }
         }
     }
 
@@ -736,12 +811,8 @@ impl AppState {
                 );
 
                 let changer_specific_widgets = match changer {
-                    WallpaperChangers::Hyprpaper(_) => {
-			generate_hyprpaper_changer_bar(self)
-		    },
-                    WallpaperChangers::Swaybg(_, _) => {
-			generate_swaybg_changer_bar(self)
-		    },
+                    WallpaperChangers::Hyprpaper(_) => generate_hyprpaper_changer_bar(self),
+                    WallpaperChangers::Swaybg(_, _) => generate_swaybg_changer_bar(self),
                     WallpaperChangers::MpvPaper(
                         mpv_paper_pause_modes,
                         mpv_paper_slideshow_settings,
@@ -779,7 +850,7 @@ impl AppState {
                         search_bar,
                         options_menu,
                         changer_dropdown,
-			changer_specific_widgets
+                        changer_specific_widgets
                     ]
                     .padding(DEFAULT_MARGIN as f32)
                     .spacing(DEFAULT_MARGIN as f32)
@@ -794,9 +865,22 @@ impl AppState {
         }
     }
 
+    fn subscription(&self) -> Subscription<Messages> {
+	Subscription::filter_map(event::listen(), |event| {
+	    match event {
+		iced::Event::Window(iced::window::Event::CloseRequested) => {
+		    Some(Messages::CloseRequested)
+		},
+		_ => None
+	    }
+	})
+    }
+
     pub fn run_application(instance: Self) -> iced::Result {
         iced::application(instance, Self::update, Self::view)
             .centered()
+            .subscription(Self::subscription)
+            .exit_on_close_request(false)
             .run()
     }
 }
