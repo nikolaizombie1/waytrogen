@@ -1,17 +1,18 @@
 use crate::{
-    changers::hyprpaper::generate_hyprpaper_changer_bar, common::{
+    changers::{hyprpaper::generate_hyprpaper_changer_bar, swaybg::generate_swaybg_changer_bar}, common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
         get_config_file_path,
     }, database::DatabaseConnection, wallpaper_changers::{
-        HyprpaperFitModes, WallpaperChanger, WallpaperChangers, get_available_wallpaper_changers,
+        HyprpaperFitModes, SwaybgModes, WallpaperChanger, WallpaperChangers, get_available_wallpaper_changers
     }
 };
 use gettextrs::gettext;
 use iced::{
     Alignment::Center,
     Element,
-    Length::{Fill, Shrink},
+    Length::Fill,
     Task,
+    Color,
     application::BootFn,
     widget::{
         Row, button, column, image, lazy, pick_list, row, scrollable, text, text_input, toggler,
@@ -19,8 +20,7 @@ use iced::{
 };
 use iced_aw::{
     MenuBar,
-    menu::{self, Item, Menu},
-    menu_bar, menu_items,
+    menu::{Item, Menu}
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -68,7 +68,7 @@ pub struct AppState {
     image_filter_doc: String,
     pub image_filter: String,
     swaybg_mode_doc: String,
-    pub swaybg_mode: u32,
+    pub swaybg_mode: Option<SwaybgModes>,
     swaybg_color_doc: String,
     pub swaybg_color: String,
     mpvpaper_pause_option_doc: String,
@@ -132,6 +132,10 @@ pub struct AppState {
     #[serde(skip)]
     available_changers: Vec<WallpaperChangers>,
     pub hyprpaper_fill_mode: Option<HyprpaperFitModes>,
+    #[serde(skip)]
+    pub sway_bg_color_internal: Color,
+    #[serde(skip)]
+    pub show_swaybg_color_picker: bool
 }
 
 impl Default for AppState {
@@ -170,11 +174,11 @@ impl Default for AppState {
             swaybg_mode_doc: gettext(
                 "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swaybg mode. Do not change unless you know what you are doing.",
             ),
-            swaybg_mode: u32::default(),
+            swaybg_mode: Default::default(),
             swaybg_color_doc: gettext(
                 "The hex color for swaybg background fill. Must be six characters long.",
             ),
-            swaybg_color: String::from("000000"),
+            swaybg_color: Default::default(),
             mpvpaper_pause_option_doc: gettext(
                 "The internal numeric identifier in the changer dropdown used by dconf for the currently selected mpvpaper pause option. Do not change unless you know what you are doing.",
             ),
@@ -280,6 +284,8 @@ impl Default for AppState {
             available_monitors: Default::default(),
             available_changers: Default::default(),
             hyprpaper_fill_mode: Default::default(),
+	    sway_bg_color_internal: Default::default(),
+	    show_swaybg_color_picker: Default::default()
         }
     }
 }
@@ -302,6 +308,10 @@ pub enum Messages {
     InvertSortChanged(bool),
     OptionMenuOpened,
     HyprpaperFitModeChanged(HyprpaperFitModes),
+    SwaybgModeChanged(SwaybgModes),
+    ShowSwaybgColorPicker,
+    SwaybgFillColorSubmitted(Color),
+    SwaybgFillColorCancelled,
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -321,7 +331,15 @@ impl BootFn<AppState, Messages> for AppState {
         }
 	if let None = instance.hyprpaper_fill_mode {
 	    match HyprpaperFitModes::VARIANTS.first() {
-		Some(h) => {instance.hyprpaper_fill_mode = Some(h.clone());},
+		Some(h) => {
+		    instance.hyprpaper_fill_mode = Some(h.clone());
+		},
+		None => {},
+	    }
+	}
+	if let None = instance.swaybg_mode {
+	    match SwaybgModes::VARIANTS.first() {
+		Some(s) => {instance.swaybg_mode = Some(s.clone());}
 		None => {},
 	    }
 	}
@@ -621,7 +639,40 @@ impl AppState {
             Messages::OptionMenuOpened => Task::none(),
             Messages::WallpaperChanged => Task::none(),
             Messages::HyprpaperFitModeChanged(hyprpaper_fit_modes) => {
-		self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes);
+		self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes.clone());
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Hyprpaper(_) = changer {
+			self.changer = Some(WallpaperChangers::Hyprpaper(hyprpaper_fit_modes));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::SwaybgModeChanged(swaybg_modes) => {
+		self.swaybg_mode = Some(swaybg_modes.clone());
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Swaybg(_, color_string) = changer {
+			self.changer = Some(WallpaperChangers::Swaybg(swaybg_modes, color_string.clone()));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::SwaybgFillColorSubmitted(color) => {
+		self.sway_bg_color_internal = color;
+		self.swaybg_color = color.to_string()[0..= color.to_string().len() - 3].to_string();
+		self.show_swaybg_color_picker = false;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Swaybg(modes, _) = changer {
+			self.changer = Some(WallpaperChangers::Swaybg(modes.clone(), self.swaybg_color.clone()));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::ShowSwaybgColorPicker => {
+		self.show_swaybg_color_picker = true;
+		Task::none()
+	    },
+            Messages::SwaybgFillColorCancelled => {
+		self.show_swaybg_color_picker = false;
 		Task::none()
 	    },
         }
@@ -688,7 +739,9 @@ impl AppState {
                     WallpaperChangers::Hyprpaper(_) => {
 			generate_hyprpaper_changer_bar(self)
 		    },
-                    WallpaperChangers::Swaybg(swaybg_modes, _) => todo!(),
+                    WallpaperChangers::Swaybg(_, _) => {
+			generate_swaybg_changer_bar(self)
+		    },
                     WallpaperChangers::MpvPaper(
                         mpv_paper_pause_modes,
                         mpv_paper_slideshow_settings,

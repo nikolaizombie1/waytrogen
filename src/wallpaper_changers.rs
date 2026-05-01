@@ -273,6 +273,20 @@ pub enum SwaybgModes {
     SolidColor,
 }
 
+impl Display for SwaybgModes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ret = match self {
+            SwaybgModes::Stretch => gettext("Stretch"),
+            SwaybgModes::Fit => gettext("Fit"),
+            SwaybgModes::Fill => gettext("Fill"),
+            SwaybgModes::Center => gettext("Center"),
+            SwaybgModes::Tile => gettext("Tile"),
+            SwaybgModes::SolidColor => gettext("Solid Color"),
+        };
+	write!(f, "{ret}")
+    }
+}
+
 #[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize, PartialEq)]
 pub enum MpvPaperPauseModes {
     None,
@@ -586,19 +600,6 @@ impl FromStr for SwaybgModes {
             "tile" => Ok(Self::Tile),
             "solid_color" => Ok(Self::SolidColor),
             _ => Err(format!("Unknown swaybg mode: {s}")),
-        }
-    }
-}
-
-impl Display for SwaybgModes {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Stretch => write!(f, "stretch"),
-            Self::Fit => write!(f, "fit"),
-            Self::Fill => write!(f, "fill"),
-            Self::Center => write!(f, "center"),
-            Self::Tile => write!(f, "tile"),
-            Self::SolidColor => write!(f, "solid_color"),
         }
     }
 }

@@ -1,17 +1,11 @@
 use crate::{
-    common::{DEFAULT_MARGIN, RGB},
-    wallpaper_changers::WallpaperChangers,
+    app_state::{AppState, Messages}, common::{DEFAULT_MARGIN, RGB}, wallpaper_changers::{SwaybgModes, WallpaperChangers}
 };
 use gettextrs::gettext;
-use gtk::{
-    Align, Box, ColorDialog, ColorDialogButton, DropDown, TextBuffer,
-    gdk::RGBA,
-    gio::Settings,
-    glib::{self, clone},
-    prelude::*,
-};
-use log::debug;
+use iced::{Element, widget::{button, pick_list, row, text}};
+use strum::VariantArray;
 use std::{path::Path, process::Command};
+use iced_aw::helpers::color_picker;
 
 pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, monitor: &str) {
     if let WallpaperChangers::Swaybg(mode, rgb) = swaybg_changer {
@@ -19,11 +13,19 @@ pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, 
         if monitor != gettext("All") {
             command.arg("-o").arg(monitor);
         }
+	let mode = match mode {
+	    SwaybgModes::Stretch => "stretch",
+	    SwaybgModes::Fit => "fit",
+	    SwaybgModes::Fill => "fill",
+	    SwaybgModes::Center => "center",
+	    SwaybgModes::Tile => "tile",
+	    SwaybgModes::SolidColor => "solid_color"
+	};
         command
             .arg("-i")
             .arg(image.to_str().unwrap())
             .arg("-m")
-            .arg(mode.to_string())
+            .arg(mode)
             .arg("-c")
             .arg(rgb)
             .spawn()
@@ -33,63 +35,22 @@ pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, 
     }
 }
 
-pub fn generate_swaybg_changer_bar(changer_specific_options_box: &Box, settings: &Settings) {
-    let dropdown = DropDown::from_strings(&[
-        &gettext("stretch"),
-        &gettext("fit"),
-        &gettext("fill"),
-        &gettext("center"),
-        &gettext("tile"),
-        &gettext("solid_color"),
-    ]);
-    dropdown.set_halign(Align::Start);
-    dropdown.set_valign(Align::Center);
-    dropdown.set_margin_top(DEFAULT_MARGIN);
-    dropdown.set_margin_start(DEFAULT_MARGIN);
-    dropdown.set_margin_bottom(DEFAULT_MARGIN);
-    dropdown.set_margin_end(DEFAULT_MARGIN);
-    changer_specific_options_box.append(&dropdown);
-    let color_dialog = ColorDialog::builder().with_alpha(false).build();
-    let color_picker = ColorDialogButton::builder()
-        .halign(Align::Start)
-        .valign(Align::Center)
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .dialog(&color_dialog)
-        .build();
-    changer_specific_options_box.append(&color_picker);
-    settings.bind("swaybg-mode", &dropdown, "selected").build();
-    let rgb_text_buffer = TextBuffer::builder().build();
-    color_picker.connect_rgba_notify(clone!(
-        #[weak]
-        settings,
-        move |b| {
-            let rgba = b.rgba();
-            let serialize_struct = RGB {
-                red: rgba.red(),
-                green: rgba.green(),
-                blue: rgba.blue(),
-            }
-            .to_string();
-            debug!("{}: {}", gettext("Serialized RGB"), serialize_struct);
-            rgb_text_buffer.set_text(&serialize_struct);
-            settings
-                .bind("swaybg-color", &rgb_text_buffer, "text")
-                .build();
-        }
-    ));
-    let rgb = settings
-        .string("swaybg-color")
-        .to_string()
-        .parse::<RGB>()
-        .unwrap();
-    color_picker.set_rgba(
-        &RGBA::builder()
-            .red(rgb.red)
-            .green(rgb.green)
-            .blue(rgb.blue)
-            .build(),
+pub fn generate_swaybg_changer_bar(app_state: &AppState) -> Element<'_, Messages> {
+    let dropdown = pick_list(
+	SwaybgModes::VARIANTS,
+	app_state.swaybg_mode.clone(),
+	Messages::SwaybgModeChanged
     );
+    let color_picker_button =  button(text!["{}", gettext("Fill Color")]).on_press(Messages::ShowSwaybgColorPicker);
+    let color_picker_widget = color_picker(
+	app_state.show_swaybg_color_picker,
+	app_state.sway_bg_color_internal,
+	color_picker_button,
+	Messages::SwaybgFillColorCancelled,
+	Messages::SwaybgFillColorSubmitted
+    );
+    row![
+	dropdown,
+	color_picker_widget
+    ].spacing(DEFAULT_MARGIN as f32).into()
 }
