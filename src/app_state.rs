@@ -1,10 +1,10 @@
 use crate::{
-    common::{
+    changers::hyprpaper::generate_hyprpaper_changer_bar, common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
         get_config_file_path,
-    },
-    database::DatabaseConnection,
-    wallpaper_changers::{WallpaperChanger, WallpaperChangers, get_available_wallpaper_changers},
+    }, database::DatabaseConnection, wallpaper_changers::{
+        HyprpaperFitModes, WallpaperChanger, WallpaperChangers, get_available_wallpaper_changers,
+    }
 };
 use gettextrs::gettext;
 use iced::{
@@ -131,6 +131,7 @@ pub struct AppState {
     available_monitors: Vec<String>,
     #[serde(skip)]
     available_changers: Vec<WallpaperChangers>,
+    pub hyprpaper_fill_mode: Option<HyprpaperFitModes>,
 }
 
 impl Default for AppState {
@@ -278,6 +279,7 @@ impl Default for AppState {
             filtered_images: Default::default(),
             available_monitors: Default::default(),
             available_changers: Default::default(),
+            hyprpaper_fill_mode: Default::default(),
         }
     }
 }
@@ -298,7 +300,8 @@ pub enum Messages {
     ImagesFiltered(AppStateImages),
     WallpaperChangerChanged(WallpaperChangers),
     InvertSortChanged(bool),
-    OptionMenuOpened
+    OptionMenuOpened,
+    HyprpaperFitModeChanged(HyprpaperFitModes),
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -316,6 +319,12 @@ impl BootFn<AppState, Messages> for AppState {
                 None => {}
             }
         }
+	if let None = instance.hyprpaper_fill_mode {
+	    match HyprpaperFitModes::VARIANTS.first() {
+		Some(h) => {instance.hyprpaper_fill_mode = Some(h.clone());},
+		None => {},
+	    }
+	}
         (instance, Task::done(Messages::PopulateImageGrid))
     }
 }
@@ -544,21 +553,18 @@ impl AppState {
     }
 
     fn change_wallpaper(&self, path: PathBuf) -> Task<Messages> {
-	let changer = match self.changer.clone() {
-	    Some(c) => c,
-	    None => return Task::none(),
-	};
-	let monitor = match self.monitor.clone() {
-	    Some(m) => m,
-	    None => return Task::none(),
-	};
-	Task::future(
-	    async move {
-		changer.change(path,monitor);
-	    }
-	).then(|_|{
-	    Task::done(Messages::WallpaperChanged)
-	})
+        let changer = match self.changer.clone() {
+            Some(c) => c,
+            None => return Task::none(),
+        };
+        let monitor = match self.monitor.clone() {
+            Some(m) => m,
+            None => return Task::none(),
+        };
+        Task::future(async move {
+            changer.change(path, monitor);
+        })
+        .then(|_| Task::done(Messages::WallpaperChanged))
     }
 
     pub fn update(&mut self, message: Messages) -> iced::Task<Messages> {
@@ -570,9 +576,7 @@ impl AppState {
                 self.filtered_images = images.unsupported_images;
                 Task::done(Messages::PopulateMonitorDropdown)
             }
-            Messages::ChangeWallpaper(p) => {
-		self.change_wallpaper(p)
-	    },
+            Messages::ChangeWallpaper(p) => self.change_wallpaper(p),
             Messages::ChangeWallpaperFolder => Self::open_wallpaper_folder_file_dialog(),
             Messages::WallpaperFolderChanged(f) => {
                 self.wallpaper_folder = Some(f);
@@ -612,88 +616,129 @@ impl AppState {
             }
             Messages::InvertSortChanged(invert_sort) => {
                 self.invert_sort = invert_sort;
-		self.filter_images(self.image_filter.clone())
-            },
-            Messages::OptionMenuOpened => {
+                self.filter_images(self.image_filter.clone())
+            }
+            Messages::OptionMenuOpened => Task::none(),
+            Messages::WallpaperChanged => Task::none(),
+            Messages::HyprpaperFitModeChanged(hyprpaper_fit_modes) => {
+		self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes);
 		Task::none()
 	    },
-	    Messages::WallpaperChanged => {
-		Task::none()
-	    }
         }
     }
 
     pub fn view(&self) -> Element<'_, Messages> {
-        let mut image_grid: Row<_> = row![].spacing(DEFAULT_MARGIN as f32);
-        for cached_image_file in self.image_grid_images.iter() {
-            image_grid =
-                image_grid.push(lazy(cached_image_file, move |i| -> Element<'_, Messages> {
-                    let path = i.path.clone();
-                    button(image(&i.cached_image_path).content_fit(iced::ContentFit::Cover))
-                        .padding(0)
-                        .width(BUTTON_WIDTH)
-                        .height(BUTTON_HEIGHT)
-                        .on_press_with(move || {
-                            Messages::ChangeWallpaper(PathBuf::from(path.clone()))
-                        })
-                        .into()
-                }));
+        match &self.changer {
+            Some(changer) => {
+                let mut image_grid: Row<_> = row![].spacing(DEFAULT_MARGIN as f32);
+                for cached_image_file in self.image_grid_images.iter() {
+                    image_grid = image_grid.push(lazy(
+                        cached_image_file,
+                        move |i| -> Element<'_, Messages> {
+                            let path = i.path.clone();
+                            button(image(&i.cached_image_path).content_fit(iced::ContentFit::Cover))
+                                .padding(0)
+                                .width(BUTTON_WIDTH)
+                                .height(BUTTON_HEIGHT)
+                                .on_press_with(move || {
+                                    Messages::ChangeWallpaper(PathBuf::from(path.clone()))
+                                })
+                                .into()
+                        },
+                    ));
+                }
+
+                let monitors_dropdown = pick_list(
+                    self.available_monitors.as_slice(),
+                    self.monitor.clone(),
+                    Messages::MonitorChanged,
+                );
+
+                let sort_dropdown = pick_list(
+                    SortBy::VARIANTS,
+                    self.sort_by.clone(),
+                    Messages::SortByChanged,
+                );
+
+                let search_bar = text_input(&gettext("Find images"), &self.image_filter)
+                    .on_input(Messages::SearchBarInputted)
+                    .width(Fill);
+
+                let options_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
+                    button(text!["{}", gettext("Options")]).on_press(Messages::OptionMenuOpened),
+                    Menu::new(
+                        [Item::new(
+                            toggler(self.invert_sort)
+                                .label(gettext("Invert Sort"))
+                                .on_toggle(Messages::InvertSortChanged),
+                        )]
+                        .into(),
+                    )
+                    .max_width(200.0),
+                )])
+                .into();
+
+                let changer_dropdown = pick_list(
+                    self.available_changers.as_slice(),
+                    self.changer.clone(),
+                    Messages::WallpaperChangerChanged,
+                );
+
+                let changer_specific_widgets = match changer {
+                    WallpaperChangers::Hyprpaper(_) => {
+			generate_hyprpaper_changer_bar(self)
+		    },
+                    WallpaperChangers::Swaybg(swaybg_modes, _) => todo!(),
+                    WallpaperChangers::MpvPaper(
+                        mpv_paper_pause_modes,
+                        mpv_paper_slideshow_settings,
+                        _,
+                    ) => todo!(),
+                    WallpaperChangers::Awww(
+                        awwwresize_mode,
+                        rgb,
+                        awwwscalling_filter,
+                        awwwtransition_type,
+                        _,
+                        _,
+                        _,
+                        _,
+                        awwwtransition_position,
+                        _,
+                        awwwtransition_bezier,
+                        awwwtransition_wave,
+                    ) => todo!(),
+                    WallpaperChangers::GSlapper(
+                        gsllapper_scale_mode,
+                        gsllapper_pause_mode,
+                        _,
+                        _,
+                    ) => todo!(),
+                };
+
+                column![
+                    scrollable(image_grid.wrap()).width(Fill).height(Fill),
+                    row![
+                        monitors_dropdown,
+                        button(text!["{}", gettext("Images Folder")])
+                            .on_press(Messages::ChangeWallpaperFolder),
+                        sort_dropdown,
+                        search_bar,
+                        options_menu,
+                        changer_dropdown,
+			changer_specific_widgets
+                    ]
+                    .padding(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .align_y(Center)
+                ]
+                .align_x(Center)
+                .padding(DEFAULT_MARGIN as f32)
+                .spacing(DEFAULT_MARGIN as f32)
+                .into()
+            }
+            None => todo!(),
         }
-
-        let monitors_dropdown = pick_list(
-            self.available_monitors.as_slice(),
-            self.monitor.clone(),
-            Messages::MonitorChanged,
-        );
-
-        let sort_dropdown = pick_list(
-            SortBy::VARIANTS,
-            self.sort_by.clone(),
-            Messages::SortByChanged,
-        );
-
-        let search_bar = text_input(&gettext("Find images"), &self.image_filter)
-            .on_input(Messages::SearchBarInputted)
-            .width(Fill);
-
-        let options_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
-            button(text!["{}", gettext("Options")]).on_press(Messages::OptionMenuOpened),
-            Menu::new(
-                [Item::new(
-                    toggler(self.invert_sort)
-                        .label(gettext("Invert Sort"))
-                        .on_toggle(Messages::InvertSortChanged),
-                )]
-                .into(),
-            ).max_width(200.0),
-        )])
-        .into();
-
-        let changer_dropdown = pick_list(
-            self.available_changers.as_slice(),
-            self.changer.clone(),
-            Messages::WallpaperChangerChanged,
-        );
-
-        column![
-            scrollable(image_grid.wrap()).width(Fill).height(Fill),
-            row![
-                monitors_dropdown,
-                button(text!["{}", gettext("Images Folder")])
-                    .on_press(Messages::ChangeWallpaperFolder),
-                sort_dropdown,
-                search_bar,
-                options_menu,
-                changer_dropdown
-            ]
-            .padding(DEFAULT_MARGIN as f32)
-            .spacing(DEFAULT_MARGIN as f32)
-            .align_y(Center)
-        ]
-        .align_x(Center)
-        .padding(DEFAULT_MARGIN as f32)
-        .spacing(DEFAULT_MARGIN as f32)
-        .into()
     }
 
     pub fn run_application(instance: Self) -> iced::Result {

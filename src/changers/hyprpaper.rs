@@ -1,10 +1,11 @@
 use gettextrs::gettext;
-use gtk::{Align, Box, DropDown, gio::Settings, prelude::*};
+use iced::{Element, widget::{PickList, pick_list}};
 use log::{debug, error, warn};
+use strum::VariantArray;
 use std::{path::Path, process::Command, thread, time::Duration};
 use which::which;
 
-use crate::{common::DEFAULT_MARGIN, wallpaper_changers::WallpaperChangers};
+use crate::{app_state::{self, AppState, Messages}, common::DEFAULT_MARGIN, wallpaper_changers::{HyprpaperFitModes, WallpaperChangers}};
 
 pub fn change_hyprpaper_wallpaper(
     hyprpaper_changer: WallpaperChangers,
@@ -82,21 +83,11 @@ pub fn change_hyprpaper_wallpaper(
     }
 }
 
-pub fn generate_hyprpaper_changer_bar(changer_specific_options_box: &Box, settings: &Settings) {
-    let dropdown = DropDown::from_strings(&[
-        &gettext("contain"),
-        &gettext("cover"),
-        &gettext("tile"),
-        &gettext("fill"),
-    ]);
-    dropdown.set_halign(Align::Start);
-    dropdown.set_valign(Align::Center);
-    dropdown.set_margin_top(DEFAULT_MARGIN);
-    dropdown.set_margin_start(DEFAULT_MARGIN);
-    dropdown.set_margin_bottom(DEFAULT_MARGIN);
-    dropdown.set_margin_end(DEFAULT_MARGIN);
-    changer_specific_options_box.append(&dropdown);
-    settings
-        .bind("hyprpaper-fit-mode", &dropdown, "selected")
-        .build();
+pub fn generate_hyprpaper_changer_bar(app_state:  &AppState) -> Element<'_, Messages> {
+    let dropdown = pick_list(
+	HyprpaperFitModes::VARIANTS,
+	app_state.hyprpaper_fill_mode.clone(),
+	Messages::HyprpaperFitModeChanged
+    );
+    dropdown.into()
 }

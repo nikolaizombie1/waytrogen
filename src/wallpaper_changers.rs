@@ -13,6 +13,7 @@ use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, thread};
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr};
 use which::which;
+use gettextrs::gettext;
 
 pub trait WallpaperChanger {
     fn change(self, image: PathBuf, monitor: String);
@@ -226,6 +227,18 @@ pub enum HyprpaperFitModes {
     Fill,
 }
 
+impl Display for HyprpaperFitModes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ret = match self {
+            HyprpaperFitModes::Contain => gettext("contain"),
+            HyprpaperFitModes::Cover => gettext("cover"),
+            HyprpaperFitModes::Tile => gettext("tile"),
+            HyprpaperFitModes::Fill => gettext("fill"),
+        };
+	write!(f, "{ret}")
+    }
+}
+
 impl U32Enum for HyprpaperFitModes {
     fn from_u32(i: u32) -> Self {
         #[allow(clippy::cast_possible_truncation)]
@@ -246,18 +259,6 @@ impl U32Enum for HyprpaperFitModes {
             HyprpaperFitModes::Tile => 2,
             HyprpaperFitModes::Fill => 3,
         }
-    }
-}
-
-impl Display for HyprpaperFitModes {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = match self {
-            HyprpaperFitModes::Contain => "contain",
-            HyprpaperFitModes::Cover => "cover",
-            HyprpaperFitModes::Tile => "tile",
-            HyprpaperFitModes::Fill => "fill",
-        };
-        write!(f, "{s}")
     }
 }
 
