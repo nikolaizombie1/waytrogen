@@ -29,5 +29,5 @@ rfd = "0.17.2"
 rayon = "1.12.0"
 regex_static = "0.1.1"
 lazy-regex = "3.6.0"
-iced_aw = { version = "0.13.1", features = ["menu", "color_picker"] }
+iced_aw = { version = "0.13.1", features = ["menu", "color_picker", "number_input"] }
 wayland-client = "0.31.14"

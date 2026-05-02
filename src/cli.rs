@@ -43,7 +43,7 @@ pub fn restore_wallpapers(app_state: &AppState) -> anyhow::Result<()> {
                 thread::sleep(Duration::from_millis(1000));
             }
             WallpaperChangers::Swaybg(_)
-            | WallpaperChangers::MpvPaper(_, _, _)
+            | WallpaperChangers::MpvPaper(_)
             | WallpaperChangers::Awww(_, _, _, _, _, _, _, _, _, _, _, _)
             | WallpaperChangers::GSlapper(_, _, _, _) => {}
         }

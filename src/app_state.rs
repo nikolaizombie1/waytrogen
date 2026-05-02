@@ -1,5 +1,5 @@
 use crate::{
-    changers::{hyprpaper::generate_hyprpaper_changer_bar, swaybg::generate_swaybg_changer_bar},
+    changers::{hyprpaper::generate_hyprpaper_changer_bar, mpvpaper::generate_mpvpaper_changer_bar, swaybg::generate_swaybg_changer_bar},
     common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
         get_config_file_path, parse_executable_script,
@@ -7,7 +7,9 @@ use crate::{
     database::DatabaseConnection,
     monitors::AvailableMonitors,
     wallpaper_changers::{
-        HyprpaperFitModes, HyprpaperSettings, SwaybgModes, SwaybgSettings, WallpaperChanger, WallpaperChangers, get_available_wallpaper_changers
+        HyprpaperFitModes, HyprpaperSettings, MpvPaperPauseModes, MpvPaperSettings,
+        MpvPaperSlideshowSettings, SwaybgModes, SwaybgSettings, WallpaperChanger,
+        WallpaperChangers, get_available_wallpaper_changers,
     },
 };
 use anyhow::anyhow;
@@ -85,11 +87,11 @@ pub struct AppState {
     swaybg_color_doc: String,
     pub swaybg_color: String,
     mpvpaper_pause_option_doc: String,
-    pub mpvpaper_pause_option: u32,
+    pub mpvpaper_pause_option: Option<MpvPaperPauseModes>,
     mpvpaper_slideshow_enable_doc: String,
     pub mpvpaper_slideshow_enable: bool,
     mpvpaper_slideshow_interval_doc: String,
-    pub mpvpaper_slideshow_interval: f64,
+    pub mpvpaper_slideshow_interval: u32,
     mpvpaper_additional_options_doc: String,
     pub mpvpaper_additional_options: String,
     selected_monitor_item_doc: String,
@@ -195,7 +197,7 @@ impl Default for AppState {
             mpvpaper_pause_option_doc: gettext(
                 "The internal numeric identifier in the changer dropdown used by dconf for the currently selected mpvpaper pause option. Do not change unless you know what you are doing.",
             ),
-            mpvpaper_pause_option: u32::default(),
+            mpvpaper_pause_option: Default::default(),
             mpvpaper_slideshow_enable_doc: gettext(
                 "The boolean flag to enable/disable slideshows for mpvpaper used by dconf.",
             ),
@@ -203,7 +205,7 @@ impl Default for AppState {
             mpvpaper_slideshow_interval_doc: gettext(
                 "The number of seconds of that mpvpaper takes between switching images in slideshow mode. Note: The option must be a positive floating point number.",
             ),
-            mpvpaper_slideshow_interval: f64::default(),
+            mpvpaper_slideshow_interval: Default::default(),
             mpvpaper_additional_options_doc: gettext(
                 "Custom options for mpvpaper passed as command line arguments.",
             ),
@@ -327,6 +329,10 @@ pub enum Messages {
     ShowSwaybgColorPicker,
     SwaybgFillColorSubmitted(Color),
     SwaybgFillColorCancelled,
+    MpvPaperPauseModeChanged(MpvPaperPauseModes),
+    MpvPaperEnableSlideshowChanged(bool),
+    MpvPaperSlideshowIntervalChanged(u32),
+    MpvPaperAdditionalOptionsChanged(String),
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -345,21 +351,14 @@ impl BootFn<AppState, Messages> for AppState {
             }
         }
         if let None = instance.hyprpaper_fill_mode {
-            match HyprpaperFitModes::VARIANTS.first() {
-                Some(h) => {
-                    instance.hyprpaper_fill_mode = Some(h.clone());
-                }
-                None => {}
-            }
+	    instance.hyprpaper_fill_mode = Some(HyprpaperFitModes::default())
         }
         if let None = instance.swaybg_mode {
-            match SwaybgModes::VARIANTS.first() {
-                Some(s) => {
-                    instance.swaybg_mode = Some(s.clone());
-                }
-                None => {}
-            }
+            instance.swaybg_mode = Some(SwaybgModes::default())
         }
+	if let None = instance.mpvpaper_pause_option {
+	    instance.mpvpaper_pause_option = Some(MpvPaperPauseModes::default())
+	}
         (instance, Task::done(Messages::PopulateImageGrid))
     }
 }
@@ -752,7 +751,11 @@ impl AppState {
                             }
                             None => self.saved_wallpapers.push(Wallpaper {
                                 monitor: monitor.clone(),
-                                path: wallpaper_path.clone().to_str().unwrap_or_default().to_string(),
+                                path: wallpaper_path
+                                    .clone()
+                                    .to_str()
+                                    .unwrap_or_default()
+                                    .to_string(),
                                 changer: changer.clone(),
                             }),
                         }
@@ -770,7 +773,9 @@ impl AppState {
                 self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes.clone());
                 if let Some(changer) = &self.changer {
                     if let WallpaperChangers::Hyprpaper(_) = changer {
-                        self.changer = Some(WallpaperChangers::Hyprpaper(HyprpaperSettings { fit_mode: hyprpaper_fit_modes }));
+                        self.changer = Some(WallpaperChangers::Hyprpaper(HyprpaperSettings {
+                            fit_mode: hyprpaper_fit_modes,
+                        }));
                     }
                 }
                 Task::none()
@@ -779,12 +784,10 @@ impl AppState {
                 self.swaybg_mode = Some(swaybg_modes.clone());
                 if let Some(changer) = &self.changer {
                     if let WallpaperChangers::Swaybg(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Swaybg(
-			    SwaybgSettings{
-				mode: swaybg_modes,
-				..settings.clone()
-			    }
-                        ));
+                        self.changer = Some(WallpaperChangers::Swaybg(SwaybgSettings {
+                            mode: swaybg_modes,
+                            ..settings.clone()
+                        }));
                     }
                 }
                 Task::none()
@@ -795,12 +798,10 @@ impl AppState {
                 self.show_swaybg_color_picker = false;
                 if let Some(changer) = &self.changer {
                     if let WallpaperChangers::Swaybg(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Swaybg(
-			    SwaybgSettings {
-				fill_color: self.swaybg_color.clone(),
-				..settings.clone()
-			    }
-                        ));
+                        self.changer = Some(WallpaperChangers::Swaybg(SwaybgSettings {
+                            fill_color: self.swaybg_color.clone(),
+                            ..settings.clone()
+                        }));
                     }
                 }
                 Task::none()
@@ -814,6 +815,60 @@ impl AppState {
                 Task::none()
             }
             Messages::ExternalScriptExecuted => Task::none(),
+            Messages::MpvPaperPauseModeChanged(mpv_paper_pause_modes) => {
+                self.mpvpaper_pause_option = Some(mpv_paper_pause_modes.clone());
+                if let Some(changer) = &self.changer {
+                    if let WallpaperChangers::MpvPaper(settings) = changer {
+                        self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
+                            pause_mode: mpv_paper_pause_modes,
+                            ..settings.clone()
+                        }));
+                    }
+                }
+                Task::none()
+            }
+            Messages::MpvPaperEnableSlideshowChanged(enable) => {
+                self.mpvpaper_slideshow_enable = enable;
+                if let Some(changer) = &self.changer {
+                    if let WallpaperChangers::MpvPaper(settings) = changer {
+                        self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
+                            slideshow_settings: MpvPaperSlideshowSettings {
+                                enable,
+                                ..settings.slideshow_settings
+                            },
+                            ..settings.clone()
+                        }));
+                    }
+                }
+                Task::none()
+            }
+            Messages::MpvPaperSlideshowIntervalChanged(interval) => {
+		self.mpvpaper_slideshow_interval = interval;
+                if let Some(changer) = &self.changer {
+                    if let WallpaperChangers::MpvPaper(settings) = changer {
+                        self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
+                            slideshow_settings: MpvPaperSlideshowSettings {
+				seconds: interval,
+                                ..settings.slideshow_settings
+                            },
+                            ..settings.clone()
+                        }));
+                    }
+                }
+                Task::none()
+	    },
+            Messages::MpvPaperAdditionalOptionsChanged(additional_options) => {
+		self.mpvpaper_additional_options = additional_options.clone();
+                if let Some(changer) = &self.changer {
+                    if let WallpaperChangers::MpvPaper(settings) = changer {
+                        self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
+                            additional_options,
+                            ..settings.clone()
+                        }));
+                    }
+                }
+                Task::none()
+	    },
         }
     }
 
@@ -877,11 +932,9 @@ impl AppState {
                 let changer_specific_widgets = match changer {
                     WallpaperChangers::Hyprpaper(_) => generate_hyprpaper_changer_bar(self),
                     WallpaperChangers::Swaybg(_) => generate_swaybg_changer_bar(self),
-                    WallpaperChangers::MpvPaper(
-                        mpv_paper_pause_modes,
-                        mpv_paper_slideshow_settings,
-                        _,
-                    ) => todo!(),
+                    WallpaperChangers::MpvPaper(_) => {
+			generate_mpvpaper_changer_bar(self)
+		    }
                     WallpaperChangers::Awww(
                         awwwresize_mode,
                         rgb,
