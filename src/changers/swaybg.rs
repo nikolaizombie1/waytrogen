@@ -1,5 +1,5 @@
 use crate::{
-    app_state::{AppState, Messages}, common::{DEFAULT_MARGIN, RGB}, wallpaper_changers::{SwaybgModes, WallpaperChangers}
+    app_state::{AppState, Messages}, common::DEFAULT_MARGIN, wallpaper_changers::{SwaybgModes, WallpaperChangers}
 };
 use gettextrs::gettext;
 use iced::{Element, widget::{button, pick_list, row, text}};
@@ -8,12 +8,12 @@ use std::{path::Path, process::Command};
 use iced_aw::helpers::color_picker;
 
 pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, monitor: &str) {
-    if let WallpaperChangers::Swaybg(mode, rgb) = swaybg_changer {
+    if let WallpaperChangers::Swaybg(settings) = swaybg_changer {
         let mut command = Command::new("swaybg");
         if monitor != gettext("All") {
             command.arg("-o").arg(monitor);
         }
-	let mode = match mode {
+	let mode = match settings.mode {
 	    SwaybgModes::Stretch => "stretch",
 	    SwaybgModes::Fit => "fit",
 	    SwaybgModes::Fill => "fill",
@@ -27,7 +27,7 @@ pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, 
             .arg("-m")
             .arg(mode)
             .arg("-c")
-            .arg(rgb)
+            .arg(settings.fill_color)
             .spawn()
             .unwrap()
             .wait()

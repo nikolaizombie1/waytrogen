@@ -25,10 +25,21 @@ pub trait U32Enum {
     fn to_u32(&self) -> u32;
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
+pub struct HyprpaperSettings {
+    pub fit_mode: HyprpaperFitModes
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
+pub struct SwaybgSettings {
+    pub mode: SwaybgModes,
+    pub fill_color: String
+}
+
 #[derive(Debug, EnumIter, Clone, Serialize, Deserialize, PartialEq)]
 pub enum WallpaperChangers {
-    Hyprpaper(HyprpaperFitModes),
-    Swaybg(SwaybgModes, String),
+    Hyprpaper(HyprpaperSettings),
+    Swaybg(SwaybgSettings),
     MpvPaper(MpvPaperPauseModes, MpvPaperSlideshowSettings, String),
     Awww(
         AWWWResizeMode,
@@ -158,7 +169,7 @@ impl FromStr for GSllapperPauseMode {
 
 impl Default for WallpaperChangers {
     fn default() -> Self {
-        Self::Hyprpaper(HyprpaperFitModes::default())
+        Self::Hyprpaper(HyprpaperSettings::default())
     }
 }
 
@@ -170,8 +181,8 @@ impl WallpaperChangers {
     }
     fn kill_all_changers_except(changer: &WallpaperChangers) {
         let varient = match changer {
-            Self::Hyprpaper(_) => Self::Hyprpaper(HyprpaperFitModes::default()),
-            Self::Swaybg(_, _) => Self::Swaybg(SwaybgModes::default(), String::default()),
+            Self::Hyprpaper(_) => Self::Hyprpaper(HyprpaperSettings::default()),
+            Self::Swaybg(_) => Self::Swaybg(SwaybgSettings::default()),
             Self::MpvPaper(_, _, _) => Self::MpvPaper(
                 MpvPaperPauseModes::default(),
                 MpvPaperSlideshowSettings::default(),
@@ -634,7 +645,7 @@ impl WallpaperChanger for WallpaperChangers {
             Self::Hyprpaper(_) => {
                 change_hyprpaper_wallpaper(self, &image, &monitor);
             }
-            Self::Swaybg(_, _) => {
+            Self::Swaybg(_) => {
                 change_swaybg_wallpaper(self, &image, &monitor);
             }
             Self::MpvPaper(_, _, _) => {
@@ -660,7 +671,7 @@ impl WallpaperChanger for WallpaperChangers {
                     "jxl".to_owned(),
                 ]
             }
-            Self::Swaybg(_, _) => vec![
+            Self::Swaybg(_) => vec![
                 "png".to_owned(),
                 "jpg".to_owned(),
                 "jpeg".to_owned(),
@@ -986,9 +997,9 @@ impl WallpaperChanger for WallpaperChangers {
                     "y4m".to_owned(),
                 ];
                 let mut hyprpaper_formats =
-                    Self::Hyprpaper(HyprpaperFitModes::default()).accepted_formats();
+                    Self::Hyprpaper(HyprpaperSettings::default()).accepted_formats();
                 let mut swaybg_formats =
-                    Self::Swaybg(SwaybgModes::Fill, "FFFFFF".to_owned()).accepted_formats();
+                    Self::Swaybg(SwaybgSettings::default()).accepted_formats();
                 mpvpaper_formats.append(&mut hyprpaper_formats);
                 mpvpaper_formats.append(&mut swaybg_formats);
                 mpvpaper_formats
@@ -1050,7 +1061,7 @@ impl WallpaperChanger for WallpaperChangers {
                     .spawn()
                     .and_then(|mut c| c.wait());
             }
-            Self::Swaybg(_, _) => {
+            Self::Swaybg(_) => {
                 let _ = Command::new("pkill")
                     .arg("-9")
                     .arg("swaybg")
@@ -1104,7 +1115,7 @@ impl Display for WallpaperChangers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Hyprpaper(_) => write!(f, "hyprpaper"),
-            Self::Swaybg(_, _) => write!(f, "swaybg"),
+            Self::Swaybg(_) => write!(f, "swaybg"),
             Self::MpvPaper(_, _, _) => write!(f, "mpvpaper"),
             Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => write!(f, "awww"),
             Self::GSlapper(_, _, _, _) => write!(f, "gslapper"),
@@ -1117,7 +1128,7 @@ pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
     for changer in WallpaperChangers::iter() {
         match changer {
             WallpaperChangers::Hyprpaper(_) => match which(
-                WallpaperChangers::Hyprpaper(HyprpaperFitModes::default())
+                WallpaperChangers::Hyprpaper(HyprpaperSettings::default())
                     .to_string()
                     .to_ascii_uppercase(),
             ) {
@@ -1137,7 +1148,7 @@ pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
                     }
                 }
             },
-            WallpaperChangers::Swaybg(_, _) => {
+            WallpaperChangers::Swaybg(_) => {
                 append_changer_if_in_path(&mut available_changers, changer)
             }
             WallpaperChangers::MpvPaper(_, _, _) => {

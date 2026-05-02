@@ -12,7 +12,7 @@ pub fn change_hyprpaper_wallpaper(
     image: &Path,
     monitor: &str,
 ) {
-    if let WallpaperChangers::Hyprpaper(fit_mode) = hyprpaper_changer {
+    if let WallpaperChangers::Hyprpaper(settings) = hyprpaper_changer {
         debug!("Starting hyprpaper");
         if !Command::new("pgrep")
             .arg("hyprpaper")
@@ -75,7 +75,7 @@ pub fn change_hyprpaper_wallpaper(
         Command::new("hyprctl")
             .arg("hyprpaper")
             .arg("wallpaper")
-            .arg(format!("{monitor},{},{fit_mode}", image.to_str().unwrap()))
+            .arg(format!("{monitor},{},{}", image.to_str().unwrap(), settings.fit_mode))
             .spawn()
             .unwrap()
             .wait()

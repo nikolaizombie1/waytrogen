@@ -7,8 +7,7 @@ use crate::{
     database::DatabaseConnection,
     monitors::AvailableMonitors,
     wallpaper_changers::{
-        HyprpaperFitModes, SwaybgModes, WallpaperChanger, WallpaperChangers,
-        get_available_wallpaper_changers,
+        HyprpaperFitModes, HyprpaperSettings, SwaybgModes, SwaybgSettings, WallpaperChanger, WallpaperChangers, get_available_wallpaper_changers
     },
 };
 use anyhow::anyhow;
@@ -771,7 +770,7 @@ impl AppState {
                 self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes.clone());
                 if let Some(changer) = &self.changer {
                     if let WallpaperChangers::Hyprpaper(_) = changer {
-                        self.changer = Some(WallpaperChangers::Hyprpaper(hyprpaper_fit_modes));
+                        self.changer = Some(WallpaperChangers::Hyprpaper(HyprpaperSettings { fit_mode: hyprpaper_fit_modes }));
                     }
                 }
                 Task::none()
@@ -779,10 +778,12 @@ impl AppState {
             Messages::SwaybgModeChanged(swaybg_modes) => {
                 self.swaybg_mode = Some(swaybg_modes.clone());
                 if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Swaybg(_, color_string) = changer {
+                    if let WallpaperChangers::Swaybg(settings) = changer {
                         self.changer = Some(WallpaperChangers::Swaybg(
-                            swaybg_modes,
-                            color_string.clone(),
+			    SwaybgSettings{
+				mode: swaybg_modes,
+				..settings.clone()
+			    }
                         ));
                     }
                 }
@@ -793,10 +794,12 @@ impl AppState {
                 self.swaybg_color = color.to_string()[0..=color.to_string().len() - 3].to_string();
                 self.show_swaybg_color_picker = false;
                 if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Swaybg(modes, _) = changer {
+                    if let WallpaperChangers::Swaybg(settings) = changer {
                         self.changer = Some(WallpaperChangers::Swaybg(
-                            modes.clone(),
-                            self.swaybg_color.clone(),
+			    SwaybgSettings {
+				fill_color: self.swaybg_color.clone(),
+				..settings.clone()
+			    }
                         ));
                     }
                 }
@@ -873,7 +876,7 @@ impl AppState {
 
                 let changer_specific_widgets = match changer {
                     WallpaperChangers::Hyprpaper(_) => generate_hyprpaper_changer_bar(self),
-                    WallpaperChangers::Swaybg(_, _) => generate_swaybg_changer_bar(self),
+                    WallpaperChangers::Swaybg(_) => generate_swaybg_changer_bar(self),
                     WallpaperChangers::MpvPaper(
                         mpv_paper_pause_modes,
                         mpv_paper_slideshow_settings,
