@@ -1,3 +1,4 @@
+use gettextrs::gettext;
 use wayland_client::{
     protocol::{wl_output, wl_registry},
     Connection, Dispatch, QueueHandle
@@ -49,6 +50,8 @@ impl AvailableMonitors {
 	let mut available_monitors = AvailableMonitors::default();
 	event_queue.roundtrip(&mut available_monitors)?;
 	event_queue.roundtrip(&mut available_monitors)?;
+	available_monitors.available_monitors.push(gettext("All"));
+	available_monitors.available_monitors.sort();
 	Ok(available_monitors)
     }
 }
