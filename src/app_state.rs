@@ -2,7 +2,7 @@ use crate::{
     changers::{hyprpaper::generate_hyprpaper_changer_bar, swaybg::generate_swaybg_changer_bar},
     common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
-        get_config_file_path,
+        get_config_file_path, parse_executable_script,
     },
     database::DatabaseConnection,
     wallpaper_changers::{
@@ -10,30 +10,36 @@ use crate::{
         get_available_wallpaper_changers,
     },
 };
+use anyhow::anyhow;
 use gettextrs::gettext;
 use iced::{
-    Alignment::Center, Color, Element, Length::Fill, Subscription, Task, application::BootFn, event, widget::{
+    Alignment::Center,
+    Color, Element,
+    Length::Fill,
+    Subscription, Task,
+    application::BootFn,
+    event,
+    widget::{
         Row, button, column, image, lazy, pick_list, row, scrollable, text, text_input, toggler,
-    }, window
+    },
+    window,
 };
 use iced_aw::{
     MenuBar,
     menu::{Item, Menu},
 };
+use log::{error, trace, warn};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, fs::OpenOptions, io::Write, path::PathBuf};
+use std::{
+    fmt::Display,
+    fs::{OpenOptions, remove_file},
+    io::{Read, Write},
+    path::{Path, PathBuf},
+    process::Command,
+};
 use strum::VariantArray;
 use walkdir::{DirEntry, WalkDir};
-use crate::{
-    common::{parse_executable_script},
-};
-use anyhow::anyhow;
-use log::{error, trace, warn};
-use std::{
-    fs::remove_file,
-    io::Read
-};
 
 #[derive(Clone, Serialize, Deserialize, Default, VariantArray, PartialEq)]
 pub enum SortBy {
@@ -302,7 +308,7 @@ pub enum Messages {
     PopulateImageGrid,
     ImageGridPopulated(Vec<CacheImageFile>),
     ChangeWallpaper(PathBuf),
-    WallpaperChanged,
+    WallpaperChanged(PathBuf),
     ChangeWallpaperFolder,
     PopulateMonitorDropdown,
     MonitorDropdownPopulated(Vec<String>),
@@ -315,6 +321,7 @@ pub enum Messages {
     InvertSortChanged(bool),
     OptionMenuOpened,
     CloseRequested,
+    ExternalScriptExecuted,
     HyprpaperFitModeChanged(HyprpaperFitModes),
     SwaybgModeChanged(SwaybgModes),
     ShowSwaybgColorPicker,
@@ -643,12 +650,59 @@ impl AppState {
             None => return Task::none(),
         };
         Task::future(async move {
-            changer.change(path, monitor);
+            changer.change(path.clone(), monitor);
+            path
         })
-        .then(|_| Task::done(Messages::WallpaperChanged))
+        .then(|p| Task::done(Messages::WallpaperChanged(p)))
     }
 
-    pub fn update(&mut self, message: Messages) -> iced::Task<Messages> {
+    fn execute_external_script(&self, wallpaper_path: &Path) -> Task<Messages> {
+        let external_script_path = self.executable_script.clone();
+	let wallpaper_path = wallpaper_path.to_path_buf();
+	let internal_state = self.clone();
+	let monitor = self.monitor.clone();
+        Task::future(async move {
+            let external_script_path = match std::fs::canonicalize(external_script_path.clone()) {
+                Ok(p) => p,
+                Err(e) => {
+                    warn!("Failed to parse external script path {external_script_path}: {e}");
+                    return Task::none();
+                }
+            };
+            let serialized_internal_state = match serde_json::to_string_pretty(&internal_state) {
+                Ok(s) => s,
+                Err(e) => {
+                    error!("Failed to serialize internal state: {e}");
+                    return Task::none();
+                }
+            };
+            let monitor = match monitor {
+                Some(m) => m,
+                None => {
+                    error!("Failed to get monitors");
+                    return Task::none();
+                }
+            };
+            match Command::new(external_script_path.to_str().unwrap_or_default())
+                .arg(monitor)
+                .arg(wallpaper_path)
+                .arg(serialized_internal_state)
+                .spawn()
+            {
+                Ok(_) => return Task::done(Messages::ExternalScriptExecuted),
+                Err(e) => {
+                    error!(
+                        "Failed to execute external script {}: {e}",
+                        external_script_path.to_str().unwrap_or_default()
+                    );
+                    return Task::none();
+                }
+            };
+        })
+        .then(|t| t)
+    }
+
+    pub fn update(&mut self, message: Messages) -> Task<Messages> {
         match message {
             Messages::PopulateImageGrid => self.populate_image_grid(),
             Messages::ImageGridPopulated(i) => {
@@ -700,13 +754,15 @@ impl AppState {
                 self.filter_images(self.image_filter.clone())
             }
             Messages::OptionMenuOpened => Task::none(),
-            Messages::WallpaperChanged => Task::none(),
-	    Messages::CloseRequested  => {
-		if let Err(e) = self.write_to_config_file() {
-		    error!("Failed to write to config file: {e}");
-		}
-		window::latest().and_then(window::close)
-	    }
+            Messages::WallpaperChanged(wallpaper_path) => {
+                self.execute_external_script(&wallpaper_path)
+            }
+            Messages::CloseRequested => {
+                if let Err(e) = self.write_to_config_file() {
+                    error!("Failed to write to config file: {e}");
+                }
+                window::latest().and_then(window::close)
+            }
             Messages::HyprpaperFitModeChanged(hyprpaper_fit_modes) => {
                 self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes.clone());
                 if let Some(changer) = &self.changer {
@@ -750,6 +806,7 @@ impl AppState {
                 self.show_swaybg_color_picker = false;
                 Task::none()
             }
+            Messages::ExternalScriptExecuted => Task::none(),
         }
     }
 
@@ -866,14 +923,12 @@ impl AppState {
     }
 
     fn subscription(&self) -> Subscription<Messages> {
-	Subscription::filter_map(event::listen(), |event| {
-	    match event {
-		iced::Event::Window(iced::window::Event::CloseRequested) => {
-		    Some(Messages::CloseRequested)
-		},
-		_ => None
-	    }
-	})
+        Subscription::filter_map(event::listen(), |event| match event {
+            iced::Event::Window(iced::window::Event::CloseRequested) => {
+                Some(Messages::CloseRequested)
+            }
+            _ => None,
+        })
     }
 
     pub fn run_application(instance: Self) -> iced::Result {

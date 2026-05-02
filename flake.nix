@@ -23,6 +23,7 @@
             glib
             wrapGAppsHook4
             bash
+            wayland
             wayland-utils
           ];
           buildInputs = with pkgs; [
@@ -41,6 +42,7 @@
             libxkbcommon
             vulkan-loader
             wayland
+            wayland-utils
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };
@@ -75,6 +77,7 @@
             bash
             rustc
             gtk4
+            wayland
             wayland-utils
           ];
 
@@ -85,6 +88,8 @@
             sqlite
             openssl
             gsettings-desktop-schemas
+            wayland
+            wayland-utils
           ];
 
           mesonFlags = [
@@ -138,6 +143,7 @@
             ninja
             desktop-file-utils
             gettext
+            wayland
             wayland-utils
           ];
           buildInputs = with pkgs; [
@@ -164,6 +170,8 @@
             vulkan-loader
             wayland
             cargo
+            wayland
+            wayland-utils
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };
