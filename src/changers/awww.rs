@@ -1,73 +1,65 @@
 use crate::{
-    common::{DEFAULT_MARGIN, RGB},
+    app_state::{AppState, Messages},
+    common::DEFAULT_MARGIN,
     wallpaper_changers::{
-        AWWWScallingFilter, AWWWTransitionBezier, AWWWTransitionPosition, U32Enum,
-        WallpaperChangers,
+        AWWWResizeMode, AWWWScallingFilter, AWWWTransitionBezier, AWWWTransitionPosition,
+        AWWWTransitionType, U32Enum, WallpaperChangers,
     },
 };
 use gettextrs::gettext;
-use gtk::{
-    Adjustment, Align, Box, Button, ColorDialog, ColorDialogButton, DropDown, Entry, Label,
-    SpinButton, Switch, TextBuffer, Window,
-    gdk::RGBA,
-    gio::Settings,
-    glib::{self, clone},
-    prelude::*,
+use iced::{
+    Alignment::Center,
+    Element,
+    Length::Fill,
+    widget::{button, pick_list, row, text, text_input, toggler},
+};
+use iced_aw::{
+    MenuBar,
+    helpers::color_picker,
+    menu::{Item, Menu},
+    number_input,
 };
 use log::debug;
 use std::{path::PathBuf, process::Command};
+use strum::VariantArray;
 
 pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, monitor: String) {
-    if let WallpaperChangers::Awww(
-        resize_modes,
-        fill_color,
-        scalling_filter,
-        transition_type,
-        transition_step,
-        transition_duration,
-        transition_fps,
-        transition_angle,
-        transition_position,
-        invert_y,
-        transition_bezier,
-        transition_wave,
-    ) = awww_changer
-    {
+    if let WallpaperChangers::Awww(settings) = awww_changer {
         debug!("Starting awww daemon");
         Command::new("awww-daemon").spawn().unwrap().wait().unwrap();
         let mut command = Command::new("awww");
         command
             .arg("img")
             .arg("--resize")
-            .arg(resize_modes.to_string())
+            .arg(settings.resize_mode.to_string())
             .arg("--fill-color")
-            .arg(fill_color.to_string());
+            .arg(settings.fill_color.to_string());
         if monitor != gettext("All") {
             command.arg("--outputs").arg(monitor);
         }
         command
             .arg("--filter")
-            .arg(scalling_filter.to_string())
+            .arg(settings.scalling_filter.to_string())
             .arg("--transition-type")
-            .arg(transition_type.to_string())
+            .arg(settings.transition_type.to_string())
             .arg("--transition-step")
-            .arg(transition_step.to_string())
+            .arg(settings.transition_step.to_string())
             .arg("--transition-duration")
-            .arg(transition_duration.to_string())
+            .arg(settings.transition_duration.to_string())
             .arg("--transition-fps")
-            .arg(transition_fps.to_string())
+            .arg(settings.transition_fps.to_string())
             .arg("--transition-angle")
-            .arg(transition_angle.to_string())
+            .arg(settings.transition_angle.to_string())
             .arg("--transition-pos")
-            .arg(transition_position.to_string());
-        if invert_y {
+            .arg(settings.transition_position.to_string());
+        if settings.invert_y {
             command.arg("--invert-y");
         }
         command
             .arg("--transition-bezier")
-            .arg(transition_bezier.to_string())
+            .arg(settings.transition_bezier.to_string())
             .arg("--transition-wave")
-            .arg(transition_wave.to_string())
+            .arg(settings.transition_wave.to_string())
             .arg(image)
             .spawn()
             .unwrap()
@@ -76,487 +68,229 @@ pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, mo
     }
 }
 
-pub fn generate_awww_changer_bar(changer_specific_options_box: &Box, settings: Settings) {
-    let resize_dropdown =
-        DropDown::from_strings(&[&gettext("no"), &gettext("crop"), &gettext("fit")]);
-    resize_dropdown.set_margin_top(DEFAULT_MARGIN);
-    resize_dropdown.set_margin_start(DEFAULT_MARGIN);
-    resize_dropdown.set_margin_bottom(DEFAULT_MARGIN);
-    resize_dropdown.set_margin_end(DEFAULT_MARGIN);
-    resize_dropdown.set_halign(Align::Start);
-    resize_dropdown.set_valign(Align::Center);
-    changer_specific_options_box.append(&resize_dropdown);
-    settings
-        .bind("awww-resize", &resize_dropdown, "selected")
-        .build();
-    let color_dialog = ColorDialog::builder().with_alpha(false).build();
-    let color_picker = ColorDialogButton::builder()
-        .halign(Align::Start)
-        .valign(Align::Center)
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .dialog(&color_dialog)
-        .build();
-    let rgb_text_buffer = TextBuffer::builder().build();
-    color_picker.connect_rgba_notify(clone!(
-        #[weak]
-        settings,
-        move |b| {
-            let rgba = b.rgba();
-            let serialize_struct = RGB {
-                red: rgba.red(),
-                green: rgba.green(),
-                blue: rgba.blue(),
-            }
-            .to_string();
-            rgb_text_buffer.set_text(&serialize_struct);
-            settings
-                .bind("awww-fill-color", &rgb_text_buffer, "text")
-                .build();
-        }
-    ));
-    let rgb = settings
-        .string("awww-fill-color")
-        .to_string()
-        .parse::<RGB>()
-        .unwrap();
-    color_picker.set_rgba(
-        &RGBA::builder()
-            .red(rgb.red)
-            .green(rgb.green)
-            .blue(rgb.blue)
-            .build(),
+pub fn generate_awww_changer_bar(app_state: &AppState) -> Element<'_, Messages> {
+    let resize_dropdown = pick_list(
+        AWWWResizeMode::VARIANTS,
+        app_state.awww_resize.clone(),
+        Messages::AwwwResizeModeChanged,
     );
-    changer_specific_options_box.append(&color_picker);
-    let advanced_settings_window = Window::builder()
-        .title(gettext("AWWW Advanced Image Settings"))
-        .hide_on_close(true)
-        .build();
-    let advanced_settings_button = Button::builder()
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .label(gettext("Advanced Settings"))
-        .halign(Align::Start)
-        .valign(Align::Center)
-        .build();
-    changer_specific_options_box.append(&advanced_settings_button);
-    connect_advanced_settings_window_signals(
-        &advanced_settings_button,
-        advanced_settings_window,
-        settings,
+    let color_picker_button =
+        button(text!["{}", gettext("Fill Color")]).on_press(Messages::ShowAwwwColorPicker);
+    let color_picker_widget = color_picker(
+        app_state.show_awww_color_picker,
+        app_state.awww_fill_color_internal,
+        color_picker_button,
+        Messages::AwwwFillColorCancelled,
+        Messages::AwwwFillColorSubmitted,
     );
-}
 
-fn connect_advanced_settings_window_signals(
-    advanced_settings_button: &Button,
-    advanced_settings_window: Window,
-    settings: Settings,
-) {
-    advanced_settings_button.connect_clicked(move |_| {
-        let advanced_settings_window_box = Box::builder()
-            .orientation(gtk::Orientation::Vertical)
-            .margin_top(DEFAULT_MARGIN)
-            .margin_start(DEFAULT_MARGIN)
-            .margin_bottom(DEFAULT_MARGIN)
-            .margin_end(DEFAULT_MARGIN)
-            .hexpand(true)
-            .vexpand(true)
-            .build();
-        advanced_settings_window.present();
-        advanced_settings_window.set_child(Some(&advanced_settings_window_box));
-        let filter_options_label = create_label("Scalling filter");
-        let filter_dropdown = create_filter_dropdown(&settings);
-        let transition_type_label = create_label("Transition type");
-        let transition_type_dropdown = create_transition_type_dropdown(&settings);
-        let filter_and_transition_box = create_category_box();
-
-        filter_and_transition_box.append(&filter_options_label);
-        filter_and_transition_box.append(&filter_dropdown);
-        filter_and_transition_box.append(&transition_type_label);
-        filter_and_transition_box.append(&transition_type_dropdown);
-        advanced_settings_window_box.append(&filter_and_transition_box);
-
-        let transition_step_label = create_label("Transition step");
-
-        let transition_step_adjustment =
-            Adjustment::new(90.0, 0.0, f64::from(u8::MAX), 1.0, 0.0, 0.0);
-        let transition_step_spinbutton = create_spinbutton(&transition_step_adjustment);
-
-        settings
-            .bind("awww-transition-step", &transition_step_spinbutton, "value")
-            .build();
-
-        let transition_duration_label = create_label("Transition duration");
-
-        let transition_duration_adjustment =
-            Adjustment::new(3.0, 0.0, f64::from(u32::MAX), 1.0, 0.0, 0.0);
-        let transition_duration_spinbutton = create_spinbutton(&transition_duration_adjustment);
-        settings
-            .bind(
-                "awww-transition-duration",
-                &transition_duration_spinbutton,
-                "value",
-            )
-            .build();
-
-        let transition_angle_label = create_label("Transition angle");
-
-        let transition_angle_adjustment = Adjustment::new(45.0, 0.0, 270.0, 1.0, 0.0, 0.0);
-        let transition_angle_spinbutton = create_spinbutton(&transition_angle_adjustment);
-        settings
-            .bind(
-                "awww-transition-angle",
-                &transition_angle_spinbutton,
-                "value",
-            )
-            .build();
-
-        let transition_step_duration_angle_box = create_category_box();
-
-        transition_step_duration_angle_box.append(&transition_step_label);
-        transition_step_duration_angle_box.append(&transition_step_spinbutton);
-        transition_step_duration_angle_box.append(&transition_duration_label);
-        transition_step_duration_angle_box.append(&transition_duration_spinbutton);
-        transition_step_duration_angle_box.append(&transition_angle_label);
-        transition_step_duration_angle_box.append(&transition_angle_spinbutton);
-        advanced_settings_window_box.append(&transition_step_duration_angle_box);
-
-        let transition_position_label = create_label("Transition position");
-
-        let transition_position_entry = create_transition_position_entry();
-
-        let transition_position_entry_text_buffer = TextBuffer::builder().build();
-        settings
-            .bind(
-                "awww-transition-position",
-                &transition_position_entry_text_buffer,
-                "text",
-            )
-            .build();
-
-        transition_position_entry.set_text(
-            transition_position_entry_text_buffer
-                .text(
-                    &transition_position_entry_text_buffer.start_iter(),
-                    &transition_position_entry_text_buffer.end_iter(),
-                    false,
-                )
-                .as_ref(),
-        );
-
-        transition_position_entry.connect_changed(move |e| {
-            let text = e.text().to_string();
-            if AWWWTransitionPosition::new(&text).is_ok() {
-                transition_position_entry_text_buffer.set_text(&text);
-            }
-        });
-
-        let invert_y_label = create_label("Invert Y");
-
-        let invert_y_switch = create_switch("Invert y position in transition position flag");
-
-        settings
-            .bind("awww-invert-y", &invert_y_switch, "active")
-            .build();
-
-        let transition_wave_label = create_label("Transition wave");
-
-        let transition_wave_width_adjustment =
-            Adjustment::new(20.0, 0.0, f64::from(u32::MAX), 1.0, 0.0, 0.0);
-        let transition_wave_width_spinbutton = create_spinbutton(&transition_wave_width_adjustment);
-
-        settings
-            .bind(
-                "awww-transition-wave-width",
-                &transition_wave_width_spinbutton,
-                "value",
-            )
-            .build();
-
-        let transition_wave_height_adjustment =
-            Adjustment::new(20.0, 0.0, f64::from(u32::MAX), 1.0, 0.0, 0.0);
-        let transition_wave_height_spinbutton =
-            create_spinbutton(&transition_wave_height_adjustment);
-
-        settings
-            .bind(
-                "awww-transition-wave-height",
-                &transition_wave_height_spinbutton,
-                "value",
-            )
-            .build();
-
-        let transition_position_invert_y_wave_box = create_category_box();
-
-        transition_position_invert_y_wave_box.append(&transition_position_label);
-        transition_position_invert_y_wave_box.append(&transition_position_entry);
-        transition_position_invert_y_wave_box.append(&invert_y_label);
-        transition_position_invert_y_wave_box.append(&invert_y_switch);
-        transition_position_invert_y_wave_box.append(&transition_wave_label);
-        transition_position_invert_y_wave_box.append(&transition_wave_width_spinbutton);
-        transition_position_invert_y_wave_box.append(&transition_wave_height_spinbutton);
-        advanced_settings_window_box.append(&transition_position_invert_y_wave_box);
-
-        let transition_bezier_label = create_label("Transition bezier");
-
-        let transition_bezier_adjustments =
-            Adjustment::new(0.0, f64::MIN, f64::MAX, 0.01, 0.0, 0.0);
-        let transition_bezier_p0_spinbutton =
-            create_point_spinbutton(&transition_bezier_adjustments);
-        settings
-            .bind(
-                "awww-transition-bezier-p0",
-                &transition_bezier_p0_spinbutton,
-                "value",
-            )
-            .build();
-        let transition_bezier_p1_spinbutton =
-            create_point_spinbutton(&transition_bezier_adjustments);
-        settings
-            .bind(
-                "awww-transition-bezier-p1",
-                &transition_bezier_p1_spinbutton,
-                "value",
-            )
-            .build();
-        let transition_bezier_p2_spinbutton =
-            create_point_spinbutton(&transition_bezier_adjustments);
-        settings
-            .bind(
-                "awww-transition-bezier-p2",
-                &transition_bezier_p2_spinbutton,
-                "value",
-            )
-            .build();
-        let transition_bezier_p3_spinbutton =
-            create_point_spinbutton(&transition_bezier_adjustments);
-        settings
-            .bind(
-                "awww-transition-bezier-p3",
-                &transition_bezier_p3_spinbutton,
-                "value",
-            )
-            .build();
-
-        let transition_bezier_fps_box = create_category_box();
-
-        let transition_frames_per_second_label = create_label("Transition FPS");
-
-        let transition_frames_per_second_adjustment =
-            Adjustment::new(30.0, 1.0, f64::from(u32::MAX), 1.0, 0.0, 0.0);
-
-        let transition_frames_per_second_spinbutton =
-            create_spinbutton(&transition_frames_per_second_adjustment);
-
-        settings
-            .bind(
-                "awww-transition-fps",
-                &transition_frames_per_second_spinbutton,
-                "value",
-            )
-            .build();
-
-        transition_bezier_fps_box.append(&transition_bezier_label);
-        transition_bezier_fps_box.append(&transition_bezier_p0_spinbutton);
-        transition_bezier_fps_box.append(&transition_bezier_p1_spinbutton);
-        transition_bezier_fps_box.append(&transition_bezier_p2_spinbutton);
-        transition_bezier_fps_box.append(&transition_bezier_p3_spinbutton);
-        transition_bezier_fps_box.append(&transition_frames_per_second_label);
-        transition_bezier_fps_box.append(&transition_frames_per_second_spinbutton);
-        advanced_settings_window_box.append(&transition_bezier_fps_box);
-
-        let window_hide_button = create_button("Confirm");
-
-        let restore_defaults_button = create_button("Restore Defaults");
-
-        restore_defaults_button.connect_clicked(move |_| {
-            filter_dropdown.set_selected(AWWWScallingFilter::default().to_u32());
-            transition_step_spinbutton.set_value(90.0);
-            transition_duration_spinbutton.set_value(3.0);
-            transition_angle_spinbutton.set_value(45.0);
-            transition_position_entry.set_text(&AWWWTransitionPosition::default().to_string());
-            invert_y_switch.set_state(false);
-            transition_wave_width_spinbutton.set_value(200.0);
-            transition_wave_height_spinbutton.set_value(200.0);
-            transition_bezier_p0_spinbutton.set_value(AWWWTransitionBezier::default().p0);
-            transition_bezier_p1_spinbutton.set_value(AWWWTransitionBezier::default().p1);
-            transition_bezier_p2_spinbutton.set_value(AWWWTransitionBezier::default().p2);
-            transition_bezier_p3_spinbutton.set_value(AWWWTransitionBezier::default().p3);
-            transition_frames_per_second_spinbutton.set_value(30.0);
-        });
-
-        let window_control_box = create_window_control_box();
-
-        window_hide_button.connect_clicked(clone!(
-            #[weak]
-            advanced_settings_window,
-            move |_| {
-                advanced_settings_window.set_visible(false);
-            }
-        ));
-        window_control_box.append(&restore_defaults_button);
-        window_control_box.append(&window_hide_button);
-        advanced_settings_window_box.append(&window_control_box);
-    });
-}
-
-fn create_filter_dropdown(settings: &Settings) -> DropDown {
-    let filter_dropdown = DropDown::from_strings(&[
-        &gettext("nearest"),
-        &gettext("bilinear"),
-        &gettext("catmullrom"),
-        &gettext("mitchell"),
-        &gettext("lanczos3"),
-    ]);
-    filter_dropdown.set_margin_top(DEFAULT_MARGIN);
-    filter_dropdown.set_margin_start(DEFAULT_MARGIN);
-    filter_dropdown.set_margin_bottom(DEFAULT_MARGIN);
-    filter_dropdown.set_margin_end(DEFAULT_MARGIN);
-    filter_dropdown.set_halign(Align::Start);
-    filter_dropdown.set_valign(Align::Center);
-    settings
-        .bind("awww-scaling-filter", &filter_dropdown, "selected")
-        .build();
-
-    filter_dropdown
-}
-
-fn create_transition_type_dropdown(settings: &Settings) -> DropDown {
-    let transition_type_dropdown = DropDown::from_strings(&[
-        &gettext("none"),
-        &gettext("simple"),
-        &gettext("fade"),
-        &gettext("left"),
-        &gettext("right"),
-        &gettext("top"),
-        &gettext("bottom"),
-        &gettext("wipe"),
-        &gettext("wave"),
-        &gettext("grow"),
-        &gettext("center"),
-        &gettext("any"),
-        &gettext("outer"),
-        &gettext("random"),
-    ]);
-    transition_type_dropdown.set_margin_top(DEFAULT_MARGIN);
-    transition_type_dropdown.set_margin_start(DEFAULT_MARGIN);
-    transition_type_dropdown.set_margin_bottom(DEFAULT_MARGIN);
-    transition_type_dropdown.set_margin_end(DEFAULT_MARGIN);
-    transition_type_dropdown.set_halign(Align::Start);
-    transition_type_dropdown.set_valign(Align::Center);
-    settings
-        .bind(
-            "awww-transition-type",
-            &transition_type_dropdown,
-            "selected",
+    let advanced_settings_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
+        button(text!["{}", gettext("Advanced Options")])
+            .on_press(Messages::AwwwAdvancedSettingsButtonClicked),
+        Menu::new(
+            [
+                Item::new(
+                    row![
+                        text!["{}", gettext("Scalling filter")],
+                        pick_list(
+                            AWWWScallingFilter::VARIANTS,
+                            app_state.awww_scaling_filter.clone(),
+                            Messages::AwwwScallingFilterChanged
+                        )
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .width(Fill)
+                    .align_y(Center),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition type")],
+                        pick_list(
+                            AWWWTransitionType::VARIANTS,
+                            app_state.awww_transition_type.clone(),
+                            Messages::AwwwTransitionTypeChanged
+                        )
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .align_y(Center)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition step")],
+                        number_input(
+                            &app_state.awww_transition_step,
+                            0..=u8::MAX,
+                            Messages::AwwwTransitionStepChanged
+                        )
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Trasition duration")],
+                        number_input(
+                            &app_state.awww_transition_duration,
+                            0..=u32::MAX,
+                            Messages::AwwwTransitionDurationChanged
+                        )
+                    ]
+                    .align_y(Center)
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition duration")],
+                        number_input(
+                            &app_state.awww_transition_duration,
+                            0..=u32::MAX,
+                            Messages::AwwwTransitionDurationChanged
+                        )
+                    ]
+                    .align_y(Center)
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition angle")],
+                        number_input(
+                            &app_state.awww_transition_angle,
+                            0..=270,
+                            Messages::AwwwTransitionAngleChanged
+                        )
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .align_y(Center)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition position")],
+                        text_input("", &app_state.awww_transition_position).on_input(|m| {
+                            Messages::AwwwTransitionPositionChanged(AWWWTransitionPosition {
+                                position: m,
+                            })
+                        })
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .align_y(Center)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Invert Y")],
+                        toggler(app_state.awww_invert_y).on_toggle(Messages::AwwwInvertYChanged)
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .align_y(Center)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition wave height")],
+                        number_input(
+                            &app_state.awww_transition_wave_height,
+                            0..=u32::MAX,
+                            Messages::AwwwTransitionWaveHeightChanged
+                        )
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .align_y(Center)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition wave width")],
+                        number_input(
+                            &app_state.awww_transition_wave_width,
+                            0..=u32::MAX,
+                            Messages::AwwwTransitionWaveWidthChanged
+                        )
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition bezier p0")],
+                        number_input(
+                            &app_state.awww_transition_bezier_p0,
+                            f64::MIN..=f64::MAX,
+                            Messages::AwwwTransitionBezierP0Changed
+                        )
+                    ]
+                    .align_y(Center)
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition bezier p1")],
+                        number_input(
+                            &app_state.awww_transition_bezier_p1,
+                            f64::MIN..=f64::MAX,
+                            Messages::AwwwTransitionBezierP1Changed
+                        )
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition bezier p2")],
+                        number_input(
+                            &app_state.awww_transition_bezier_p2,
+                            f64::MIN..=f64::MAX,
+                            Messages::AwwwTransitionBezierP2Changed
+                        )
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .align_y(Center)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition bezier p3")],
+                        number_input(
+                            &app_state.awww_transition_bezier_p3,
+                            f64::MIN..=f64::MAX,
+                            Messages::AwwwTransitionBezierP3Changed
+                        )
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .align_y(Center)
+                    .width(Fill),
+                ),
+                Item::new(
+                    row![
+                        text!["{}", gettext("Transition FPS")],
+                        number_input(
+                            &app_state.awww_transition_fps,
+                            0..=u32::MAX,
+                            Messages::AwwwTransitionFPSChanged
+                        ),
+                    ]
+                    .spacing(DEFAULT_MARGIN as f32)
+                    .align_y(Center)
+                    .width(Fill),
+                ),
+                Item::new(
+                    button(text!["{}", gettext("Restore Defaults")])
+                        .on_press(Messages::AwwwRestoreDefaults),
+                ),
+            ]
+            .into(),
         )
-        .build();
-    transition_type_dropdown
-}
+        .max_width(300.0)
+        .spacing(DEFAULT_MARGIN as f32)
+        .padding(DEFAULT_MARGIN as f32),
+    )])
+    .into();
 
-fn create_category_box() -> Box {
-    Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .hexpand(true)
-        .vexpand(true)
-        .build()
-}
-
-fn create_button(text: &str) -> Button {
-    Button::builder()
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .label(gettext(text))
-        .halign(Align::End)
-        .valign(Align::Center)
-        .build()
-}
-
-fn create_spinbutton(adjustment: &Adjustment) -> SpinButton {
-    SpinButton::builder()
-        .adjustment(adjustment)
-        .numeric(true)
-        .halign(Align::Center)
-        .valign(Align::Center)
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .build()
-}
-
-fn create_point_spinbutton(adjustment: &Adjustment) -> SpinButton {
-    SpinButton::builder()
-        .adjustment(adjustment)
-        .numeric(true)
-        .halign(Align::Center)
-        .valign(Align::Center)
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .build()
-}
-
-fn create_label(text: &str) -> Label {
-    Label::builder()
-        .label(gettext(text))
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .halign(Align::Center)
-        .valign(Align::Center)
-        .build()
-}
-
-fn create_window_control_box() -> Box {
-    Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .halign(Align::End)
-        .valign(Align::Center)
-        .hexpand(true)
-        .vexpand(true)
-        .build()
-}
-
-fn create_switch(text: &str) -> Switch {
-    Switch::builder()
-        .tooltip_text(gettext(text))
-        .has_tooltip(true)
-        .margin_top(DEFAULT_MARGIN)
-        .margin_start(DEFAULT_MARGIN)
-        .margin_bottom(DEFAULT_MARGIN)
-        .margin_end(DEFAULT_MARGIN)
-        .halign(Align::Start)
-        .valign(Align::Center)
-        .build()
-}
-
-fn create_transition_position_entry() -> Entry {
-    Entry::builder()
-                .placeholder_text(gettext("Transition position"))
-                .has_tooltip(true)
-                .tooltip_text(gettext("Can either be floating point number between 0 and 0.99, integer coordinate like 200,200 or one of the following: center, top, left, right, bottom, top-left, top-right, bottom-left or bottom-right."))
-                .margin_top(DEFAULT_MARGIN)
-                .margin_start(DEFAULT_MARGIN)
-                .margin_bottom(DEFAULT_MARGIN)
-                .margin_end(DEFAULT_MARGIN)
-                .halign(Align::Start)
-                .valign(Align::Center)
-                .build()
+    row![resize_dropdown, color_picker_widget, advanced_settings_menu]
+        .spacing(DEFAULT_MARGIN as f32)
+        .into()
 }

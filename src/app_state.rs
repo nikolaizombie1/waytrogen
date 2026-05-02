@@ -1,5 +1,5 @@
 use crate::{
-    changers::{hyprpaper::generate_hyprpaper_changer_bar, mpvpaper::generate_mpvpaper_changer_bar, swaybg::generate_swaybg_changer_bar},
+    changers::{awww::generate_awww_changer_bar, hyprpaper::generate_hyprpaper_changer_bar, mpvpaper::generate_mpvpaper_changer_bar, swaybg::generate_swaybg_changer_bar},
     common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
         get_config_file_path, parse_executable_script,
@@ -7,9 +7,7 @@ use crate::{
     database::DatabaseConnection,
     monitors::AvailableMonitors,
     wallpaper_changers::{
-        HyprpaperFitModes, HyprpaperSettings, MpvPaperPauseModes, MpvPaperSettings,
-        MpvPaperSlideshowSettings, SwaybgModes, SwaybgSettings, WallpaperChanger,
-        WallpaperChangers, get_available_wallpaper_changers,
+        AWWWResizeMode, AWWWScallingFilter, AWWWTransitionBezier, AWWWTransitionPosition, AWWWTransitionType, AWWWTransitionWave, AwwwSettings, HyprpaperFitModes, HyprpaperSettings, MpvPaperPauseModes, MpvPaperSettings, MpvPaperSlideshowSettings, SwaybgModes, SwaybgSettings, WallpaperChanger, WallpaperChangers, get_available_wallpaper_changers
     },
 };
 use anyhow::anyhow;
@@ -97,27 +95,27 @@ pub struct AppState {
     selected_monitor_item_doc: String,
     pub selected_monitor_item: String,
     awww_resize_doc: String,
-    pub awww_resize: u32,
+    pub awww_resize: Option<AWWWResizeMode>,
     awww_fill_color_doc: String,
     pub awww_fill_color: String,
     awww_scaling_filter_doc: String,
-    pub awww_scaling_filter: u32,
+    pub awww_scaling_filter: Option<AWWWScallingFilter>,
     awww_transition_type_doc: String,
-    pub awww_transition_type: u32,
+    pub awww_transition_type: Option<AWWWTransitionType>,
     awww_transition_step_doc: String,
-    pub awww_transition_step: f64,
+    pub awww_transition_step: u8,
     awww_transition_duration_doc: String,
-    pub awww_transition_duration: f64,
+    pub awww_transition_duration: u32,
     awww_transition_angle_doc: String,
-    pub awww_transition_angle: f64,
+    pub awww_transition_angle: u16,
     awww_transition_position_doc: String,
     pub awww_transition_position: String,
     awww_invert_y_doc: String,
     pub awww_invert_y: bool,
     awww_transition_wave_width_doc: String,
-    pub awww_transition_wave_width: f64,
+    pub awww_transition_wave_width: u32,
     awww_transition_wave_height_doc: String,
-    pub awww_transition_wave_height: f64,
+    pub awww_transition_wave_height: u32,
     awww_transition_bezier_p0_doc: String,
     pub awww_transition_bezier_p0: f64,
     awww_transition_bezier_p1_doc: String,
@@ -151,6 +149,10 @@ pub struct AppState {
     pub sway_bg_color_internal: Color,
     #[serde(skip)]
     pub show_swaybg_color_picker: bool,
+    #[serde(skip)]
+    pub awww_fill_color_internal: Color,
+    #[serde(skip)]
+    pub show_awww_color_picker: bool
 }
 
 impl Default for AppState {
@@ -217,35 +219,35 @@ impl Default for AppState {
             awww_resize_doc: gettext(
                 "The internal numeric identifier in the changer dropdown used by dconf for the currently selected awww resize option. Do not change unless you know what you are doing.",
             ),
-            awww_resize: u32::default(),
+            awww_resize: Default::default(),
             awww_fill_color_doc: gettext(
                 "The hex color for awww background fill. Must be six characters long.",
             ),
-            awww_fill_color: String::from("000000"),
+            awww_fill_color: String::from("#000000"),
             awww_scaling_filter_doc: gettext(
                 "The internal numeric identifier in the changer dropdown used by dconf for the currently selected awww scaling filter option. Do not change unless you know what you are doing.",
             ),
-            awww_scaling_filter: u32::default(),
+            awww_scaling_filter: Default::default(),
             awww_transition_type_doc: gettext(
                 "The internal numeric identifier in the changer dropdown used by dconf for the currently selected awww transition type option. Do not change unless you know what you are doing.",
             ),
-            awww_transition_type: 1,
+            awww_transition_type: Default::default(),
             awww_transition_step_doc: gettext(
                 "How fast the transition approaches the new image used by awww.",
             ),
-            awww_transition_step: 90.0,
+            awww_transition_step: 90,
             awww_transition_duration_doc: gettext(
                 "How long the transition takes to complete in seconds used by awww.",
             ),
-            awww_transition_duration: 3.0,
+            awww_transition_duration: 3,
             awww_transition_angle_doc: gettext(
                 "Used for the 'wipe' and 'wave' transitions used by awww. It controls the angle of the wipe.",
             ),
-            awww_transition_angle: 45.0,
+            awww_transition_angle: 45,
             awww_transition_position_doc: gettext(
                 "This is only used for the 'grow','outer' transitions used by awww. It controls the center of circle.",
             ),
-            awww_transition_position: String::from("center"),
+            awww_transition_position:  "center".to_string(),
             awww_invert_y_doc: gettext(
                 "Inverts the y position sent in 'transition_pos' flag used by awww.",
             ),
@@ -253,11 +255,11 @@ impl Default for AppState {
             awww_transition_wave_width_doc: gettext(
                 "Currently only used for 'wave' transition to control the width of each wave used by awww.",
             ),
-            awww_transition_wave_width: 200.0,
+            awww_transition_wave_width: 200,
             awww_transition_wave_height_doc: gettext(
                 "Currently only used for 'wave' transition to control the height of each wave used by awww.",
             ),
-            awww_transition_wave_height: 200.0,
+            awww_transition_wave_height: 200,
             awww_transition_bezier_p0_doc: gettext(
                 "Point 0 for the Bezier curve to use for the transition",
             ),
@@ -301,6 +303,8 @@ impl Default for AppState {
             hyprpaper_fill_mode: Default::default(),
             sway_bg_color_internal: Default::default(),
             show_swaybg_color_picker: Default::default(),
+            awww_fill_color_internal: Default::default(),
+	    show_awww_color_picker: Default::default()
         }
     }
 }
@@ -333,6 +337,26 @@ pub enum Messages {
     MpvPaperEnableSlideshowChanged(bool),
     MpvPaperSlideshowIntervalChanged(u32),
     MpvPaperAdditionalOptionsChanged(String),
+    AwwwResizeModeChanged(AWWWResizeMode),
+    ShowAwwwColorPicker,
+    AwwwFillColorSubmitted(Color),
+    AwwwFillColorCancelled,
+    AwwwAdvancedSettingsButtonClicked,
+    AwwwScallingFilterChanged(AWWWScallingFilter),
+    AwwwTransitionTypeChanged(AWWWTransitionType),
+    AwwwTransitionStepChanged(u8),
+    AwwwTransitionDurationChanged(u32),
+    AwwwTransitionFPSChanged(u32),
+    AwwwTransitionAngleChanged(u16),
+    AwwwTransitionPositionChanged(AWWWTransitionPosition),
+    AwwwInvertYChanged(bool),
+    AwwwTransitionBezierP0Changed(f64),
+    AwwwTransitionBezierP1Changed(f64),
+    AwwwTransitionBezierP2Changed(f64),
+    AwwwTransitionBezierP3Changed(f64),
+    AwwwTransitionWaveWidthChanged(u32),
+    AwwwTransitionWaveHeightChanged(u32),
+    AwwwRestoreDefaults
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -358,6 +382,21 @@ impl BootFn<AppState, Messages> for AppState {
         }
 	if let None = instance.mpvpaper_pause_option {
 	    instance.mpvpaper_pause_option = Some(MpvPaperPauseModes::default())
+	}
+	if let None = instance.awww_resize {
+	    instance.awww_resize = Some(AWWWResizeMode::default());
+	}
+	if let None = instance.awww_scaling_filter {
+	    instance.awww_scaling_filter = Some(AWWWScallingFilter::default());
+	}
+	if let None = instance.awww_transition_type {
+	    instance.awww_transition_type = Some(AWWWTransitionType::default());
+	}
+	if !instance.swaybg_color.starts_with("#") {
+	    instance.swaybg_color = "#000000".to_string();
+	}
+	if instance.awww_fill_color == "" {
+	    instance.awww_fill_color = "000000ff".to_string();
 	}
         (instance, Task::done(Messages::PopulateImageGrid))
     }
@@ -869,6 +908,283 @@ impl AppState {
                 }
                 Task::none()
 	    },
+            Messages::AwwwResizeModeChanged(awwwresize_mode) => {
+		self.awww_resize = Some(awwwresize_mode.clone());
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				resize_mode: awwwresize_mode,
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::ShowAwwwColorPicker => {
+		self.show_awww_color_picker = true;
+		Task::none()
+	    },
+            Messages::AwwwFillColorSubmitted(color) => {
+		self.awww_fill_color_internal = color;
+                self.awww_fill_color = color.to_string()[0..=color.to_string().len() - 3].to_string();
+                self.show_awww_color_picker = false;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				fill_color: self.awww_fill_color.clone(),
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwFillColorCancelled => {
+		self.show_awww_color_picker = false;
+		Task::none()
+	    },
+            Messages::AwwwScallingFilterChanged(awwwscalling_filter) => {
+		self.awww_scaling_filter = Some(awwwscalling_filter.clone());
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				scalling_filter: awwwscalling_filter,
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionTypeChanged(awwwtransition_type) => {
+		self.awww_transition_type = Some(awwwtransition_type.clone());
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_type: awwwtransition_type,
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionStepChanged(t) => {
+		self.awww_transition_step = t;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_step: t,
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionDurationChanged(t) => {
+		self.awww_transition_duration = t;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_duration: t,
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionFPSChanged(f) => {
+		self.awww_transition_fps = f;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_fps: f,
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionAngleChanged(a) => {
+		self.awww_transition_angle = a;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_angle: a,
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionPositionChanged(awwwtransition_position) => {
+		self.awww_transition_position = awwwtransition_position.clone().position;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_position: awwwtransition_position,
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwInvertYChanged(c) => {
+		self.awww_invert_y = c;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				invert_y: c,
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionBezierP0Changed(p) => {
+		self.awww_transition_bezier_p0 = p;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_bezier: AWWWTransitionBezier {
+				    p0: p,
+				    ..settings.transition_bezier.clone()
+				},
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionBezierP1Changed(p) => {
+		self.awww_transition_bezier_p1 = p;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_bezier: AWWWTransitionBezier {
+				    p1: p,
+				    ..settings.transition_bezier.clone()
+				},
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionBezierP2Changed(p) => {
+		self.awww_transition_bezier_p2 = p;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_bezier: AWWWTransitionBezier {
+				    p2: p,
+				    ..settings.transition_bezier.clone()
+				},
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionBezierP3Changed(p) => {
+		self.awww_transition_bezier_p3 = p;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_bezier: AWWWTransitionBezier {
+				    p2: p,
+				    ..settings.transition_bezier.clone()
+				},
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionWaveWidthChanged(w) => {
+		self.awww_transition_wave_width = w;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_wave: AWWWTransitionWave {
+				    width: w,
+				    ..settings.clone().transition_wave
+				},
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwTransitionWaveHeightChanged(h) => {
+		self.awww_transition_wave_height = h;
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(settings) = changer {
+			self.changer = Some(WallpaperChangers::Awww({
+			    AwwwSettings {
+				transition_wave: AWWWTransitionWave {
+				    height: h,
+				    ..settings.clone().transition_wave
+				},
+				..settings.clone()
+			    }
+			}));
+		    }
+		}
+		Task::none()
+	    },
+            Messages::AwwwAdvancedSettingsButtonClicked => {
+		Task::none()
+	    },
+            Messages::AwwwRestoreDefaults => {
+		if let Some(changer) = &self.changer {
+		    if let WallpaperChangers::Awww(_) = changer {
+			let default_settings = AwwwSettings::default();
+			self.awww_scaling_filter = Some(default_settings.scalling_filter);
+			self.awww_transition_step = default_settings.transition_step;
+			self.awww_transition_duration = default_settings.transition_duration;
+			self.awww_transition_position = default_settings.transition_position.position;
+			self.awww_transition_angle = default_settings.transition_angle;
+			self.awww_invert_y = default_settings.invert_y;
+			self.awww_transition_wave_width = default_settings.transition_wave.width;
+			self.awww_transition_wave_height = default_settings.transition_wave.height;
+			self.awww_transition_bezier_p0 = default_settings.transition_bezier.p0;
+			self.awww_transition_bezier_p1 = default_settings.transition_bezier.p1;
+			self.awww_transition_bezier_p2 = default_settings.transition_bezier.p2;
+			self.awww_transition_bezier_p3 = default_settings.transition_bezier.p3;
+			self.awww_transition_fps = default_settings.transition_fps;
+			self.changer = Some(WallpaperChangers::Awww(AwwwSettings::default()));
+		    }
+		}
+		Task::none()
+	    }
         }
     }
 
@@ -932,23 +1248,9 @@ impl AppState {
                 let changer_specific_widgets = match changer {
                     WallpaperChangers::Hyprpaper(_) => generate_hyprpaper_changer_bar(self),
                     WallpaperChangers::Swaybg(_) => generate_swaybg_changer_bar(self),
-                    WallpaperChangers::MpvPaper(_) => {
-			generate_mpvpaper_changer_bar(self)
-		    }
-                    WallpaperChangers::Awww(
-                        awwwresize_mode,
-                        rgb,
-                        awwwscalling_filter,
-                        awwwtransition_type,
-                        _,
-                        _,
-                        _,
-                        _,
-                        awwwtransition_position,
-                        _,
-                        awwwtransition_bezier,
-                        awwwtransition_wave,
-                    ) => todo!(),
+                    WallpaperChangers::MpvPaper(_) => 
+			generate_mpvpaper_changer_bar(self),
+                    WallpaperChangers::Awww(_) => generate_awww_changer_bar(self),
                     WallpaperChangers::GSlapper(
                         gsllapper_scale_mode,
                         gsllapper_pause_mode,

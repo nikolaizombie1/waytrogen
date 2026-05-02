@@ -1,11 +1,9 @@
-use crate::{
-    changers::{
-        awww::change_awww_wallpaper, gslapper::change_gslapper_wallpaper,
-        hyprpaper::change_hyprpaper_wallpaper, mpvpaper::change_mpvpaper_wallpaper,
-        swaybg::change_swaybg_wallpaper,
-    },
-    common::RGB,
+use crate::changers::{
+    awww::change_awww_wallpaper, gslapper::change_gslapper_wallpaper,
+    hyprpaper::change_hyprpaper_wallpaper, mpvpaper::change_mpvpaper_wallpaper,
+    swaybg::change_swaybg_wallpaper,
 };
+use gettextrs::gettext;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -13,7 +11,6 @@ use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, thread};
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr};
 use which::which;
-use gettextrs::gettext;
 
 pub trait WallpaperChanger {
     fn change(self, image: PathBuf, monitor: String);
@@ -27,20 +24,55 @@ pub trait U32Enum {
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
 pub struct HyprpaperSettings {
-    pub fit_mode: HyprpaperFitModes
+    pub fit_mode: HyprpaperFitModes,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
 pub struct SwaybgSettings {
     pub mode: SwaybgModes,
-    pub fill_color: String
+    pub fill_color: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
 pub struct MpvPaperSettings {
     pub pause_mode: MpvPaperPauseModes,
     pub slideshow_settings: MpvPaperSlideshowSettings,
-    pub additional_options: String
+    pub additional_options: String,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub struct AwwwSettings {
+    pub resize_mode: AWWWResizeMode,
+    pub fill_color: String,
+    pub scalling_filter: AWWWScallingFilter,
+    pub transition_type: AWWWTransitionType,
+    pub transition_step: u8,
+    pub transition_duration: u32,
+    pub transition_fps: u32,
+    pub transition_angle: u16,
+    pub transition_position: AWWWTransitionPosition,
+    pub invert_y: bool,
+    pub transition_bezier: AWWWTransitionBezier,
+    pub transition_wave: AWWWTransitionWave,
+}
+
+impl Default for AwwwSettings {
+    fn default() -> Self {
+        Self {
+            resize_mode: Default::default(),
+            fill_color: "#000000".to_string(),
+            scalling_filter: Default::default(),
+            transition_type: Default::default(),
+            transition_step: 90,
+            transition_duration: 3,
+            transition_fps: 30,
+            transition_angle: 45,
+            transition_position: AWWWTransitionPosition{ position: "center".to_string() },
+            invert_y: false,
+            transition_bezier: Default::default(),
+            transition_wave: Default::default(),
+        }
+    }
 }
 
 #[derive(Debug, EnumIter, Clone, Serialize, Deserialize, PartialEq)]
@@ -48,20 +80,7 @@ pub enum WallpaperChangers {
     Hyprpaper(HyprpaperSettings),
     Swaybg(SwaybgSettings),
     MpvPaper(MpvPaperSettings),
-    Awww(
-        AWWWResizeMode,
-        RGB,
-        AWWWScallingFilter,
-        AWWWTransitionType,
-        u8,
-        u32,
-        u32,
-        u16,
-        AWWWTransitionPosition,
-        bool,
-        AWWWTransitionBezier,
-        AWWWTransitionWave,
-    ),
+    Awww(AwwwSettings),
     GSlapper(GSllapperScaleMode, GSllapperPauseMode, bool, String),
 }
 
@@ -190,23 +209,8 @@ impl WallpaperChangers {
         let varient = match changer {
             Self::Hyprpaper(_) => Self::Hyprpaper(HyprpaperSettings::default()),
             Self::Swaybg(_) => Self::Swaybg(SwaybgSettings::default()),
-            Self::MpvPaper(_) => Self::MpvPaper(
-		MpvPaperSettings::default()
-            ),
-            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => Self::Awww(
-                AWWWResizeMode::default(),
-                RGB::default(),
-                AWWWScallingFilter::default(),
-                AWWWTransitionType::default(),
-                u8::default(),
-                u32::default(),
-                u32::default(),
-                u16::default(),
-                AWWWTransitionPosition::default(),
-                bool::default(),
-                AWWWTransitionBezier::default(),
-                AWWWTransitionWave::default(),
-            ),
+            Self::MpvPaper(_) => Self::MpvPaper(MpvPaperSettings::default()),
+            Self::Awww(_) => Self::Awww(AwwwSettings::default()),
             Self::GSlapper(_, _, _, _) => Self::GSlapper(
                 GSllapperScaleMode::default(),
                 GSllapperPauseMode::default(),
@@ -251,7 +255,7 @@ impl Display for HyprpaperFitModes {
             HyprpaperFitModes::Tile => gettext("tile"),
             HyprpaperFitModes::Fill => gettext("fill"),
         };
-	write!(f, "{ret}")
+        write!(f, "{ret}")
     }
 }
 
@@ -299,7 +303,7 @@ impl Display for SwaybgModes {
             SwaybgModes::Tile => gettext("Tile"),
             SwaybgModes::SolidColor => gettext("Solid Color"),
         };
-	write!(f, "{ret}")
+        write!(f, "{ret}")
     }
 }
 
@@ -656,7 +660,7 @@ impl WallpaperChanger for WallpaperChangers {
             Self::MpvPaper(_) => {
                 change_mpvpaper_wallpaper(&self, image, &monitor);
             }
-            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+            Self::Awww(_) => {
                 change_awww_wallpaper(self, image, monitor);
             }
             Self::GSlapper(_, _, _, _) => {
@@ -1003,13 +1007,12 @@ impl WallpaperChanger for WallpaperChangers {
                 ];
                 let mut hyprpaper_formats =
                     Self::Hyprpaper(HyprpaperSettings::default()).accepted_formats();
-                let mut swaybg_formats =
-                    Self::Swaybg(SwaybgSettings::default()).accepted_formats();
+                let mut swaybg_formats = Self::Swaybg(SwaybgSettings::default()).accepted_formats();
                 mpvpaper_formats.append(&mut hyprpaper_formats);
                 mpvpaper_formats.append(&mut swaybg_formats);
                 mpvpaper_formats
             }
-            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+            Self::Awww(_) => {
                 vec![
                     "gif".to_owned(),
                     "jpeg".to_owned(),
@@ -1079,7 +1082,7 @@ impl WallpaperChanger for WallpaperChangers {
                     .spawn()
                     .and_then(|mut c| c.wait());
             }
-            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+            Self::Awww(_) => {
                 let _ = Command::new("pkill")
                     .arg("-9")
                     .arg("awww-daemon")
@@ -1122,7 +1125,7 @@ impl Display for WallpaperChangers {
             Self::Hyprpaper(_) => write!(f, "hyprpaper"),
             Self::Swaybg(_) => write!(f, "swaybg"),
             Self::MpvPaper(_) => write!(f, "mpvpaper"),
-            Self::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => write!(f, "awww"),
+            Self::Awww(_) => write!(f, "awww"),
             Self::GSlapper(_, _, _, _) => write!(f, "gslapper"),
         }
     }
@@ -1159,7 +1162,7 @@ pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
             WallpaperChangers::MpvPaper(_) => {
                 append_changer_if_in_path(&mut available_changers, changer)
             }
-            WallpaperChangers::Awww(_, _, _, _, _, _, _, _, _, _, _, _) => {
+            WallpaperChangers::Awww(_) => {
                 append_changer_if_in_path(&mut available_changers, changer)
             }
             WallpaperChangers::GSlapper(_, _, _, _) => {
