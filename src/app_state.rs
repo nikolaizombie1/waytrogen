@@ -1,11 +1,15 @@
 use crate::{
-    changers::{hyprpaper::generate_hyprpaper_changer_bar, swaybg::generate_swaybg_changer_bar}, common::{
+    changers::{hyprpaper::generate_hyprpaper_changer_bar, swaybg::generate_swaybg_changer_bar},
+    common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
         get_config_file_path, parse_executable_script,
-    }, database::DatabaseConnection, monitors::AvailableMonitors, wallpaper_changers::{
+    },
+    database::DatabaseConnection,
+    monitors::AvailableMonitors,
+    wallpaper_changers::{
         HyprpaperFitModes, SwaybgModes, WallpaperChanger, WallpaperChangers,
         get_available_wallpaper_changers,
-    }
+    },
 };
 use anyhow::anyhow;
 use gettextrs::gettext;
@@ -554,14 +558,12 @@ impl AppState {
             match AvailableMonitors::get_monitors() {
                 Ok(m) => Task::done(Messages::MonitorDropdownPopulated(m.available_monitors)),
                 Err(e) => {
-		    error!("Failed to get monitors: {e}");
-		    return Task::none();
-		}
+                    error!("Failed to get monitors: {e}");
+                    return Task::none();
+                }
             }
-	})
-        .then(|o| {
-	    o
         })
+        .then(|o| o)
     }
 
     fn sort_image_grid(&mut self, sort_by: SortBy) {
@@ -637,9 +639,9 @@ impl AppState {
 
     fn execute_external_script(&self, wallpaper_path: &Path) -> Task<Messages> {
         let external_script_path = self.executable_script.clone();
-	let wallpaper_path = wallpaper_path.to_path_buf();
-	let internal_state = self.clone();
-	let monitor = self.monitor.clone();
+        let wallpaper_path = wallpaper_path.to_path_buf();
+        let internal_state = self.clone();
+        let monitor = self.monitor.clone();
         Task::future(async move {
             let external_script_path = match std::fs::canonicalize(external_script_path.clone()) {
                 Ok(p) => p,
@@ -734,6 +736,29 @@ impl AppState {
             }
             Messages::OptionMenuOpened => Task::none(),
             Messages::WallpaperChanged(wallpaper_path) => {
+                if let Some(changer) = &self.changer {
+                    if let Some(monitor) = &self.monitor {
+                        match self
+                            .saved_wallpapers
+                            .iter_mut()
+                            .find(|w| w.monitor == *monitor)
+                        {
+                            Some(w) => {
+                                w.changer = changer.clone();
+                                w.path = wallpaper_path
+                                    .clone()
+                                    .to_str()
+                                    .unwrap_or_default()
+                                    .to_string();
+                            }
+                            None => self.saved_wallpapers.push(Wallpaper {
+                                monitor: monitor.clone(),
+                                path: wallpaper_path.clone().to_str().unwrap_or_default().to_string(),
+                                changer: changer.clone(),
+                            }),
+                        }
+                    }
+                }
                 self.execute_external_script(&wallpaper_path)
             }
             Messages::CloseRequested => {
