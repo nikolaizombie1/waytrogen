@@ -1,11 +1,18 @@
 use gettextrs::gettext;
-use iced::{Element, widget::{PickList, pick_list}};
+use iced::{
+    Element,
+    widget::{PickList, pick_list},
+};
 use log::{debug, error, warn};
-use strum::VariantArray;
 use std::{path::Path, process::Command, thread, time::Duration};
+use strum::VariantArray;
 use which::which;
 
-use crate::{app_state::{self, AppState, Messages}, common::DEFAULT_MARGIN, wallpaper_changers::{HyprpaperFitModes, WallpaperChangers}};
+use crate::{
+    app_state::{self, AppState, Messages},
+    common::DEFAULT_MARGIN,
+    wallpaper_changers::{HyprpaperFitModes, WallpaperChangers},
+};
 
 pub fn change_hyprpaper_wallpaper(
     hyprpaper_changer: WallpaperChangers,
@@ -75,7 +82,11 @@ pub fn change_hyprpaper_wallpaper(
         Command::new("hyprctl")
             .arg("hyprpaper")
             .arg("wallpaper")
-            .arg(format!("{monitor},{},{}", image.to_str().unwrap(), settings.fit_mode))
+            .arg(format!(
+                "{monitor},{},{}",
+                image.to_str().unwrap(),
+                settings.fit_mode
+            ))
             .spawn()
             .unwrap()
             .wait()
@@ -83,11 +94,11 @@ pub fn change_hyprpaper_wallpaper(
     }
 }
 
-pub fn generate_hyprpaper_changer_bar(app_state:  &AppState) -> Element<'_, Messages> {
+pub fn generate_hyprpaper_changer_bar(app_state: &AppState) -> Element<'_, Messages> {
     let dropdown = pick_list(
-	HyprpaperFitModes::VARIANTS,
-	app_state.hyprpaper_fill_mode.clone(),
-	Messages::HyprpaperFitModeChanged
+        HyprpaperFitModes::VARIANTS,
+        app_state.hyprpaper_fill_mode.clone(),
+        Messages::HyprpaperFitModeChanged,
     );
     dropdown.into()
 }

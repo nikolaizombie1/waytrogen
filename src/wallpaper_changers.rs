@@ -67,12 +67,22 @@ impl Default for AwwwSettings {
             transition_duration: 3,
             transition_fps: 30,
             transition_angle: 45,
-            transition_position: AWWWTransitionPosition{ position: "center".to_string() },
+            transition_position: AWWWTransitionPosition {
+                position: "center".to_string(),
+            },
             invert_y: false,
             transition_bezier: Default::default(),
             transition_wave: Default::default(),
         }
     }
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
+pub struct GSllaperSettings {
+    pub scale_mode: GSllapperScaleMode,
+    pub pause_mode: GSllapperPauseMode,
+    pub loop_video: bool,
+    pub additional_options: String,
 }
 
 #[derive(Debug, EnumIter, Clone, Serialize, Deserialize, PartialEq)]
@@ -81,7 +91,7 @@ pub enum WallpaperChangers {
     Swaybg(SwaybgSettings),
     MpvPaper(MpvPaperSettings),
     Awww(AwwwSettings),
-    GSlapper(GSllapperScaleMode, GSllapperPauseMode, bool, String),
+    GSlapper(GSllaperSettings),
 }
 
 #[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize, PartialEq)]
@@ -211,12 +221,7 @@ impl WallpaperChangers {
             Self::Swaybg(_) => Self::Swaybg(SwaybgSettings::default()),
             Self::MpvPaper(_) => Self::MpvPaper(MpvPaperSettings::default()),
             Self::Awww(_) => Self::Awww(AwwwSettings::default()),
-            Self::GSlapper(_, _, _, _) => Self::GSlapper(
-                GSllapperScaleMode::default(),
-                GSllapperPauseMode::default(),
-                bool::default(),
-                String::default(),
-            ),
+            Self::GSlapper(_) => Self::GSlapper(GSllaperSettings::default()),
         };
         WallpaperChangers::iter().for_each(|w| {
             if w != varient {
@@ -663,7 +668,7 @@ impl WallpaperChanger for WallpaperChangers {
             Self::Awww(_) => {
                 change_awww_wallpaper(self, image, monitor);
             }
-            Self::GSlapper(_, _, _, _) => {
+            Self::GSlapper(_) => {
                 change_gslapper_wallpaper(&self, image, &monitor);
             }
         });
@@ -1026,7 +1031,7 @@ impl WallpaperChanger for WallpaperChangers {
                     "farbfeld".to_owned(),
                 ]
             }
-            Self::GSlapper(_, _, _, _) => {
+            Self::GSlapper(_) => {
                 vec![
                     // Images
                     "jpg".to_owned(),
@@ -1089,7 +1094,7 @@ impl WallpaperChanger for WallpaperChangers {
                     .spawn()
                     .and_then(|mut c| c.wait());
             }
-            Self::GSlapper(_, _, _, _) => {
+            Self::GSlapper(_) => {
                 // Try graceful quit via IPC first (using socat or nc)
                 let socket_path = "/tmp/gslapper.sock";
                 if std::path::Path::new(socket_path).exists() {
@@ -1126,7 +1131,7 @@ impl Display for WallpaperChangers {
             Self::Swaybg(_) => write!(f, "swaybg"),
             Self::MpvPaper(_) => write!(f, "mpvpaper"),
             Self::Awww(_) => write!(f, "awww"),
-            Self::GSlapper(_, _, _, _) => write!(f, "gslapper"),
+            Self::GSlapper(_) => write!(f, "gslapper"),
         }
     }
 }
@@ -1165,7 +1170,7 @@ pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
             WallpaperChangers::Awww(_) => {
                 append_changer_if_in_path(&mut available_changers, changer)
             }
-            WallpaperChangers::GSlapper(_, _, _, _) => {
+            WallpaperChangers::GSlapper(_) => {
                 append_changer_if_in_path(&mut available_changers, changer)
             }
         }

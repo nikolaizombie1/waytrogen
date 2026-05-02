@@ -1,10 +1,17 @@
-use crate::wallpaper_changers::{GSllapperPauseMode, WallpaperChangers};
+use crate::{
+    app_state::{self, AppState, Messages},
+    common::DEFAULT_MARGIN,
+    wallpaper_changers::{GSllapperPauseMode, GSllapperScaleMode, WallpaperChangers},
+};
 use gettextrs::gettext;
-use gtk::{
-    Align, Box, DropDown, Entry, Switch, TextBuffer, gio::Settings, glib::clone, prelude::*,
+use iced::{
+    Alignment::Center,
+    Element,
+    widget::{pick_list, row, text_input, toggler},
 };
 use log::debug;
 use std::{path::PathBuf, process::Command};
+use strum::VariantArray;
 
 const GSLAPPER_SOCKET: &str = "/tmp/gslapper.sock";
 
@@ -50,9 +57,7 @@ pub fn change_gslapper_wallpaper(
     image: PathBuf,
     monitor: &str,
 ) {
-    if let WallpaperChangers::GSlapper(scale_mode, pause_mode, loop_video, additional_options) =
-        gslapper_changer
-    {
+    if let WallpaperChangers::GSlapper(settings) = gslapper_changer {
         debug!("gSlapper: Setting wallpaper {}", image.display());
 
         // Kill any existing gslapper instance first
@@ -62,10 +67,10 @@ pub fn change_gslapper_wallpaper(
         let mut gst_options = Vec::new();
 
         // Add scale mode
-        gst_options.push(scale_mode.to_string());
+        gst_options.push(settings.scale_mode.to_string());
 
         // Add loop if enabled
-        if *loop_video {
+        if settings.loop_video {
             gst_options.push("loop".to_owned());
         }
 
@@ -73,8 +78,8 @@ pub fn change_gslapper_wallpaper(
         gst_options.push("no-audio".to_owned());
 
         // Add any additional user-provided options
-        if !additional_options.is_empty() {
-            gst_options.push(additional_options.clone());
+        if !settings.additional_options.is_empty() {
+            gst_options.push(settings.additional_options.clone());
         }
 
         let gst_options_str = gst_options.join(" ");
@@ -85,7 +90,7 @@ pub fn change_gslapper_wallpaper(
         command.arg("-I").arg(GSLAPPER_SOCKET);
 
         // Add pause mode
-        match pause_mode {
+        match settings.pause_mode {
             GSllapperPauseMode::None => {}
             GSllapperPauseMode::AutoPause => {
                 command.arg("-p");
@@ -118,104 +123,35 @@ pub fn change_gslapper_wallpaper(
     }
 }
 
-pub fn generate_gslapper_changer_bar(changer_specific_options_box: &Box, settings: Settings) {
-    // Scale mode dropdown
-    let scale_mode_dropdown = DropDown::from_strings(&[
-        &gettext("fill"),
-        &gettext("stretch"),
-        &gettext("original"),
-        &gettext("panscan"),
-    ]);
-    scale_mode_dropdown.set_margin_top(12);
-    scale_mode_dropdown.set_margin_start(12);
-    scale_mode_dropdown.set_margin_bottom(12);
-    scale_mode_dropdown.set_margin_end(12);
-    scale_mode_dropdown.set_halign(Align::Start);
-    scale_mode_dropdown.set_valign(Align::Center);
-    scale_mode_dropdown.set_tooltip_text(Some(&gettext("Scale mode for wallpaper")));
-    settings
-        .bind("gslapper-scale-mode", &scale_mode_dropdown, "selected")
-        .build();
-    changer_specific_options_box.append(&scale_mode_dropdown);
-
-    // Pause mode dropdown
-    let pause_mode_dropdown = DropDown::from_strings(&[
-        &gettext("none"),
-        &gettext("auto-pause"),
-        &gettext("auto-stop"),
-    ]);
-    pause_mode_dropdown.set_margin_top(12);
-    pause_mode_dropdown.set_margin_start(12);
-    pause_mode_dropdown.set_margin_bottom(12);
-    pause_mode_dropdown.set_margin_end(12);
-    pause_mode_dropdown.set_halign(Align::Start);
-    pause_mode_dropdown.set_valign(Align::Center);
-    pause_mode_dropdown.set_tooltip_text(Some(&gettext("Pause behavior when wallpaper is hidden")));
-    settings
-        .bind("gslapper-pause-mode", &pause_mode_dropdown, "selected")
-        .build();
-    changer_specific_options_box.append(&pause_mode_dropdown);
-
-    // Loop video switch
-    let loop_switch = Switch::builder()
-        .tooltip_text(gettext("Loop video wallpapers"))
-        .has_tooltip(true)
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
-        .halign(Align::Start)
-        .valign(Align::Center)
-        .build();
-    settings
-        .bind("gslapper-loop", &loop_switch, "active")
-        .build();
-    changer_specific_options_box.append(&loop_switch);
-
-    // Additional options text entry
-    let additional_options_entry = create_additional_options_textbox(&settings);
-    changer_specific_options_box.append(&additional_options_entry);
-}
-
-fn create_additional_options_textbox(settings: &Settings) -> Entry {
-    let additional_options = Entry::builder()
-        .placeholder_text(gettext("Additional gslapper options"))
-        .has_tooltip(true)
-        .tooltip_text(gettext(
-            "Additional GStreamer/gslapper options (e.g., panscan=0.8)",
-        ))
-        .margin_top(12)
-        .margin_start(12)
-        .margin_bottom(12)
-        .margin_end(12)
-        .hexpand(true)
-        .halign(Align::Start)
-        .valign(Align::Center)
-        .build();
-
-    let options_text_buffer = TextBuffer::builder().build();
-    settings
-        .bind("gslapper-additional-options", &options_text_buffer, "text")
-        .build();
-
-    additional_options.connect_changed(clone!(
-        #[strong]
-        options_text_buffer,
-        move |e| {
-            let text = &e.text().to_string()[..];
-            options_text_buffer.set_text(text);
-        }
-    ));
-
-    additional_options.set_text(
-        options_text_buffer
-            .text(
-                &options_text_buffer.start_iter(),
-                &options_text_buffer.end_iter(),
-                false,
-            )
-            .as_str(),
+pub fn generate_gslapper_changer_bar(app_state: &AppState) -> Element<'_, Messages> {
+    let scale_mode_dropdown = pick_list(
+        GSllapperScaleMode::VARIANTS,
+        app_state.gslapper_scale_mode.clone(),
+        Messages::GSllaperScaleModeChanged,
     );
 
-    additional_options
+    let pause_mode_dropdown = pick_list(
+        GSllapperPauseMode::VARIANTS,
+        app_state.gslapper_pause_mode.clone(),
+        Messages::GSlapperPauseModeChanged,
+    );
+
+    let loop_switch =
+        toggler(app_state.gslapper_loop).on_toggle(Messages::GSllaperLoopVideoChanged);
+
+    let additional_options_entry = text_input(
+        &gettext("Additional GStreamer/gslapper options (e.g., panscan=0.8)"),
+        &app_state.gslapper_additional_options,
+    )
+    .on_input(Messages::GSllaperAdditionalOptionsChanged);
+
+    row![
+        scale_mode_dropdown,
+        pause_mode_dropdown,
+        loop_switch,
+        additional_options_entry
+    ]
+    .align_y(Center)
+    .spacing(DEFAULT_MARGIN as f32)
+    .into()
 }

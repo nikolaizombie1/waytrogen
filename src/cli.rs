@@ -45,7 +45,7 @@ pub fn restore_wallpapers(app_state: &AppState) -> anyhow::Result<()> {
             WallpaperChangers::Swaybg(_)
             | WallpaperChangers::MpvPaper(_)
             | WallpaperChangers::Awww(_)
-            | WallpaperChangers::GSlapper(_, _, _, _) => {}
+            | WallpaperChangers::GSlapper(_) => {}
         }
     }
     Ok(())
