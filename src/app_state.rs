@@ -1,14 +1,11 @@
 use crate::{
-    changers::{hyprpaper::generate_hyprpaper_changer_bar, swaybg::generate_swaybg_changer_bar},
-    common::{
+    changers::{hyprpaper::generate_hyprpaper_changer_bar, swaybg::generate_swaybg_changer_bar}, common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
         get_config_file_path, parse_executable_script,
-    },
-    database::DatabaseConnection,
-    wallpaper_changers::{
+    }, database::DatabaseConnection, monitors::AvailableMonitors, wallpaper_changers::{
         HyprpaperFitModes, SwaybgModes, WallpaperChanger, WallpaperChangers,
         get_available_wallpaper_changers,
-    },
+    }
 };
 use anyhow::anyhow;
 use gettextrs::gettext;
@@ -554,34 +551,16 @@ impl AppState {
 
     fn get_monitors() -> iced::Task<Messages> {
         Task::future(async move {
-            match which::which("wayland-info") {
-                Ok(p) => Ok(std::process::Command::new(p)
-                    .arg("-i")
-                    .arg("wl_output")
-                    .output()),
-                Err(e) => Err(e),
+            match AvailableMonitors::get_monitors() {
+                Ok(m) => Task::done(Messages::MonitorDropdownPopulated(m.available_monitors)),
+                Err(e) => {
+		    error!("Failed to get monitors: {e}");
+		    return Task::none();
+		}
             }
-        })
+	})
         .then(|o| {
-            let output = match o {
-                Ok(o) => o,
-                Err(_) => return Task::none(),
-            };
-            match output {
-                Ok(output) => match String::from_utf8(output.stdout) {
-                    Ok(output) => {
-                        let mut monitors = WAYLAND_INFO_MONITOR_REGEX
-                            .find_iter(&output)
-                            .map(|m| m.as_str().to_string().replace("(", "").replace(")", ""))
-                            .collect::<Vec<_>>();
-                        monitors.push(gettext("All"));
-                        monitors.sort();
-                        Task::done(Messages::MonitorDropdownPopulated(monitors))
-                    }
-                    Err(_) => Task::none(),
-                },
-                Err(_) => Task::none(),
-            }
+	    o
         })
     }
 

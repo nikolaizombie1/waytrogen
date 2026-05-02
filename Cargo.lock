@@ -5087,6 +5087,7 @@ dependencies = [
  "strum_macros",
  "uuid",
  "walkdir",
+ "wayland-client",
  "which",
  "xdg",
 ]
