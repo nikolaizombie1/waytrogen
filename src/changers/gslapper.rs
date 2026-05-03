@@ -123,35 +123,32 @@ pub fn change_gslapper_wallpaper(
     }
 }
 
-pub fn generate_gslapper_changer_bar(app_state: &AppState) -> Element<'_, Messages> {
-    let scale_mode_dropdown = pick_list(
+pub fn generate_gslapper_changer_bar(app_state: AppState) -> Vec<Element<'static, Messages>> {
+    let scale_mode_dropdown: Element<'_, Messages> = pick_list(
         GSllapperScaleMode::VARIANTS,
-        app_state.gslapper_scale_mode.clone(),
+        app_state.gslapper_scale_mode,
         Messages::GSllaperScaleModeChanged,
-    );
+    ).into();
 
-    let pause_mode_dropdown = pick_list(
+    let pause_mode_dropdown: Element<'_, Messages> = pick_list(
         GSllapperPauseMode::VARIANTS,
-        app_state.gslapper_pause_mode.clone(),
+        app_state.gslapper_pause_mode,
         Messages::GSlapperPauseModeChanged,
-    );
+    ).into();
 
-    let loop_switch =
-        toggler(app_state.gslapper_loop).on_toggle(Messages::GSllaperLoopVideoChanged);
+    let loop_switch: Element<'_, Messages> =
+        toggler(app_state.gslapper_loop).on_toggle(Messages::GSllaperLoopVideoChanged).into();
 
-    let additional_options_entry = text_input(
+    let additional_options_entry: Element<'_, Messages> = text_input(
         &gettext("Additional GStreamer/gslapper options (e.g., panscan=0.8)"),
         &app_state.gslapper_additional_options,
     )
-    .on_input(Messages::GSllaperAdditionalOptionsChanged);
+    .on_input(Messages::GSllaperAdditionalOptionsChanged).into();
 
-    row![
+    vec![
         scale_mode_dropdown,
         pause_mode_dropdown,
         loop_switch,
         additional_options_entry
     ]
-    .align_y(Center)
-    .spacing(DEFAULT_MARGIN as f32)
-    .into()
 }

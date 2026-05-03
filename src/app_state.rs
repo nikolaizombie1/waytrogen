@@ -1311,16 +1311,7 @@ impl AppState {
                     Messages::WallpaperChangerChanged,
                 );
 
-                let changer_specific_widgets = match changer {
-                    WallpaperChangers::Hyprpaper(_) => generate_hyprpaper_changer_bar(self),
-                    WallpaperChangers::Swaybg(_) => generate_swaybg_changer_bar(self),
-                    WallpaperChangers::MpvPaper(_) => generate_mpvpaper_changer_bar(self),
-                    WallpaperChangers::Awww(_) => generate_awww_changer_bar(self),
-                    WallpaperChangers::GSlapper(_) => generate_gslapper_changer_bar(self),
-                };
-
-                column![
-                    scrollable(image_grid.wrap()).width(Fill).height(Fill),
+		let mut bottom_bar = 
                     row![
                         monitors_dropdown,
                         button(text!["{}", gettext("Images Folder")])
@@ -1329,11 +1320,19 @@ impl AppState {
                         search_bar,
                         options_menu,
                         changer_dropdown,
-                        changer_specific_widgets
                     ]
                     .padding(DEFAULT_MARGIN as f32)
                     .spacing(DEFAULT_MARGIN as f32)
-                    .align_y(Center)
+                    .align_y(Center);
+
+
+                for element in changer.ui_elements(self.clone()) {
+		    bottom_bar = bottom_bar.push(element);
+		}
+
+                column![
+                    scrollable(image_grid.wrap()).width(Fill).height(Fill),
+		    bottom_bar
                 ]
                 .align_x(Center)
                 .padding(DEFAULT_MARGIN as f32)

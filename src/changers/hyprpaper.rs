@@ -1,7 +1,7 @@
 use gettextrs::gettext;
 use iced::{
     Element,
-    widget::{PickList, pick_list},
+    widget::{pick_list},
 };
 use log::{debug, error, warn};
 use std::{path::Path, process::Command, thread, time::Duration};
@@ -9,8 +9,7 @@ use strum::VariantArray;
 use which::which;
 
 use crate::{
-    app_state::{self, AppState, Messages},
-    common::DEFAULT_MARGIN,
+    app_state::{AppState, Messages},
     wallpaper_changers::{HyprpaperFitModes, WallpaperChangers},
 };
 
@@ -94,11 +93,11 @@ pub fn change_hyprpaper_wallpaper(
     }
 }
 
-pub fn generate_hyprpaper_changer_bar(app_state: &AppState) -> Element<'_, Messages> {
-    let dropdown = pick_list(
+pub fn generate_hyprpaper_changer_bar(app_state: AppState) -> Vec<Element<'static, Messages>> {
+    let dropdown: Element<'_, Messages> = pick_list(
         HyprpaperFitModes::VARIANTS,
         app_state.hyprpaper_fill_mode.clone(),
         Messages::HyprpaperFitModeChanged,
-    );
-    dropdown.into()
+    ).into();
+    vec![dropdown]
 }

@@ -40,22 +40,20 @@ pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, 
     }
 }
 
-pub fn generate_swaybg_changer_bar(app_state: &AppState) -> Element<'_, Messages> {
-    let dropdown = pick_list(
+pub fn generate_swaybg_changer_bar(app_state: AppState) -> Vec<Element<'static, Messages>> {
+    let dropdown: Element<'_, Messages> = pick_list(
         SwaybgModes::VARIANTS,
         app_state.swaybg_mode.clone(),
         Messages::SwaybgModeChanged,
-    );
+    ).into();
     let color_picker_button =
         button(text!["{}", gettext("Fill Color")]).on_press(Messages::ShowSwaybgColorPicker);
-    let color_picker_widget = color_picker(
+    let color_picker_widget: Element<'_, Messages> = color_picker(
         app_state.show_swaybg_color_picker,
         app_state.sway_bg_color_internal,
         color_picker_button,
         Messages::SwaybgFillColorCancelled,
         Messages::SwaybgFillColorSubmitted,
-    );
-    row![dropdown, color_picker_widget]
-        .spacing(DEFAULT_MARGIN as f32)
-        .into()
+    ).into();
+    vec![dropdown, color_picker_widget]
 }

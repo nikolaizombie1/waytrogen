@@ -3,7 +3,7 @@ use crate::{
     common::DEFAULT_MARGIN,
     wallpaper_changers::{
         AWWWResizeMode, AWWWScallingFilter, AWWWTransitionBezier, AWWWTransitionPosition,
-        AWWWTransitionType, U32Enum, WallpaperChangers,
+        AWWWTransitionType, WallpaperChangers,
     },
 };
 use gettextrs::gettext;
@@ -68,21 +68,22 @@ pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, mo
     }
 }
 
-pub fn generate_awww_changer_bar(app_state: &AppState) -> Element<'_, Messages> {
-    let resize_dropdown = pick_list(
+pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Messages>> {
+    let resize_dropdown: Element<'_, Messages> = pick_list(
         AWWWResizeMode::VARIANTS,
-        app_state.awww_resize.clone(),
+        app_state.awww_resize,
         Messages::AwwwResizeModeChanged,
-    );
+    ).into();
+
     let color_picker_button =
         button(text!["{}", gettext("Fill Color")]).on_press(Messages::ShowAwwwColorPicker);
-    let color_picker_widget = color_picker(
+    let color_picker_widget: Element<'_, Messages> = color_picker(
         app_state.show_awww_color_picker,
         app_state.awww_fill_color_internal,
         color_picker_button,
         Messages::AwwwFillColorCancelled,
         Messages::AwwwFillColorSubmitted,
-    );
+    ).into();
 
     let advanced_settings_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
         button(text!["{}", gettext("Advanced Options")])
@@ -290,7 +291,5 @@ pub fn generate_awww_changer_bar(app_state: &AppState) -> Element<'_, Messages> 
     )])
     .into();
 
-    row![resize_dropdown, color_picker_widget, advanced_settings_menu]
-        .spacing(DEFAULT_MARGIN as f32)
-        .into()
+    vec![resize_dropdown, color_picker_widget, advanced_settings_menu]
 }

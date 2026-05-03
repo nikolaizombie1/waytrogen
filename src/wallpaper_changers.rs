@@ -1,9 +1,10 @@
-use crate::changers::{
-    awww::change_awww_wallpaper, gslapper::change_gslapper_wallpaper,
-    hyprpaper::change_hyprpaper_wallpaper, mpvpaper::change_mpvpaper_wallpaper,
-    swaybg::change_swaybg_wallpaper,
-};
+use crate::{app_state::{AppState, Messages}, changers::{
+    awww::{change_awww_wallpaper, generate_awww_changer_bar}, gslapper::{change_gslapper_wallpaper, generate_gslapper_changer_bar},
+    hyprpaper::{change_hyprpaper_wallpaper, generate_hyprpaper_changer_bar}, mpvpaper::{change_mpvpaper_wallpaper, generate_mpvpaper_changer_bar},
+    swaybg::{change_swaybg_wallpaper, generate_swaybg_changer_bar},
+}};
 use gettextrs::gettext;
+use iced::Element;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -16,12 +17,8 @@ pub trait WallpaperChanger {
     fn change(self, image: PathBuf, monitor: String);
     fn accepted_formats(&self) -> Vec<String>;
     fn kill(&self);
+    fn ui_elements(&self, app_state: AppState) -> Vec<Element<'_, Messages>>;
 }
-pub trait U32Enum {
-    fn from_u32(i: u32) -> Self;
-    fn to_u32(&self) -> u32;
-}
-
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
 pub struct HyprpaperSettings {
     pub fit_mode: HyprpaperFitModes,
@@ -103,29 +100,6 @@ pub enum GSllapperScaleMode {
     Panscan,
 }
 
-impl U32Enum for GSllapperScaleMode {
-    fn from_u32(i: u32) -> Self {
-        #[allow(clippy::cast_possible_truncation)]
-        let i = i % Self::VARIANTS.len() as u32;
-        match i {
-            0 => Self::Fill,
-            1 => Self::Stretch,
-            2 => Self::Original,
-            3 => Self::Panscan,
-            _ => Self::default(),
-        }
-    }
-
-    fn to_u32(&self) -> u32 {
-        match self {
-            Self::Fill => 0,
-            Self::Stretch => 1,
-            Self::Original => 2,
-            Self::Panscan => 3,
-        }
-    }
-}
-
 impl Display for GSllapperScaleMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -157,27 +131,6 @@ pub enum GSllapperPauseMode {
     None,
     AutoPause,
     AutoStop,
-}
-
-impl U32Enum for GSllapperPauseMode {
-    fn from_u32(i: u32) -> Self {
-        #[allow(clippy::cast_possible_truncation)]
-        let i = i % Self::VARIANTS.len() as u32;
-        match i {
-            0 => Self::None,
-            1 => Self::AutoPause,
-            2 => Self::AutoStop,
-            _ => Self::default(),
-        }
-    }
-
-    fn to_u32(&self) -> u32 {
-        match self {
-            Self::None => 0,
-            Self::AutoPause => 1,
-            Self::AutoStop => 2,
-        }
-    }
 }
 
 impl Display for GSllapperPauseMode {
@@ -264,29 +217,6 @@ impl Display for HyprpaperFitModes {
     }
 }
 
-impl U32Enum for HyprpaperFitModes {
-    fn from_u32(i: u32) -> Self {
-        #[allow(clippy::cast_possible_truncation)]
-        let i = i % Self::VARIANTS.len() as u32;
-        match i {
-            0 => Self::Contain,
-            1 => Self::Cover,
-            2 => Self::Tile,
-            3 => Self::Fill,
-            _ => Self::default(),
-        }
-    }
-
-    fn to_u32(&self) -> u32 {
-        match self {
-            HyprpaperFitModes::Contain => 0,
-            HyprpaperFitModes::Cover => 1,
-            HyprpaperFitModes::Tile => 2,
-            HyprpaperFitModes::Fill => 3,
-        }
-    }
-}
-
 #[derive(Debug, Clone, IntoStaticStr, VariantArray, Default, Serialize, Deserialize, PartialEq)]
 pub enum SwaybgModes {
     Stretch,
@@ -334,27 +264,6 @@ pub enum AWWWResizeMode {
     Fit,
 }
 
-impl U32Enum for AWWWResizeMode {
-    fn from_u32(i: u32) -> Self {
-        #[allow(clippy::cast_possible_truncation)]
-        let i = i % Self::VARIANTS.len() as u32;
-        match i {
-            0 => Self::No,
-            1 => Self::Crop,
-            2 => Self::Fit,
-            _ => Self::default(),
-        }
-    }
-
-    fn to_u32(&self) -> u32 {
-        match self {
-            Self::No => 0,
-            Self::Crop => 1,
-            Self::Fit => 2,
-        }
-    }
-}
-
 impl Display for AWWWResizeMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -373,31 +282,6 @@ pub enum AWWWScallingFilter {
     Mitchell,
     #[default]
     Lanczos3,
-}
-
-impl U32Enum for AWWWScallingFilter {
-    fn from_u32(i: u32) -> Self {
-        #[allow(clippy::cast_possible_truncation)]
-        let i = i % Self::VARIANTS.len() as u32;
-        match i {
-            0 => Self::Nearest,
-            1 => Self::Bilinear,
-            2 => Self::CatmullRom,
-            3 => Self::Mitchell,
-            4 => Self::Lanczos3,
-            _ => Self::default(),
-        }
-    }
-
-    fn to_u32(&self) -> u32 {
-        match self {
-            Self::Nearest => 0,
-            Self::Bilinear => 1,
-            Self::CatmullRom => 2,
-            Self::Mitchell => 3,
-            Self::Lanczos3 => 4,
-        }
-    }
 }
 
 impl Display for AWWWScallingFilter {
@@ -429,49 +313,6 @@ pub enum AWWWTransitionType {
     Any,
     Outer,
     Random,
-}
-
-impl U32Enum for AWWWTransitionType {
-    fn from_u32(i: u32) -> Self {
-        #[allow(clippy::cast_possible_truncation)]
-        let i = i % Self::VARIANTS.len() as u32;
-        match i {
-            0 => Self::None,
-            1 => Self::Simple,
-            2 => Self::Fade,
-            3 => Self::Left,
-            4 => Self::Right,
-            5 => Self::Top,
-            6 => Self::Bottom,
-            7 => Self::Wipe,
-            8 => Self::Wave,
-            9 => Self::Grow,
-            10 => Self::Center,
-            11 => Self::Any,
-            12 => Self::Outer,
-            13 => Self::Random,
-            _ => Self::default(),
-        }
-    }
-
-    fn to_u32(&self) -> u32 {
-        match self {
-            Self::None => 0,
-            Self::Simple => 1,
-            Self::Fade => 2,
-            Self::Left => 3,
-            Self::Right => 4,
-            Self::Top => 5,
-            Self::Bottom => 6,
-            Self::Wipe => 7,
-            Self::Wave => 8,
-            Self::Grow => 9,
-            Self::Center => 10,
-            Self::Any => 11,
-            Self::Outer => 12,
-            Self::Random => 13,
-        }
-    }
 }
 
 impl Display for AWWWTransitionType {
@@ -569,49 +410,6 @@ impl Default for AWWWTransitionWave {
     }
 }
 
-impl U32Enum for SwaybgModes {
-    fn from_u32(i: u32) -> SwaybgModes {
-        let i = (i as usize) % SwaybgModes::VARIANTS.len();
-        match i {
-            1 => Self::Fit,
-            2 => Self::Fill,
-            3 => Self::Center,
-            4 => Self::Tile,
-            5 => Self::SolidColor,
-            _ => Self::Stretch,
-        }
-    }
-
-    fn to_u32(&self) -> u32 {
-        match self {
-            Self::Stretch => 0,
-            Self::Fit => 1,
-            Self::Fill => 2,
-            Self::Center => 3,
-            Self::Tile => 4,
-            Self::SolidColor => 5,
-        }
-    }
-}
-
-impl U32Enum for MpvPaperPauseModes {
-    fn from_u32(i: u32) -> MpvPaperPauseModes {
-        let i = (i as usize) % MpvPaperPauseModes::VARIANTS.len();
-        match i {
-            1 => Self::AutoPause,
-            2 => Self::AutoStop,
-            _ => Self::None,
-        }
-    }
-
-    fn to_u32(&self) -> u32 {
-        match self {
-            Self::None => 0,
-            Self::AutoPause => 1,
-            Self::AutoStop => 2,
-        }
-    }
-}
 
 impl FromStr for SwaybgModes {
     type Err = String;
@@ -1116,6 +914,26 @@ impl WallpaperChanger for WallpaperChangers {
                 let _ = std::fs::remove_file(socket_path);
             }
         }
+    }
+
+    fn ui_elements(&self, app_state: AppState) -> Vec<Element<'_, Messages>> {
+	match self {
+	    WallpaperChangers::Hyprpaper(_) => {
+		generate_hyprpaper_changer_bar(app_state)
+	    },
+	    WallpaperChangers::Swaybg(_) => {
+		generate_swaybg_changer_bar(app_state)
+	    },
+	    WallpaperChangers::MpvPaper(_) => {
+		generate_mpvpaper_changer_bar(app_state)
+	    },
+	    WallpaperChangers::Awww(_) => {
+		generate_awww_changer_bar(app_state)
+	    },
+	    WallpaperChangers::GSlapper(_) => {
+		generate_gslapper_changer_bar(app_state)
+	    },
+	}
     }
 }
 
