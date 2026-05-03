@@ -23,6 +23,7 @@
             glib
             wrapGAppsHook4
             bash
+            dbus
           ];
           buildInputs = with pkgs; [
             glib
@@ -40,6 +41,8 @@
             libxkbcommon
             vulkan-loader
             wayland
+            dbus
+            xdg-utils
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };
@@ -74,6 +77,7 @@
             bash
             rustc
             gtk4
+            dbus
           ];
 
           buildInputs = with pkgs; [
@@ -136,6 +140,7 @@
             ninja
             desktop-file-utils
             gettext
+            dbus
           ];
           buildInputs = with pkgs; [
             glib
@@ -161,6 +166,8 @@
             vulkan-loader
             wayland
             cargo
+            dbus
+            xdg-utils
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };

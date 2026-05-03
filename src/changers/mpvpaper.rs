@@ -7,10 +7,6 @@ use crate::{
     },
 };
 use gettextrs::gettext;
-use gtk::{
-    Adjustment, Align, Box, DropDown, Entry, SpinButton, StringObject, Switch, TextBuffer,
-    gio::Settings, glib::clone, prelude::*,
-};
 use iced::{
     Alignment::Center,
     Element,

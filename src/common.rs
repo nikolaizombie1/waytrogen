@@ -124,48 +124,6 @@ impl CacheImageFile {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
-pub struct RGB {
-    pub red: f32,
-    pub green: f32,
-    pub blue: f32,
-}
-
-impl Display for RGB {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{:02x}{:02x}{:02x}",
-            (self.red * 255.0) as u8,
-            (self.green * 255.0) as u8,
-            (self.blue * 255.0) as u8
-        )
-    }
-}
-
-lazy_static! {
-    static ref rgb_regex: Regex = Regex::new(r"[0-9A-Fa-f]{6}").unwrap();
-}
-
-impl FromStr for RGB {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if rgb_regex.is_match(s) {
-            let s = s.to_lowercase().chars().collect::<Vec<_>>();
-            let red = hex::decode(s[0..=1].iter().collect::<String>()).unwrap();
-            let red = f32::from(red[0]) / 255.0;
-            let green = hex::decode(s[2..=3].iter().collect::<String>()).unwrap();
-            let green = f32::from(green[0]) / 255.0;
-            let blue = hex::decode(s[4..=5].iter().collect::<String>()).unwrap();
-            let blue = f32::from(blue[0]) / 255.0;
-            Ok(Self { red, green, blue })
-        } else {
-            Err(gettext("Invalid string"))
-        }
-    }
-}
-
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Wallpaper {
     pub monitor: String,
