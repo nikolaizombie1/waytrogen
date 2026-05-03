@@ -1283,13 +1283,19 @@ impl AppState {
 		    bottom_bar = bottom_bar.push(element);
 		}
 
+		let mut app_box = 
                 column![
                     scrollable(image_grid.wrap()).width(Fill).height(Fill),
-		    bottom_bar
                 ]
                 .align_x(Center)
                 .padding(DEFAULT_MARGIN as f32)
-                .spacing(DEFAULT_MARGIN as f32)
+                .spacing(DEFAULT_MARGIN as f32);
+
+		if !self.hide_changer_options_box {
+		    app_box = app_box.push(bottom_bar);
+		}
+
+		app_box
                 .into()
             }
             None => todo!(),

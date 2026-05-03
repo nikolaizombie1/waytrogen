@@ -11,7 +11,7 @@ use waytrogen::{
 };
 
 fn main() -> anyhow::Result<()> {
-    let mut args = Cli::parse();
+    let args = Cli::parse();
     stderrlog::new()
         .module(module_path!())
         .verbosity(args.log_level as usize)
@@ -26,8 +26,11 @@ fn main() -> anyhow::Result<()> {
         }
     };
 
-    if args.external_script.is_none() && !config_file.executable_script.is_empty() {
-        args.external_script = Some(config_file.executable_script.clone());
+    if args.external_script.is_some() {
+	config_file.executable_script = args.external_script.clone().unwrap();
+    }
+    if args.hide_bottom_bar.is_some() {
+	config_file.hide_changer_options_box = args.hide_bottom_bar.clone().unwrap();
     }
 
     if args.restore {
