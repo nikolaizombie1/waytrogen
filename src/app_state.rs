@@ -1,9 +1,4 @@
 use crate::{
-    changers::{
-        awww::generate_awww_changer_bar, gslapper::generate_gslapper_changer_bar,
-        hyprpaper::generate_hyprpaper_changer_bar, mpvpaper::generate_mpvpaper_changer_bar,
-        swaybg::generate_swaybg_changer_bar,
-    },
     common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
         get_config_file_path, parse_executable_script,
@@ -65,9 +60,6 @@ impl Display for SortBy {
         write!(f, "{ret}")
     }
 }
-
-static WAYLAND_INFO_MONITOR_REGEX: regex_static::once_cell::sync::Lazy<regex::Regex> =
-    regex_static::lazy_regex!(r"\(.*\)");
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -374,46 +366,42 @@ pub enum Messages {
 impl BootFn<AppState, Messages> for AppState {
     fn boot(&self) -> (AppState, iced::Task<Messages>) {
         let mut instance = self.clone();
-        if let None = instance.sort_by {
+        if instance.sort_by.is_none() {
             instance.sort_by = Some(SortBy::default());
         }
         instance.available_changers = get_available_wallpaper_changers();
-        if let None = instance.changer {
-            match instance.available_changers.first() {
-                Some(c) => {
-                    instance.changer = Some(c.clone());
-                }
-                None => {}
+        if instance.changer.is_none()
+            && let Some(c) = instance.available_changers.first() {
+                instance.changer = Some(c.clone());
             }
-        }
-        if let None = instance.hyprpaper_fill_mode {
+        if instance.hyprpaper_fill_mode.is_none() {
             instance.hyprpaper_fill_mode = Some(HyprpaperFitModes::default())
         }
-        if let None = instance.swaybg_mode {
+        if instance.swaybg_mode.is_none() {
             instance.swaybg_mode = Some(SwaybgModes::default())
         }
-        if let None = instance.mpvpaper_pause_option {
+        if instance.mpvpaper_pause_option.is_none() {
             instance.mpvpaper_pause_option = Some(MpvPaperPauseModes::default())
         }
-        if let None = instance.awww_resize {
+        if instance.awww_resize.is_none() {
             instance.awww_resize = Some(AWWWResizeMode::default());
         }
-        if let None = instance.awww_scaling_filter {
+        if instance.awww_scaling_filter.is_none() {
             instance.awww_scaling_filter = Some(AWWWScallingFilter::default());
         }
-        if let None = instance.awww_transition_type {
+        if instance.awww_transition_type.is_none() {
             instance.awww_transition_type = Some(AWWWTransitionType::default());
         }
         if !instance.swaybg_color.starts_with("#") {
             instance.swaybg_color = "#000000".to_string();
         }
-        if instance.awww_fill_color == "" {
+        if instance.awww_fill_color.is_empty() {
             instance.awww_fill_color = "000000ff".to_string();
         }
-        if let None = instance.gslapper_scale_mode {
+        if instance.gslapper_scale_mode.is_none() {
             instance.gslapper_scale_mode = Some(GSllapperScaleMode::default());
         }
-        if let None = instance.gslapper_pause_mode {
+        if instance.gslapper_pause_mode.is_none() {
             instance.gslapper_pause_mode = Some(GSllapperPauseMode::default());
         }
         (instance, Task::done(Messages::PopulateImageGrid))
@@ -482,7 +470,7 @@ impl AppState {
 
     fn populate_image_grid(&self) -> iced::Task<Messages> {
         let wallpaper_folder = self.wallpaper_folder.clone();
-        let invert_sort = self.invert_sort.clone();
+        let invert_sort = self.invert_sort;
         match &self.sort_by {
             Some(sort_by) => match wallpaper_folder {
                 Some(wf) => {
@@ -492,14 +480,14 @@ impl AppState {
                     let accepted_formats = WallpaperChangers::all_accepted_formats();
                     let comparator = match sort_by {
                         SortBy::Date => match invert_sort {
-                            true => |x: &DirEntry, y: &DirEntry| {
+                            true => move |x: &DirEntry, y: &DirEntry| {
                                 y.metadata()
                                     .unwrap()
                                     .created()
                                     .unwrap()
                                     .cmp(&x.metadata().unwrap().created().unwrap())
                             },
-                            false => |x: &DirEntry, y: &DirEntry| {
+                            false => move |x: &DirEntry, y: &DirEntry| {
                                 x.metadata()
                                     .unwrap()
                                     .created()
@@ -508,23 +496,23 @@ impl AppState {
                             },
                         },
                         SortBy::Name => match self.invert_sort {
-                            true => |x: &DirEntry, y: &DirEntry| {
+                            true => move |x: &DirEntry, y: &DirEntry| {
                                 y.file_name()
                                     .to_str()
                                     .unwrap_or_default()
-                                    .cmp(&x.file_name().to_str().unwrap_or_default())
+                                    .cmp(x.file_name().to_str().unwrap_or_default())
                             },
-                            false => |x: &DirEntry, y: &DirEntry| {
+                            false => move |x: &DirEntry, y: &DirEntry| {
                                 x.file_name()
                                     .to_str()
                                     .unwrap_or_default()
-                                    .cmp(&y.file_name().to_str().unwrap_or_default())
+                                    .cmp(y.file_name().to_str().unwrap_or_default())
                             },
                         },
                     };
                     Task::future(async move {
                         let images = WalkDir::new(&wf)
-                            .sort_by(move |x, y| comparator(x, y))
+                            .sort_by(comparator)
                             .into_iter()
                             .filter_map(|d| d.ok())
                             .map(|d| d.into_path())
@@ -539,11 +527,11 @@ impl AppState {
                                 )
                             })
                             .collect::<Vec<_>>();
-                        let images = images
+                        
+                        images
                             .into_par_iter()
                             .filter_map(|p| DatabaseConnection::check_cache(&p).ok())
-                            .collect::<Vec<_>>();
-                        images
+                            .collect::<Vec<_>>()
                     })
                     .then(|images| Task::done(Messages::ImageGridPopulated(images)))
                 }
@@ -557,24 +545,21 @@ impl AppState {
         let mut supported_images: Vec<CacheImageFile> = vec![];
         let mut unsupported_images: Vec<CacheImageFile> = vec![];
 
-        match &self.changer {
-            Some(changer) => {
-                for image in all_images {
-                    match changer.accepted_formats().contains(
-                        &image
-                            .cached_image_path
-                            .extension()
-                            .unwrap_or_default()
-                            .to_str()
-                            .unwrap_or_default()
-                            .to_string(),
-                    ) {
-                        true => supported_images.push(image.clone()),
-                        false => unsupported_images.push(image.clone()),
-                    }
+        if let Some(changer) = &self.changer {
+            for image in all_images {
+                match changer.accepted_formats().contains(
+                    &image
+                        .cached_image_path
+                        .extension()
+                        .unwrap_or_default()
+                        .to_str()
+                        .unwrap_or_default()
+                        .to_string(),
+                ) {
+                    true => supported_images.push(image.clone()),
+                    false => unsupported_images.push(image.clone()),
                 }
             }
-            None => {}
         }
         AppStateImages {
             supported_images,
@@ -614,7 +599,7 @@ impl AppState {
                 Ok(m) => Task::done(Messages::MonitorDropdownPopulated(m.available_monitors)),
                 Err(e) => {
                     error!("Failed to get monitors: {e}");
-                    return Task::none();
+                    Task::none()
                 }
             }
         })
@@ -632,7 +617,7 @@ impl AppState {
                 false => |x: &CacheImageFile, y: &CacheImageFile| x.name.cmp(&y.name),
             },
         };
-        self.image_grid_images.sort_by(|x, y| comparator(x, y));
+        self.image_grid_images.sort_by(comparator);
     }
 
     fn filter_images(&self, query: String) -> iced::Task<Messages> {
@@ -649,23 +634,20 @@ impl AppState {
 
             let mut unsupported_images = vec![];
 
-            match changer {
-                Some(changer) => {
-                    unsupported_images.extend(all_images.extract_if(.., |i| {
-                        !changer.accepted_formats().contains(
-                            &i.path
-                                .extension()
-                                .unwrap_or_default()
-                                .to_str()
-                                .unwrap_or_default()
-                                .to_string(),
-                        )
-                    }));
+            if let Some(changer) = changer {
+                unsupported_images.extend(all_images.extract_if(.., |i| {
+                    !changer.accepted_formats().contains(
+                        &i.path
+                            .extension()
+                            .unwrap_or_default()
+                            .to_str()
+                            .unwrap_or_default()
+                            .to_string(),
+                    )
+                }));
 
-                    unsupported_images
-                        .extend(all_images.extract_if(.., |i| !i.name.contains(&query)));
-                }
-                None => {}
+                unsupported_images
+                    .extend(all_images.extract_if(.., |i| !i.name.contains(&query)));
             }
 
             AppStateImages {
@@ -725,15 +707,15 @@ impl AppState {
                 .arg(serialized_internal_state)
                 .spawn()
             {
-                Ok(_) => return Task::done(Messages::ExternalScriptExecuted),
+                Ok(_) => Task::done(Messages::ExternalScriptExecuted),
                 Err(e) => {
                     error!(
                         "Failed to execute external script {}: {e}",
                         external_script_path.to_str().unwrap_or_default()
                     );
-                    return Task::none();
+                    Task::none()
                 }
-            };
+            }
         })
         .then(|t| t)
     }
@@ -791,8 +773,8 @@ impl AppState {
             }
             Messages::OptionMenuOpened => Task::none(),
             Messages::WallpaperChanged(wallpaper_path) => {
-                if let Some(changer) = &self.changer {
-                    if let Some(monitor) = &self.monitor {
+                if let Some(changer) = &self.changer
+                    && let Some(monitor) = &self.monitor {
                         match self
                             .saved_wallpapers
                             .iter_mut()
@@ -817,7 +799,6 @@ impl AppState {
                             }),
                         }
                     }
-                }
                 self.execute_external_script(&wallpaper_path)
             }
             Messages::CloseRequested => {
@@ -828,39 +809,36 @@ impl AppState {
             }
             Messages::HyprpaperFitModeChanged(hyprpaper_fit_modes) => {
                 self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes.clone());
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Hyprpaper(_) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Hyprpaper(_) = changer {
                         self.changer = Some(WallpaperChangers::Hyprpaper(HyprpaperSettings {
                             fit_mode: hyprpaper_fit_modes,
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::SwaybgModeChanged(swaybg_modes) => {
                 self.swaybg_mode = Some(swaybg_modes.clone());
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Swaybg(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Swaybg(settings) = changer {
                         self.changer = Some(WallpaperChangers::Swaybg(SwaybgSettings {
                             mode: swaybg_modes,
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::SwaybgFillColorSubmitted(color) => {
                 self.sway_bg_color_internal = color;
                 self.swaybg_color = color.to_string()[0..=color.to_string().len() - 3].to_string();
                 self.show_swaybg_color_picker = false;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Swaybg(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Swaybg(settings) = changer {
                         self.changer = Some(WallpaperChangers::Swaybg(SwaybgSettings {
                             fill_color: self.swaybg_color.clone(),
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::ShowSwaybgColorPicker => {
@@ -874,20 +852,19 @@ impl AppState {
             Messages::ExternalScriptExecuted => Task::none(),
             Messages::MpvPaperPauseModeChanged(mpv_paper_pause_modes) => {
                 self.mpvpaper_pause_option = Some(mpv_paper_pause_modes.clone());
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::MpvPaper(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::MpvPaper(settings) = changer {
                         self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
                             pause_mode: mpv_paper_pause_modes,
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::MpvPaperEnableSlideshowChanged(enable) => {
                 self.mpvpaper_slideshow_enable = enable;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::MpvPaper(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::MpvPaper(settings) = changer {
                         self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
                             slideshow_settings: MpvPaperSlideshowSettings {
                                 enable,
@@ -896,13 +873,12 @@ impl AppState {
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::MpvPaperSlideshowIntervalChanged(interval) => {
                 self.mpvpaper_slideshow_interval = interval;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::MpvPaper(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::MpvPaper(settings) = changer {
                         self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
                             slideshow_settings: MpvPaperSlideshowSettings {
                                 seconds: interval,
@@ -911,25 +887,23 @@ impl AppState {
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::MpvPaperAdditionalOptionsChanged(additional_options) => {
                 self.mpvpaper_additional_options = additional_options.clone();
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::MpvPaper(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::MpvPaper(settings) = changer {
                         self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
                             additional_options,
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwResizeModeChanged(awwwresize_mode) => {
                 self.awww_resize = Some(awwwresize_mode.clone());
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 resize_mode: awwwresize_mode,
@@ -937,7 +911,6 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::ShowAwwwColorPicker => {
@@ -949,8 +922,8 @@ impl AppState {
                 self.awww_fill_color =
                     color.to_string()[0..=color.to_string().len() - 3].to_string();
                 self.show_awww_color_picker = false;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 fill_color: self.awww_fill_color.clone(),
@@ -958,7 +931,6 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwFillColorCancelled => {
@@ -967,8 +939,8 @@ impl AppState {
             }
             Messages::AwwwScallingFilterChanged(awwwscalling_filter) => {
                 self.awww_scaling_filter = Some(awwwscalling_filter.clone());
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 scalling_filter: awwwscalling_filter,
@@ -976,13 +948,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionTypeChanged(awwwtransition_type) => {
                 self.awww_transition_type = Some(awwwtransition_type.clone());
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_type: awwwtransition_type,
@@ -990,13 +961,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionStepChanged(t) => {
                 self.awww_transition_step = t;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_step: t,
@@ -1004,13 +974,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionDurationChanged(t) => {
                 self.awww_transition_duration = t;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_duration: t,
@@ -1018,13 +987,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionFPSChanged(f) => {
                 self.awww_transition_fps = f;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_fps: f,
@@ -1032,13 +1000,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionAngleChanged(a) => {
                 self.awww_transition_angle = a;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_angle: a,
@@ -1046,13 +1013,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionPositionChanged(awwwtransition_position) => {
                 self.awww_transition_position = awwwtransition_position.clone().position;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_position: awwwtransition_position,
@@ -1060,13 +1026,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwInvertYChanged(c) => {
                 self.awww_invert_y = c;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 invert_y: c,
@@ -1074,13 +1039,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionBezierP0Changed(p) => {
                 self.awww_transition_bezier_p0 = p;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_bezier: AWWWTransitionBezier {
@@ -1091,13 +1055,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionBezierP1Changed(p) => {
                 self.awww_transition_bezier_p1 = p;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_bezier: AWWWTransitionBezier {
@@ -1108,13 +1071,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionBezierP2Changed(p) => {
                 self.awww_transition_bezier_p2 = p;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_bezier: AWWWTransitionBezier {
@@ -1125,13 +1087,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionBezierP3Changed(p) => {
                 self.awww_transition_bezier_p3 = p;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_bezier: AWWWTransitionBezier {
@@ -1142,13 +1103,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionWaveWidthChanged(w) => {
                 self.awww_transition_wave_width = w;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_wave: AWWWTransitionWave {
@@ -1159,13 +1119,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwTransitionWaveHeightChanged(h) => {
                 self.awww_transition_wave_height = h;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(settings) = changer {
                         self.changer = Some(WallpaperChangers::Awww({
                             AwwwSettings {
                                 transition_wave: AWWWTransitionWave {
@@ -1176,13 +1135,12 @@ impl AppState {
                             }
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::AwwwAdvancedSettingsButtonClicked => Task::none(),
             Messages::AwwwRestoreDefaults => {
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::Awww(_) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::Awww(_) = changer {
                         let default_settings = AwwwSettings::default();
                         self.awww_scaling_filter = Some(default_settings.scalling_filter);
                         self.awww_transition_step = default_settings.transition_step;
@@ -1200,55 +1158,50 @@ impl AppState {
                         self.awww_transition_fps = default_settings.transition_fps;
                         self.changer = Some(WallpaperChangers::Awww(AwwwSettings::default()));
                     }
-                }
                 Task::none()
             }
             Messages::GSllaperScaleModeChanged(gsllapper_scale_mode) => {
                 self.gslapper_scale_mode = Some(gsllapper_scale_mode.clone());
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::GSlapper(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::GSlapper(settings) = changer {
                         self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
                             scale_mode: gsllapper_scale_mode,
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::GSlapperPauseModeChanged(gsllapper_pause_mode) => {
                 self.gslapper_pause_mode = Some(gsllapper_pause_mode.clone());
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::GSlapper(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::GSlapper(settings) = changer {
                         self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
                             pause_mode: gsllapper_pause_mode,
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::GSllaperLoopVideoChanged(b) => {
                 self.gslapper_loop = b;
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::GSlapper(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::GSlapper(settings) = changer {
                         self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
                             loop_video: b,
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
             Messages::GSllaperAdditionalOptionsChanged(additional_options) => {
                 self.gslapper_additional_options = additional_options.clone();
-                if let Some(changer) = &self.changer {
-                    if let WallpaperChangers::GSlapper(settings) = changer {
+                if let Some(changer) = &self.changer
+                    && let WallpaperChangers::GSlapper(settings) = changer {
                         self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
                             additional_options,
                             ..settings.clone()
                         }));
                     }
-                }
                 Task::none()
             }
         }
@@ -1268,7 +1221,7 @@ impl AppState {
                                 .width(BUTTON_WIDTH)
                                 .height(BUTTON_HEIGHT)
                                 .on_press_with(move || {
-                                    Messages::ChangeWallpaper(PathBuf::from(path.clone()))
+                                    Messages::ChangeWallpaper(path.clone())
                                 })
                                 .into()
                         },

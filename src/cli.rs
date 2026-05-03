@@ -21,14 +21,6 @@ use std::{
 
 use log::{error, warn};
 
-// struct AppState {
-//     wallpaper_folder: String,
-//     saved_wallpapers: Vec<Wallpaper>,
-//     monitor: String,
-
-// }
-
-#[must_use]
 pub fn restore_wallpapers(app_state: &AppState) -> anyhow::Result<()> {
     WallpaperChangers::killall_changers();
     let previous_wallpapers = app_state.saved_wallpapers.clone();
@@ -51,7 +43,6 @@ pub fn restore_wallpapers(app_state: &AppState) -> anyhow::Result<()> {
     Ok(())
 }
 
-#[must_use]
 pub fn print_wallpaper_state(app_state: &AppState) -> anyhow::Result<()> {
     println!(
         "{}",
@@ -66,7 +57,8 @@ fn get_previous_supported_wallpapers(app_state: &AppState) -> Vec<PathBuf> {
     let path = Path::new(&wallpaper.path)
         .parent()
         .unwrap_or_else(|| Path::new(""));
-    let files = walkdir::WalkDir::new(path)
+    
+    walkdir::WalkDir::new(path)
         .follow_links(true)
         .follow_root_links(true)
         .into_iter()
@@ -87,11 +79,9 @@ fn get_previous_supported_wallpapers(app_state: &AppState) -> Vec<PathBuf> {
                     })
                 })
         })
-        .collect::<Vec<_>>();
-    files
+        .collect::<Vec<_>>()
 }
 
-#[must_use]
 pub fn set_random_wallpapers(app_state: &mut AppState) -> anyhow::Result<()> {
     let mut previous_wallpapers = app_state.saved_wallpapers.clone();
     let files = get_previous_supported_wallpapers(app_state);
@@ -108,13 +98,11 @@ pub fn set_random_wallpapers(app_state: &mut AppState) -> anyhow::Result<()> {
     Ok(())
 }
 
-#[must_use]
 pub fn print_app_version() -> anyhow::Result<()> {
     println!("{APP_VERSION}");
     Ok(())
 }
 
-#[must_use]
 pub fn cycle_next_wallpaper(args: &Cli, app_state: &mut AppState) -> anyhow::Result<()> {
     let mut previous_wallpapers = app_state.saved_wallpapers.clone();
     let sort_dropdown_string = app_state.sort_by.clone().unwrap_or_default();
@@ -226,8 +214,7 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
     }
 }
 
-#[must_use]
-pub fn launch_application(args: Cli) -> anyhow::Result<()> {
+pub fn launch_application(_args: Cli) -> anyhow::Result<()> {
     textdomain("waytrogen").unwrap();
     bind_textdomain_codeset("waytrogen", "UTF-8").unwrap();
     let os_id = get_os_id().unwrap().unwrap_or_default();
@@ -258,7 +245,7 @@ pub fn launch_application(args: Cli) -> anyhow::Result<()> {
     };
     bindtextdomain(GETTEXT_DOMAIN, domain_directory).unwrap();
 
-    let empty: Vec<String> = vec![];
+    let _empty: Vec<String> = vec![];
     // Run the application
     todo!()
 }

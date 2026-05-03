@@ -1,18 +1,17 @@
 use crate::{
-    app_state::{self, AppState, Messages},
-    common::DEFAULT_MARGIN,
+    app_state::{AppState, Messages},
     wallpaper_changers::{
-        MpvPaperPauseModes, MpvPaperSettings, MpvPaperSlideshowSettings, WallpaperChanger,
+        MpvPaperPauseModes, WallpaperChanger,
         WallpaperChangers,
     },
 };
 use gettextrs::gettext;
 use iced::{
-    Alignment::Center, Element, wgpu::naga::proc::ExpressionKindTracker, widget::{pick_list, row, text_input, toggler}
+    Element, widget::{pick_list, text_input, toggler}
 };
 use iced_aw::number_input;
 use std::{
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::Command,
 };
 use strum::VariantArray;

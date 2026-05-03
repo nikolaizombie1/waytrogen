@@ -1,12 +1,11 @@
 use crate::{
     app_state::{AppState, Messages},
-    common::DEFAULT_MARGIN,
     wallpaper_changers::{SwaybgModes, WallpaperChangers},
 };
 use gettextrs::gettext;
 use iced::{
     Element,
-    widget::{button, pick_list, row, text},
+    widget::{button, pick_list, text},
 };
 use iced_aw::helpers::color_picker;
 use std::{path::Path, process::Command};

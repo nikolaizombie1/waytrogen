@@ -1,19 +1,14 @@
 use crate::wallpaper_changers::WallpaperChangers;
 use anyhow::anyhow;
 use image::ImageReader;
-use lazy_static::lazy_static;
 use log::trace;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
-    ffi::OsStr,
-    fmt::Display,
     fs,
     io::Cursor,
     os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     process::Command,
-    str::FromStr,
     time::UNIX_EPOCH,
 };
 use uuid::Uuid;

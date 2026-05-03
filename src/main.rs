@@ -22,7 +22,7 @@ fn main() -> anyhow::Result<()> {
         Ok(c) => c,
         Err(e) => {
             error!("Failed to get config file: {e}");
-            return Err(e.into());
+            return Err(e);
         }
     };
 
@@ -54,7 +54,7 @@ fn main() -> anyhow::Result<()> {
     } else {
         match AppState::run_application(config_file) {
             Ok(_) => Ok(()),
-            Err(e) => return Err(anyhow!("{e}")),
+            Err(e) => Err(anyhow!("{e}")),
         }
     }
 }

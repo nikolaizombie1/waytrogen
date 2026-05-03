@@ -2,7 +2,7 @@ use crate::{
     app_state::{AppState, Messages},
     common::DEFAULT_MARGIN,
     wallpaper_changers::{
-        AWWWResizeMode, AWWWScallingFilter, AWWWTransitionBezier, AWWWTransitionPosition,
+        AWWWResizeMode, AWWWScallingFilter, AWWWTransitionPosition,
         AWWWTransitionType, WallpaperChangers,
     },
 };
@@ -33,7 +33,7 @@ pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, mo
             .arg("--resize")
             .arg(settings.resize_mode.to_string())
             .arg("--fill-color")
-            .arg(settings.fill_color.to_string());
+            .arg(&settings.fill_color);
         if monitor != gettext("All") {
             command.arg("--outputs").arg(monitor);
         }

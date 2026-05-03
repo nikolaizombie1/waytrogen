@@ -23,11 +23,9 @@ impl Dispatch<wl_registry::WlRegistry, ()> for AvailableMonitors {
             interface,
             version,
         } = event
-        {
-            if interface == "wl_output" {
+            && interface == "wl_output" {
                 proxy.bind::<wl_output::WlOutput, _, _>(name, version.min(4), qhandle, ());
             }
-        }
     }
 }
 

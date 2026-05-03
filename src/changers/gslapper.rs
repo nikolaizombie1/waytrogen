@@ -1,13 +1,11 @@
 use crate::{
-    app_state::{self, AppState, Messages},
-    common::DEFAULT_MARGIN,
+    app_state::{AppState, Messages},
     wallpaper_changers::{GSllapperPauseMode, GSllapperScaleMode, WallpaperChangers},
 };
 use gettextrs::gettext;
 use iced::{
-    Alignment::Center,
     Element,
-    widget::{pick_list, row, text_input, toggler},
+    widget::{pick_list, text_input, toggler},
 };
 use log::debug;
 use std::{path::PathBuf, process::Command};

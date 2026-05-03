@@ -28,3 +28,6 @@ rayon = "1.12.0"
 regex_static = "0.1.1"
 iced_aw = { version = "0.13.1", features = ["menu", "color_picker", "number_input"] }
 wayland-client = "0.31.14"
+
+[features]
+nixos = []
