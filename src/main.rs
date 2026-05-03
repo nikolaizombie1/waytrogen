@@ -7,11 +7,12 @@ use waytrogen::{
     cli::{
         Cli, cycle_next_wallpaper, delete_image_cache, print_app_version, print_wallpaper_state,
         restore_wallpapers, set_random_wallpapers,
-    },
+    }, common::start_gettext,
 };
 
 fn main() -> anyhow::Result<()> {
     let args = Cli::parse();
+    start_gettext()?;
     stderrlog::new()
         .module(module_path!())
         .verbosity(args.log_level as usize)

@@ -1,19 +1,16 @@
 use crate::{
     app_state::AppState,
     common::{
-        APP_VERSION, CACHE_FILE_NAME, CONFIG_APP_NAME, GETTEXT_DOMAIN, Wallpaper,
+        APP_VERSION, CACHE_FILE_NAME, CONFIG_APP_NAME, Wallpaper,
         parse_executable_script, sort_by_sort_dropdown_string,
     },
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
 use anyhow::anyhow;
 use clap::Parser;
-use gettextrs::{bind_textdomain_codeset, bindtextdomain, getters, textdomain};
 use log::debug;
 use std::{
-    env::current_exe,
-    fs::{File, remove_dir_all},
-    io::{BufRead, BufReader},
+    fs::remove_dir_all,
     path::{Path, PathBuf},
     thread,
     time::Duration,
@@ -214,57 +211,6 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
     }
 }
 
-pub fn launch_application(_args: Cli) -> anyhow::Result<()> {
-    textdomain("waytrogen").unwrap();
-    bind_textdomain_codeset("waytrogen", "UTF-8").unwrap();
-    let os_id = get_os_id().unwrap().unwrap_or_default();
-    let domain_directory = match os_id.as_str() {
-        "nixos" => {
-            #[cfg(feature = "nixos")]
-            // the path is known at compile time when using nix to build waytrogen
-            {
-                let path = env!("OUT_PATH").parse::<PathBuf>().unwrap();
-                path.join("share").join("locale")
-            }
-
-            #[cfg(not(feature = "nixos"))]
-            {
-                let exe_path = current_exe().unwrap();
-                exe_path
-                    .parent()
-                    .unwrap()
-                    .parent()
-                    .unwrap()
-                    .parent()
-                    .unwrap()
-                    .join("share")
-                    .join("locale")
-            }
-        }
-        _ => getters::domain_directory(GETTEXT_DOMAIN).unwrap(),
-    };
-    bindtextdomain(GETTEXT_DOMAIN, domain_directory).unwrap();
-
-    let _empty: Vec<String> = vec![];
-    // Run the application
-    todo!()
-}
-
-/// os id is the ID="nixos" parameter in `/etc/os-release`
-/// If ID parameter is not found this returns None
-fn get_os_id() -> anyhow::Result<Option<String>> {
-    let file = File::open("/etc/os-release")?;
-    let reader = BufReader::new(file);
-
-    for line in reader.lines() {
-        let line = line?;
-        if let Some(s) = line.strip_prefix("ID=") {
-            let id = s.trim_matches('"');
-            return Ok(Some(id.to_string()));
-        }
-    }
-    Ok(None)
-}
 
 #[derive(Parser, Clone)]
 pub struct Cli {

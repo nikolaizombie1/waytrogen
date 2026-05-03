@@ -54,14 +54,14 @@
         # Layer 2: compile the binary
         waytrogen-bin = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
-          # cargoExtraArgs = "--features nixos";
+          cargoExtraArgs = "--features nixos";
           preBuild = "export OUT_PATH=$out";
         });
 
         # Layer 3: Meson handles everything else (i18n, schemas, icons, desktop file)
         waytrogen = pkgs.stdenv.mkDerivation {
           pname = "waytrogen";
-          version = "0.9.3";
+          version = "0.9.6";
           src = ./.;
 
 
@@ -98,6 +98,7 @@
 
           preFixup = ''
             gappsWrapperArgs+=(
+              --suffix WAYTROGEN_DATA_DIR : "$out/share" \
               --suffix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath (with pkgs; [
                 wayland
                 libxkbcommon
