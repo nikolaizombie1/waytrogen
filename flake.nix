@@ -71,6 +71,7 @@
             pkg-config
             desktop-file-utils
             wrapGAppsHook4
+            makeWrapper
             glib
             gettext          # for i18n / po subdir
             sqlite
@@ -94,6 +95,17 @@
             # Point meson at the pre-built binary from layer 2
             "-Dprecompiled_binary=${waytrogen-bin}/bin/waytrogen"
           ];
+
+          preFixup = ''
+            gappsWrapperArgs+=(
+              --suffix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath (with pkgs; [
+                wayland
+                libxkbcommon
+                vulkan-loader
+                libGL
+              ])}
+            )
+          '';
 
           env = { OPENSSL_NO_VENDOR = 1; };
 
