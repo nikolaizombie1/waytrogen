@@ -1,3 +1,4 @@
+use crate::locale::TRANSLATION;
 use crate::{
     common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
@@ -42,7 +43,6 @@ use std::{
 };
 use strum::VariantArray;
 use walkdir::{DirEntry, WalkDir};
-use crate::locale::TRANSLATION;
 
 #[derive(Clone, Serialize, Deserialize, Default, VariantArray, PartialEq)]
 pub enum SortBy {
@@ -158,141 +158,94 @@ pub struct AppState {
 impl Default for AppState {
     fn default() -> Self {
         Self {
-            executable_script_doc: TRANSLATION.get_translation(
-                "executable-script-description",
-            ),
+            executable_script_doc: TRANSLATION.get_translation("executable-script-description"),
             executable_script: String::default(),
-            wallpaper_folder_doc: TRANSLATION.get_translation(
-                "current-wallpaper-path-description",
-            ),
+            wallpaper_folder_doc: TRANSLATION.get_translation("current-wallpaper-path-description"),
             wallpaper_folder: None,
-            saved_wallpapers_doc: TRANSLATION.get_translation(
-                "wallpaper-state-description",
-            ),
+            saved_wallpapers_doc: TRANSLATION.get_translation("wallpaper-state-description"),
             saved_wallpapers: vec![Wallpaper::default()],
-            monitor_doc: TRANSLATION.get_translation(
-                "monitor-dropdown-id-description",
-            ),
+            monitor_doc: TRANSLATION.get_translation("monitor-dropdown-id-description"),
             monitor: Default::default(),
-            sort_by_doc: TRANSLATION.get_translation(
-                "sort-by-description",
-            ),
+            sort_by_doc: TRANSLATION.get_translation("sort-by-description"),
             sort_by: Default::default(),
-            invert_sort_doc: TRANSLATION.get_translation(
-                "invert-sort-description",
-            ),
+            invert_sort_doc: TRANSLATION.get_translation("invert-sort-description"),
             invert_sort: bool::default(),
-            changer_doc: TRANSLATION.get_translation(
-                "last-used-changer-description",
-            ),
+            changer_doc: TRANSLATION.get_translation("last-used-changer-description"),
             changer: Default::default(),
             image_filter_doc: TRANSLATION.get_translation("the-search-string-for-the-wallpapers"),
             image_filter: String::default(),
-            swaybg_mode_doc: TRANSLATION.get_translation(
-                "swaybg-mode-description",
-            ),
+            swaybg_mode_doc: TRANSLATION.get_translation("swaybg-mode-description"),
             swaybg_mode: Default::default(),
             swaybg_color_doc: TRANSLATION.get_translation(
                 "the-hex-color-for-swaybg-background-fill-must-be-six-characters-long",
             ),
             swaybg_color: Default::default(),
-            mpvpaper_pause_option_doc: TRANSLATION.get_translation(
-                "mpvpaper-pause-mode-description",
-            ),
+            mpvpaper_pause_option_doc: TRANSLATION
+                .get_translation("mpvpaper-pause-mode-description"),
             mpvpaper_pause_option: Default::default(),
-            mpvpaper_slideshow_enable_doc: TRANSLATION.get_translation(
-                "mpvpaper-slidehow-enable-description",
-            ),
+            mpvpaper_slideshow_enable_doc: TRANSLATION
+                .get_translation("mpvpaper-slidehow-enable-description"),
             mpvpaper_slideshow_enable: bool::default(),
-            mpvpaper_slideshow_interval_doc: TRANSLATION.get_translation(
-                "mpvpaper-slideshow-interval-description",
-            ),
+            mpvpaper_slideshow_interval_doc: TRANSLATION
+                .get_translation("mpvpaper-slideshow-interval-description"),
             mpvpaper_slideshow_interval: Default::default(),
-            mpvpaper_additional_options_doc: TRANSLATION.get_translation(
-                "custom-options-for-mpvpaper-passed-as-command-line-arguments",
-            ),
+            mpvpaper_additional_options_doc: TRANSLATION
+                .get_translation("custom-options-for-mpvpaper-passed-as-command-line-arguments"),
             mpvpaper_additional_options: String::default(),
-            selected_monitor_item_doc: TRANSLATION.get_translation(
-                "last-used-monitor-description",
-            ),
+            selected_monitor_item_doc: TRANSLATION.get_translation("last-used-monitor-description"),
             selected_monitor_item: String::default(),
-            awww_resize_doc: TRANSLATION.get_translation(
-                "awww-resize-description",
-            ),
+            awww_resize_doc: TRANSLATION.get_translation("awww-resize-description"),
             awww_resize: Default::default(),
-            awww_fill_color_doc: TRANSLATION.get_translation(
-                "awww-fill-color-description",
-            ),
+            awww_fill_color_doc: TRANSLATION.get_translation("awww-fill-color-description"),
             awww_fill_color: String::from("#000000"),
-            awww_scaling_filter_doc: TRANSLATION.get_translation(
-                "awww-scaling-filter-description",
-            ),
+            awww_scaling_filter_doc: TRANSLATION.get_translation("awww-scaling-filter-description"),
             awww_scaling_filter: Default::default(),
-            awww_transition_type_doc: TRANSLATION.get_translation(
-                "awww-transition-mode-description",
-            ),
+            awww_transition_type_doc: TRANSLATION
+                .get_translation("awww-transition-mode-description"),
             awww_transition_type: Default::default(),
-            awww_transition_step_doc: TRANSLATION.get_translation(
-		"how-fast-the-transition-approaches-the-new-image-used-by-awww",
-            ),
+            awww_transition_step_doc: TRANSLATION
+                .get_translation("how-fast-the-transition-approaches-the-new-image-used-by-awww"),
             awww_transition_step: 90,
             awww_transition_duration_doc: TRANSLATION.get_translation(
                 "how-long-the-transition-takes-to-complete-in-seconds-used-by-awww",
             ),
             awww_transition_duration: 3,
-            awww_transition_angle_doc: TRANSLATION.get_translation(
-                "awww-transition-angle-description",
-            ),
+            awww_transition_angle_doc: TRANSLATION
+                .get_translation("awww-transition-angle-description"),
             awww_transition_angle: 45,
-            awww_transition_position_doc: TRANSLATION.get_translation(
-                "awww-circle-center-description",
-            ),
+            awww_transition_position_doc: TRANSLATION
+                .get_translation("awww-circle-center-description"),
             awww_transition_position: "center".to_string(),
-            awww_invert_y_doc: TRANSLATION.get_translation(
-                "awww-invert-y-description",
-            ),
+            awww_invert_y_doc: TRANSLATION.get_translation("awww-invert-y-description"),
             awww_invert_y: bool::default(),
-            awww_transition_wave_width_doc: TRANSLATION.get_translation(
-                "awww-transition-wave-width-description",
-            ),
+            awww_transition_wave_width_doc: TRANSLATION
+                .get_translation("awww-transition-wave-width-description"),
             awww_transition_wave_width: 200,
-            awww_transition_wave_height_doc: TRANSLATION.get_translation(
-                "awww-transition-wave-height-description",
-            ),
+            awww_transition_wave_height_doc: TRANSLATION
+                .get_translation("awww-transition-wave-height-description"),
             awww_transition_wave_height: 200,
-            awww_transition_bezier_p0_doc: TRANSLATION.get_translation(
-                "point-0-for-the-bezier-curve-to-use-for-the-transition",
-            ),
+            awww_transition_bezier_p0_doc: TRANSLATION
+                .get_translation("point-0-for-the-bezier-curve-to-use-for-the-transition"),
             awww_transition_bezier_p0: 0.54,
-            awww_transition_bezier_p1_doc: TRANSLATION.get_translation(
-                "point-1-for-the-bezier-curve-to-use-for-the-transition",
-            ),
+            awww_transition_bezier_p1_doc: TRANSLATION
+                .get_translation("point-1-for-the-bezier-curve-to-use-for-the-transition"),
             awww_transition_bezier_p1: 0.0,
-            awww_transition_bezier_p2_doc: TRANSLATION.get_translation(
-                "point-2-for-the-bezier-curve-to-use-for-the-transition",
-            ),
+            awww_transition_bezier_p2_doc: TRANSLATION
+                .get_translation("point-2-for-the-bezier-curve-to-use-for-the-transition"),
             awww_transition_bezier_p2: 0.34,
-            awww_transition_bezier_p3_doc: TRANSLATION.get_translation(
-                "point-3-for-the-bezier-curve-to-use-for-the-transition",
-            ),
+            awww_transition_bezier_p3_doc: TRANSLATION
+                .get_translation("point-3-for-the-bezier-curve-to-use-for-the-transition"),
             awww_transition_bezier_p3: 0.99,
             awww_transition_fps_doc: TRANSLATION.get_translation("awww-transition-fps-description"),
             awww_transition_fps: 30,
-            gslapper_scale_mode_doc: TRANSLATION.get_translation(
-                "gslapper-scale-mode-desciption",
-            ),
+            gslapper_scale_mode_doc: TRANSLATION.get_translation("gslapper-scale-mode-desciption"),
             gslapper_scale_mode: Default::default(),
-            gslapper_pause_mode_doc: TRANSLATION.get_translation(
-                "gslapper-pause-mode-description",
-            ),
+            gslapper_pause_mode_doc: TRANSLATION.get_translation("gslapper-pause-mode-description"),
             gslapper_pause_mode: Default::default(),
-            gslapper_loop_doc: TRANSLATION.get_translation(
-                "gslapper-loop-desciption",
-            ),
+            gslapper_loop_doc: TRANSLATION.get_translation("gslapper-loop-desciption"),
             gslapper_loop: true,
-            gslapper_additional_options_doc: TRANSLATION.get_translation(
-                "gslapper-additional-options-desciption",
-            ),
+            gslapper_additional_options_doc: TRANSLATION
+                .get_translation("gslapper-additional-options-desciption"),
             gslapper_additional_options: String::default(),
             hide_changer_options_box_doc: TRANSLATION.get_translation("hide-bottom-bar"),
             hide_changer_options_box: false,
@@ -370,10 +323,7 @@ impl BootFn<AppState, Messages> for AppState {
             instance.sort_by = Some(SortBy::default());
         }
         instance.available_changers = get_available_wallpaper_changers();
-        if instance.changer.is_none()
-            && let Some(c) = instance.available_changers.first() {
-                instance.changer = Some(c.clone());
-            }
+        instance.changer = instance.available_changers.first().cloned();
         if instance.hyprpaper_fill_mode.is_none() {
             instance.hyprpaper_fill_mode = Some(HyprpaperFitModes::default())
         }
@@ -527,7 +477,7 @@ impl AppState {
                                 )
                             })
                             .collect::<Vec<_>>();
-                        
+
                         images
                             .into_par_iter()
                             .filter_map(|p| DatabaseConnection::check_cache(&p).ok())
@@ -646,8 +596,7 @@ impl AppState {
                     )
                 }));
 
-                unsupported_images
-                    .extend(all_images.extract_if(.., |i| !i.name.contains(&query)));
+                unsupported_images.extend(all_images.extract_if(.., |i| !i.name.contains(&query)));
             }
 
             AppStateImages {
@@ -774,31 +723,32 @@ impl AppState {
             Messages::OptionMenuOpened => Task::none(),
             Messages::WallpaperChanged(wallpaper_path) => {
                 if let Some(changer) = &self.changer
-                    && let Some(monitor) = &self.monitor {
-                        match self
-                            .saved_wallpapers
-                            .iter_mut()
-                            .find(|w| w.monitor == *monitor)
-                        {
-                            Some(w) => {
-                                w.changer = changer.clone();
-                                w.path = wallpaper_path
-                                    .clone()
-                                    .to_str()
-                                    .unwrap_or_default()
-                                    .to_string();
-                            }
-                            None => self.saved_wallpapers.push(Wallpaper {
-                                monitor: monitor.clone(),
-                                path: wallpaper_path
-                                    .clone()
-                                    .to_str()
-                                    .unwrap_or_default()
-                                    .to_string(),
-                                changer: changer.clone(),
-                            }),
+                    && let Some(monitor) = &self.monitor
+                {
+                    match self
+                        .saved_wallpapers
+                        .iter_mut()
+                        .find(|w| w.monitor == *monitor)
+                    {
+                        Some(w) => {
+                            w.changer = changer.clone();
+                            w.path = wallpaper_path
+                                .clone()
+                                .to_str()
+                                .unwrap_or_default()
+                                .to_string();
                         }
+                        None => self.saved_wallpapers.push(Wallpaper {
+                            monitor: monitor.clone(),
+                            path: wallpaper_path
+                                .clone()
+                                .to_str()
+                                .unwrap_or_default()
+                                .to_string(),
+                            changer: changer.clone(),
+                        }),
                     }
+                }
                 self.execute_external_script(&wallpaper_path)
             }
             Messages::CloseRequested => {
@@ -810,22 +760,24 @@ impl AppState {
             Messages::HyprpaperFitModeChanged(hyprpaper_fit_modes) => {
                 self.hyprpaper_fill_mode = Some(hyprpaper_fit_modes.clone());
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Hyprpaper(_) = changer {
-                        self.changer = Some(WallpaperChangers::Hyprpaper(HyprpaperSettings {
-                            fit_mode: hyprpaper_fit_modes,
-                        }));
-                    }
+                    && let WallpaperChangers::Hyprpaper(_) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Hyprpaper(HyprpaperSettings {
+                        fit_mode: hyprpaper_fit_modes,
+                    }));
+                }
                 Task::none()
             }
             Messages::SwaybgModeChanged(swaybg_modes) => {
                 self.swaybg_mode = Some(swaybg_modes.clone());
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Swaybg(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Swaybg(SwaybgSettings {
-                            mode: swaybg_modes,
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::Swaybg(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Swaybg(SwaybgSettings {
+                        mode: swaybg_modes,
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
             Messages::SwaybgFillColorSubmitted(color) => {
@@ -833,12 +785,13 @@ impl AppState {
                 self.swaybg_color = color.to_string()[0..=color.to_string().len() - 3].to_string();
                 self.show_swaybg_color_picker = false;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Swaybg(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Swaybg(SwaybgSettings {
-                            fill_color: self.swaybg_color.clone(),
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::Swaybg(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Swaybg(SwaybgSettings {
+                        fill_color: self.swaybg_color.clone(),
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
             Messages::ShowSwaybgColorPicker => {
@@ -853,64 +806,69 @@ impl AppState {
             Messages::MpvPaperPauseModeChanged(mpv_paper_pause_modes) => {
                 self.mpvpaper_pause_option = Some(mpv_paper_pause_modes.clone());
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::MpvPaper(settings) = changer {
-                        self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
-                            pause_mode: mpv_paper_pause_modes,
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::MpvPaper(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
+                        pause_mode: mpv_paper_pause_modes,
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
             Messages::MpvPaperEnableSlideshowChanged(enable) => {
                 self.mpvpaper_slideshow_enable = enable;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::MpvPaper(settings) = changer {
-                        self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
-                            slideshow_settings: MpvPaperSlideshowSettings {
-                                enable,
-                                ..settings.slideshow_settings
-                            },
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::MpvPaper(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
+                        slideshow_settings: MpvPaperSlideshowSettings {
+                            enable,
+                            ..settings.slideshow_settings
+                        },
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
             Messages::MpvPaperSlideshowIntervalChanged(interval) => {
                 self.mpvpaper_slideshow_interval = interval;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::MpvPaper(settings) = changer {
-                        self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
-                            slideshow_settings: MpvPaperSlideshowSettings {
-                                seconds: interval,
-                                ..settings.slideshow_settings
-                            },
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::MpvPaper(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
+                        slideshow_settings: MpvPaperSlideshowSettings {
+                            seconds: interval,
+                            ..settings.slideshow_settings
+                        },
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
             Messages::MpvPaperAdditionalOptionsChanged(additional_options) => {
                 self.mpvpaper_additional_options = additional_options.clone();
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::MpvPaper(settings) = changer {
-                        self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
-                            additional_options,
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::MpvPaper(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::MpvPaper(MpvPaperSettings {
+                        additional_options,
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwResizeModeChanged(awwwresize_mode) => {
                 self.awww_resize = Some(awwwresize_mode.clone());
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                resize_mode: awwwresize_mode,
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            resize_mode: awwwresize_mode,
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::ShowAwwwColorPicker => {
@@ -923,14 +881,15 @@ impl AppState {
                     color.to_string()[0..=color.to_string().len() - 3].to_string();
                 self.show_awww_color_picker = false;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                fill_color: self.awww_fill_color.clone(),
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            fill_color: self.awww_fill_color.clone(),
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwFillColorCancelled => {
@@ -940,268 +899,286 @@ impl AppState {
             Messages::AwwwScallingFilterChanged(awwwscalling_filter) => {
                 self.awww_scaling_filter = Some(awwwscalling_filter.clone());
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                scalling_filter: awwwscalling_filter,
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            scalling_filter: awwwscalling_filter,
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionTypeChanged(awwwtransition_type) => {
                 self.awww_transition_type = Some(awwwtransition_type.clone());
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_type: awwwtransition_type,
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_type: awwwtransition_type,
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionStepChanged(t) => {
                 self.awww_transition_step = t;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_step: t,
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_step: t,
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionDurationChanged(t) => {
                 self.awww_transition_duration = t;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_duration: t,
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_duration: t,
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionFPSChanged(f) => {
                 self.awww_transition_fps = f;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_fps: f,
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_fps: f,
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionAngleChanged(a) => {
                 self.awww_transition_angle = a;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_angle: a,
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_angle: a,
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionPositionChanged(awwwtransition_position) => {
                 self.awww_transition_position = awwwtransition_position.clone().position;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_position: awwwtransition_position,
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_position: awwwtransition_position,
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwInvertYChanged(c) => {
                 self.awww_invert_y = c;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                invert_y: c,
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            invert_y: c,
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionBezierP0Changed(p) => {
                 self.awww_transition_bezier_p0 = p;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_bezier: AWWWTransitionBezier {
-                                    p0: p,
-                                    ..settings.transition_bezier.clone()
-                                },
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_bezier: AWWWTransitionBezier {
+                                p0: p,
+                                ..settings.transition_bezier.clone()
+                            },
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionBezierP1Changed(p) => {
                 self.awww_transition_bezier_p1 = p;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_bezier: AWWWTransitionBezier {
-                                    p1: p,
-                                    ..settings.transition_bezier.clone()
-                                },
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_bezier: AWWWTransitionBezier {
+                                p1: p,
+                                ..settings.transition_bezier.clone()
+                            },
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionBezierP2Changed(p) => {
                 self.awww_transition_bezier_p2 = p;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_bezier: AWWWTransitionBezier {
-                                    p2: p,
-                                    ..settings.transition_bezier.clone()
-                                },
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_bezier: AWWWTransitionBezier {
+                                p2: p,
+                                ..settings.transition_bezier.clone()
+                            },
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionBezierP3Changed(p) => {
                 self.awww_transition_bezier_p3 = p;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_bezier: AWWWTransitionBezier {
-                                    p2: p,
-                                    ..settings.transition_bezier.clone()
-                                },
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_bezier: AWWWTransitionBezier {
+                                p2: p,
+                                ..settings.transition_bezier.clone()
+                            },
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionWaveWidthChanged(w) => {
                 self.awww_transition_wave_width = w;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_wave: AWWWTransitionWave {
-                                    width: w,
-                                    ..settings.clone().transition_wave
-                                },
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_wave: AWWWTransitionWave {
+                                width: w,
+                                ..settings.clone().transition_wave
+                            },
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwTransitionWaveHeightChanged(h) => {
                 self.awww_transition_wave_height = h;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(settings) = changer {
-                        self.changer = Some(WallpaperChangers::Awww({
-                            AwwwSettings {
-                                transition_wave: AWWWTransitionWave {
-                                    height: h,
-                                    ..settings.clone().transition_wave
-                                },
-                                ..settings.clone()
-                            }
-                        }));
-                    }
+                    && let WallpaperChangers::Awww(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::Awww({
+                        AwwwSettings {
+                            transition_wave: AWWWTransitionWave {
+                                height: h,
+                                ..settings.clone().transition_wave
+                            },
+                            ..settings.clone()
+                        }
+                    }));
+                }
                 Task::none()
             }
             Messages::AwwwAdvancedSettingsButtonClicked => Task::none(),
             Messages::AwwwRestoreDefaults => {
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::Awww(_) = changer {
-                        let default_settings = AwwwSettings::default();
-                        self.awww_scaling_filter = Some(default_settings.scalling_filter);
-                        self.awww_transition_step = default_settings.transition_step;
-                        self.awww_transition_duration = default_settings.transition_duration;
-                        self.awww_transition_position =
-                            default_settings.transition_position.position;
-                        self.awww_transition_angle = default_settings.transition_angle;
-                        self.awww_invert_y = default_settings.invert_y;
-                        self.awww_transition_wave_width = default_settings.transition_wave.width;
-                        self.awww_transition_wave_height = default_settings.transition_wave.height;
-                        self.awww_transition_bezier_p0 = default_settings.transition_bezier.p0;
-                        self.awww_transition_bezier_p1 = default_settings.transition_bezier.p1;
-                        self.awww_transition_bezier_p2 = default_settings.transition_bezier.p2;
-                        self.awww_transition_bezier_p3 = default_settings.transition_bezier.p3;
-                        self.awww_transition_fps = default_settings.transition_fps;
-                        self.changer = Some(WallpaperChangers::Awww(AwwwSettings::default()));
-                    }
+                    && let WallpaperChangers::Awww(_) = changer
+                {
+                    let default_settings = AwwwSettings::default();
+                    self.awww_scaling_filter = Some(default_settings.scalling_filter);
+                    self.awww_transition_step = default_settings.transition_step;
+                    self.awww_transition_duration = default_settings.transition_duration;
+                    self.awww_transition_position = default_settings.transition_position.position;
+                    self.awww_transition_angle = default_settings.transition_angle;
+                    self.awww_invert_y = default_settings.invert_y;
+                    self.awww_transition_wave_width = default_settings.transition_wave.width;
+                    self.awww_transition_wave_height = default_settings.transition_wave.height;
+                    self.awww_transition_bezier_p0 = default_settings.transition_bezier.p0;
+                    self.awww_transition_bezier_p1 = default_settings.transition_bezier.p1;
+                    self.awww_transition_bezier_p2 = default_settings.transition_bezier.p2;
+                    self.awww_transition_bezier_p3 = default_settings.transition_bezier.p3;
+                    self.awww_transition_fps = default_settings.transition_fps;
+                    self.changer = Some(WallpaperChangers::Awww(AwwwSettings::default()));
+                }
                 Task::none()
             }
             Messages::GSllaperScaleModeChanged(gsllapper_scale_mode) => {
                 self.gslapper_scale_mode = Some(gsllapper_scale_mode.clone());
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::GSlapper(settings) = changer {
-                        self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
-                            scale_mode: gsllapper_scale_mode,
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::GSlapper(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
+                        scale_mode: gsllapper_scale_mode,
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
             Messages::GSlapperPauseModeChanged(gsllapper_pause_mode) => {
                 self.gslapper_pause_mode = Some(gsllapper_pause_mode.clone());
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::GSlapper(settings) = changer {
-                        self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
-                            pause_mode: gsllapper_pause_mode,
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::GSlapper(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
+                        pause_mode: gsllapper_pause_mode,
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
             Messages::GSllaperLoopVideoChanged(b) => {
                 self.gslapper_loop = b;
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::GSlapper(settings) = changer {
-                        self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
-                            loop_video: b,
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::GSlapper(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
+                        loop_video: b,
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
             Messages::GSllaperAdditionalOptionsChanged(additional_options) => {
                 self.gslapper_additional_options = additional_options.clone();
                 if let Some(changer) = &self.changer
-                    && let WallpaperChangers::GSlapper(settings) = changer {
-                        self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
-                            additional_options,
-                            ..settings.clone()
-                        }));
-                    }
+                    && let WallpaperChangers::GSlapper(settings) = changer
+                {
+                    self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
+                        additional_options,
+                        ..settings.clone()
+                    }));
+                }
                 Task::none()
             }
         }
@@ -1220,9 +1197,7 @@ impl AppState {
                                 .padding(0)
                                 .width(BUTTON_WIDTH)
                                 .height(BUTTON_HEIGHT)
-                                .on_press_with(move || {
-                                    Messages::ChangeWallpaper(path.clone())
-                                })
+                                .on_press_with(move || Messages::ChangeWallpaper(path.clone()))
                                 .into()
                         },
                     ));
@@ -1240,12 +1215,16 @@ impl AppState {
                     Messages::SortByChanged,
                 );
 
-                let search_bar = text_input(&TRANSLATION.get_translation("find-images"), &self.image_filter)
-                    .on_input(Messages::SearchBarInputted)
-                    .width(Fill);
+                let search_bar = text_input(
+                    &TRANSLATION.get_translation("find-images"),
+                    &self.image_filter,
+                )
+                .on_input(Messages::SearchBarInputted)
+                .width(Fill);
 
                 let options_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
-                    button(text!["{}", TRANSLATION.get_translation("Options")]).on_press(Messages::OptionMenuOpened),
+                    button(text!["{}", TRANSLATION.get_translation("Options")])
+                        .on_press(Messages::OptionMenuOpened),
                     Menu::new(
                         [Item::new(
                             toggler(self.invert_sort)
@@ -1264,41 +1243,39 @@ impl AppState {
                     Messages::WallpaperChangerChanged,
                 );
 
-		let mut bottom_bar = 
-                    row![
-                        monitors_dropdown,
-                        button(text!["{}", TRANSLATION.get_translation("image-folder")])
-                            .on_press(Messages::ChangeWallpaperFolder),
-                        sort_dropdown,
-                        search_bar,
-                        options_menu,
-                        changer_dropdown,
-                    ]
-                    .padding(DEFAULT_MARGIN as f32)
-                    .spacing(DEFAULT_MARGIN as f32)
-                    .align_y(Center);
-
+                let mut bottom_bar = row![
+                    monitors_dropdown,
+                    button(text!["{}", TRANSLATION.get_translation("image-folder")])
+                        .on_press(Messages::ChangeWallpaperFolder),
+                    sort_dropdown,
+                    search_bar,
+                    options_menu,
+                    changer_dropdown,
+                ]
+                .padding(DEFAULT_MARGIN as f32)
+                .spacing(DEFAULT_MARGIN as f32)
+                .align_y(Center);
 
                 for element in changer.ui_elements(self.clone()) {
-		    bottom_bar = bottom_bar.push(element);
-		}
+                    bottom_bar = bottom_bar.push(element);
+                }
 
-		let mut app_box = 
-                column![
-                    scrollable(image_grid.wrap()).width(Fill).height(Fill),
-                ]
-                .align_x(Center)
-                .padding(DEFAULT_MARGIN as f32)
-                .spacing(DEFAULT_MARGIN as f32);
+                let mut app_box = column![scrollable(image_grid.wrap()).width(Fill).height(Fill),]
+                    .align_x(Center)
+                    .padding(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN as f32);
 
-		if !self.hide_changer_options_box {
-		    app_box = app_box.push(bottom_bar);
-		}
+                if !self.hide_changer_options_box {
+                    app_box = app_box.push(bottom_bar);
+                }
 
-		app_box
-                .into()
+                app_box.into()
             }
-            None => todo!(),
+            None => column![row![text![
+                "{}",
+                TRANSLATION.get_translation("no-changer-available")
+            ].align_x(Center).width(Fill).height(Fill)].align_y(Center).height(Fill).width(Fill)].align_x(Center).height(Fill).width(Fill)
+            .into(),
         }
     }
 

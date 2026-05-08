@@ -1,3 +1,4 @@
+use crate::locale::TRANSLATION;
 use crate::{
     app_state::{AppState, Messages},
     wallpaper_changers::{SwaybgModes, WallpaperChangers},
@@ -9,7 +10,6 @@ use iced::{
 use iced_aw::helpers::color_picker;
 use std::{path::Path, process::Command};
 use strum::VariantArray;
-use crate::locale::TRANSLATION;
 
 pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, monitor: &str) {
     if let WallpaperChangers::Swaybg(settings) = swaybg_changer {
@@ -44,15 +44,17 @@ pub fn generate_swaybg_changer_bar(app_state: AppState) -> Vec<Element<'static, 
         SwaybgModes::VARIANTS,
         app_state.swaybg_mode.clone(),
         Messages::SwaybgModeChanged,
-    ).into();
-    let color_picker_button =
-        button(text!["{}", TRANSLATION.get_translation("fill-color")]).on_press(Messages::ShowSwaybgColorPicker);
+    )
+    .into();
+    let color_picker_button = button(text!["{}", TRANSLATION.get_translation("fill-color")])
+        .on_press(Messages::ShowSwaybgColorPicker);
     let color_picker_widget: Element<'_, Messages> = color_picker(
         app_state.show_swaybg_color_picker,
         app_state.sway_bg_color_internal,
         color_picker_button,
         Messages::SwaybgFillColorCancelled,
         Messages::SwaybgFillColorSubmitted,
-    ).into();
+    )
+    .into();
     vec![dropdown, color_picker_widget]
 }

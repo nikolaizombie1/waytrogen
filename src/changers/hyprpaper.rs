@@ -1,8 +1,5 @@
 use crate::locale::TRANSLATION;
-use iced::{
-    Element,
-    widget::{pick_list},
-};
+use iced::{Element, widget::pick_list};
 use log::{debug, error, warn};
 use std::{path::Path, process::Command, thread, time::Duration};
 use strum::VariantArray;
@@ -98,6 +95,7 @@ pub fn generate_hyprpaper_changer_bar(app_state: AppState) -> Vec<Element<'stati
         HyprpaperFitModes::VARIANTS,
         app_state.hyprpaper_fill_mode.clone(),
         Messages::HyprpaperFitModeChanged,
-    ).into();
+    )
+    .into();
     vec![dropdown]
 }

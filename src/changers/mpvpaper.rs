@@ -1,19 +1,14 @@
 use crate::{
     app_state::{AppState, Messages},
-    wallpaper_changers::{
-        MpvPaperPauseModes, WallpaperChanger,
-        WallpaperChangers,
-    },
-    locale::TRANSLATION
+    locale::TRANSLATION,
+    wallpaper_changers::{MpvPaperPauseModes, WallpaperChanger, WallpaperChangers},
 };
 use iced::{
-    Element, widget::{pick_list, text_input, toggler}
+    Element,
+    widget::{pick_list, text_input, toggler},
 };
 use iced_aw::number_input;
-use std::{
-    path::PathBuf,
-    process::Command,
-};
+use std::{path::PathBuf, process::Command};
 use strum::VariantArray;
 
 const ALL_MONITOR_SOCKET: &str = "/tmp/mpv-socket-All";
@@ -104,27 +99,32 @@ pub fn generate_mpvpaper_changer_bar(app_state: AppState) -> Vec<Element<'static
         MpvPaperPauseModes::VARIANTS,
         app_state.mpvpaper_pause_option,
         Messages::MpvPaperPauseModeChanged,
-    ).into();
+    )
+    .into();
 
-    let slideshow_enable_switch: Element<'_, Messages> = toggler(app_state.mpvpaper_slideshow_enable)
-        .on_toggle(Messages::MpvPaperEnableSlideshowChanged).into();
+    let slideshow_enable_switch: Element<'_, Messages> =
+        toggler(app_state.mpvpaper_slideshow_enable)
+            .on_toggle(Messages::MpvPaperEnableSlideshowChanged)
+            .into();
 
     let slidehow_interval_input: Element<'_, Messages> = number_input(
         &app_state.mpvpaper_slideshow_interval,
         0..,
         Messages::MpvPaperSlideshowIntervalChanged,
-    ).into();
+    )
+    .into();
 
     let mpv_options: Element<'_, Messages> = text_input(
         &TRANSLATION.get_translation("additional-mpv-options"),
         &app_state.mpvpaper_additional_options,
     )
-    .on_input(Messages::MpvPaperAdditionalOptionsChanged).into();
+    .on_input(Messages::MpvPaperAdditionalOptionsChanged)
+    .into();
 
     vec![
         pause_options_dropdown,
         slideshow_enable_switch,
         slidehow_interval_input,
-        mpv_options
+        mpv_options,
     ]
 }

@@ -1,3 +1,4 @@
+use crate::locale::TRANSLATION;
 use crate::wallpaper_changers::WallpaperChangers;
 use anyhow::anyhow;
 use image::ImageReader;
@@ -12,7 +13,6 @@ use std::{
     time::UNIX_EPOCH,
 };
 use uuid::Uuid;
-use crate::locale::TRANSLATION;
 
 use crate::app_state::SortBy;
 
@@ -173,7 +173,6 @@ pub fn parse_executable_script(s: &str) -> anyhow::Result<String> {
     }
     Ok(s.to_owned())
 }
-
 
 pub fn get_config_file_path() -> anyhow::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);

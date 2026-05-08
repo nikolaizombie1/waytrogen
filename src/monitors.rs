@@ -23,9 +23,10 @@ impl Dispatch<wl_registry::WlRegistry, ()> for AvailableMonitors {
             interface,
             version,
         } = event
-            && interface == "wl_output" {
-                proxy.bind::<wl_output::WlOutput, _, _>(name, version.min(4), qhandle, ());
-            }
+            && interface == "wl_output"
+        {
+            proxy.bind::<wl_output::WlOutput, _, _>(name, version.min(4), qhandle, ());
+        }
     }
 }
 
@@ -54,7 +55,9 @@ impl AvailableMonitors {
         event_queue.roundtrip(&mut available_monitors)?;
         event_queue.roundtrip(&mut available_monitors)?;
         available_monitors.available_monitors.sort();
-        available_monitors.available_monitors.insert(0, TRANSLATION.get_translation("All"));
-	Ok(available_monitors)
+        available_monitors
+            .available_monitors
+            .insert(0, TRANSLATION.get_translation("All"));
+        Ok(available_monitors)
     }
 }

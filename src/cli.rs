@@ -1,8 +1,8 @@
 use crate::{
     app_state::AppState,
     common::{
-        APP_VERSION, CACHE_FILE_NAME, CONFIG_APP_NAME, Wallpaper,
-        parse_executable_script, sort_by_sort_dropdown_string,
+        APP_VERSION, CACHE_FILE_NAME, CONFIG_APP_NAME, Wallpaper, parse_executable_script,
+        sort_by_sort_dropdown_string,
     },
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
 };
@@ -54,7 +54,7 @@ fn get_previous_supported_wallpapers(app_state: &AppState) -> Vec<PathBuf> {
     let path = Path::new(&wallpaper.path)
         .parent()
         .unwrap_or_else(|| Path::new(""));
-    
+
     walkdir::WalkDir::new(path)
         .follow_links(true)
         .follow_root_links(true)
@@ -210,7 +210,6 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
         }
     }
 }
-
 
 #[derive(Parser, Clone)]
 pub struct Cli {

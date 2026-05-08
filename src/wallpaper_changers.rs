@@ -1,8 +1,14 @@
-use crate::{app_state::{AppState, Messages}, locale::TRANSLATION, changers::{
-    awww::{change_awww_wallpaper, generate_awww_changer_bar}, gslapper::{change_gslapper_wallpaper, generate_gslapper_changer_bar},
-    hyprpaper::{change_hyprpaper_wallpaper, generate_hyprpaper_changer_bar}, mpvpaper::{change_mpvpaper_wallpaper, generate_mpvpaper_changer_bar},
-    swaybg::{change_swaybg_wallpaper, generate_swaybg_changer_bar}, 
-}};
+use crate::{
+    app_state::{AppState, Messages},
+    changers::{
+        awww::{change_awww_wallpaper, generate_awww_changer_bar},
+        gslapper::{change_gslapper_wallpaper, generate_gslapper_changer_bar},
+        hyprpaper::{change_hyprpaper_wallpaper, generate_hyprpaper_changer_bar},
+        mpvpaper::{change_mpvpaper_wallpaper, generate_mpvpaper_changer_bar},
+        swaybg::{change_swaybg_wallpaper, generate_swaybg_changer_bar},
+    },
+    locale::TRANSLATION,
+};
 use iced::Element;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -103,9 +109,9 @@ impl Display for GSllapperScaleMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Fill => write!(f, "{}", TRANSLATION.get_translation("fill")),
-            Self::Stretch => write!(f,"{}", TRANSLATION.get_translation("stretch")),
+            Self::Stretch => write!(f, "{}", TRANSLATION.get_translation("stretch")),
             Self::Original => write!(f, "{}", TRANSLATION.get_translation("original")),
-            Self::Panscan => write!(f,  "{}", TRANSLATION.get_translation("panscan")),
+            Self::Panscan => write!(f, "{}", TRANSLATION.get_translation("panscan")),
         }
     }
 }
@@ -136,8 +142,8 @@ impl Display for GSllapperPauseMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::None => write!(f, "{}", TRANSLATION.get_translation("none")),
-            Self::AutoPause => write!(f,  "{}", TRANSLATION.get_translation("auto-pause")),
-            Self::AutoStop => write!(f,  "{}", TRANSLATION.get_translation("auto-stop")),
+            Self::AutoPause => write!(f, "{}", TRANSLATION.get_translation("auto-pause")),
+            Self::AutoStop => write!(f, "{}", TRANSLATION.get_translation("auto-stop")),
         }
     }
 }
@@ -409,7 +415,6 @@ impl Default for AWWWTransitionWave {
     }
 }
 
-
 impl FromStr for SwaybgModes {
     type Err = String;
 
@@ -442,9 +447,13 @@ impl FromStr for MpvPaperPauseModes {
 impl Display for MpvPaperPauseModes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            MpvPaperPauseModes::None => write!(f,  "{}", TRANSLATION.get_translation("none")),
-            MpvPaperPauseModes::AutoPause => write!(f,  "{}", TRANSLATION.get_translation("auto-pause")),
-            MpvPaperPauseModes::AutoStop => write!(f,  "{}", TRANSLATION.get_translation("auto-stop")),
+            MpvPaperPauseModes::None => write!(f, "{}", TRANSLATION.get_translation("none")),
+            MpvPaperPauseModes::AutoPause => {
+                write!(f, "{}", TRANSLATION.get_translation("auto-pause"))
+            }
+            MpvPaperPauseModes::AutoStop => {
+                write!(f, "{}", TRANSLATION.get_translation("auto-stop"))
+            }
         }
     }
 }
@@ -916,23 +925,13 @@ impl WallpaperChanger for WallpaperChangers {
     }
 
     fn ui_elements(&self, app_state: AppState) -> Vec<Element<'_, Messages>> {
-	match self {
-	    WallpaperChangers::Hyprpaper(_) => {
-		generate_hyprpaper_changer_bar(app_state)
-	    },
-	    WallpaperChangers::Swaybg(_) => {
-		generate_swaybg_changer_bar(app_state)
-	    },
-	    WallpaperChangers::MpvPaper(_) => {
-		generate_mpvpaper_changer_bar(app_state)
-	    },
-	    WallpaperChangers::Awww(_) => {
-		generate_awww_changer_bar(app_state)
-	    },
-	    WallpaperChangers::GSlapper(_) => {
-		generate_gslapper_changer_bar(app_state)
-	    },
-	}
+        match self {
+            WallpaperChangers::Hyprpaper(_) => generate_hyprpaper_changer_bar(app_state),
+            WallpaperChangers::Swaybg(_) => generate_swaybg_changer_bar(app_state),
+            WallpaperChangers::MpvPaper(_) => generate_mpvpaper_changer_bar(app_state),
+            WallpaperChangers::Awww(_) => generate_awww_changer_bar(app_state),
+            WallpaperChangers::GSlapper(_) => generate_gslapper_changer_bar(app_state),
+        }
     }
 }
 

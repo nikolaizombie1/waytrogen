@@ -1,7 +1,7 @@
 use crate::{
     app_state::{AppState, Messages},
+    locale::TRANSLATION,
     wallpaper_changers::{GSllapperPauseMode, GSllapperScaleMode, WallpaperChangers},
-    locale::TRANSLATION
 };
 use iced::{
     Element,
@@ -126,27 +126,31 @@ pub fn generate_gslapper_changer_bar(app_state: AppState) -> Vec<Element<'static
         GSllapperScaleMode::VARIANTS,
         app_state.gslapper_scale_mode,
         Messages::GSllaperScaleModeChanged,
-    ).into();
+    )
+    .into();
 
     let pause_mode_dropdown: Element<'_, Messages> = pick_list(
         GSllapperPauseMode::VARIANTS,
         app_state.gslapper_pause_mode,
         Messages::GSlapperPauseModeChanged,
-    ).into();
+    )
+    .into();
 
-    let loop_switch: Element<'_, Messages> =
-        toggler(app_state.gslapper_loop).on_toggle(Messages::GSllaperLoopVideoChanged).into();
+    let loop_switch: Element<'_, Messages> = toggler(app_state.gslapper_loop)
+        .on_toggle(Messages::GSllaperLoopVideoChanged)
+        .into();
 
     let additional_options_entry: Element<'_, Messages> = text_input(
         &TRANSLATION.get_translation("gslapper-additional-option"),
         &app_state.gslapper_additional_options,
     )
-    .on_input(Messages::GSllaperAdditionalOptionsChanged).into();
+    .on_input(Messages::GSllaperAdditionalOptionsChanged)
+    .into();
 
     vec![
         scale_mode_dropdown,
         pause_mode_dropdown,
         loop_switch,
-        additional_options_entry
+        additional_options_entry,
     ]
 }

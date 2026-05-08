@@ -7,7 +7,7 @@ use waytrogen::{
     cli::{
         Cli, cycle_next_wallpaper, delete_image_cache, print_app_version, print_wallpaper_state,
         restore_wallpapers, set_random_wallpapers,
-    }
+    },
 };
 
 fn main() -> anyhow::Result<()> {
@@ -27,10 +27,10 @@ fn main() -> anyhow::Result<()> {
     };
 
     if args.external_script.is_some() {
-	config_file.executable_script = args.external_script.clone().unwrap();
+        config_file.executable_script = args.external_script.clone().unwrap();
     }
     if args.hide_bottom_bar.is_some() {
-	config_file.hide_changer_options_box = args.hide_bottom_bar.clone().unwrap();
+        config_file.hide_changer_options_box = args.hide_bottom_bar.clone().unwrap();
     }
 
     if args.restore {
