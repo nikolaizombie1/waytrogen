@@ -6,3 +6,4 @@ pub mod database;
 pub mod fs;
 pub mod monitors;
 pub mod wallpaper_changers;
+pub mod locale;

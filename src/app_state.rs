@@ -43,6 +43,7 @@ use std::{
 };
 use strum::VariantArray;
 use walkdir::{DirEntry, WalkDir};
+use crate::locale::TRANSLATION;
 
 #[derive(Clone, Serialize, Deserialize, Default, VariantArray, PartialEq)]
 pub enum SortBy {
@@ -158,7 +159,7 @@ pub struct AppState {
 impl Default for AppState {
     fn default() -> Self {
         Self {
-            executable_script_doc: gettext(
+            executable_script_doc: TRANSLATION.get_translation(
                 "The path to executable script used after a wallpaper is set. The script is sent the monitor identifier, wallpaper path and the serialized saved_wallpapers state.",
             ),
             executable_script: String::default(),

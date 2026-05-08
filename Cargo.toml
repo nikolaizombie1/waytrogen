@@ -28,6 +28,10 @@ rayon = "1.12.0"
 regex_static = "0.1.1"
 iced_aw = { version = "0.13.1", features = ["menu", "color_picker", "number_input"] }
 wayland-client = "0.31.14"
+fluent-templates = "0.14.0"
+sys-locale = "0.3.2"
+fluent-bundle = "0.16.0"
+fluent-langneg = "0.14.2"
 
 [features]
 nixos = []

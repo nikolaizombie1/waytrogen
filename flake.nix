@@ -32,7 +32,6 @@
             sqlite
             openssl
             gsettings-desktop-schemas
-            rust-bin.nightly.latest.default
             libX11
             libXcursor
             libXrandr
@@ -79,6 +78,7 @@
             rustc
             gtk4
             dbus
+            cargo-udeps
           ];
 
           buildInputs = with pkgs; [
@@ -169,7 +169,6 @@
             rust-analyzer
             sqlite
             pkg-config
-            rust-bin.nightly.latest.default
             libX11
             libXcursor
             libXrandr
