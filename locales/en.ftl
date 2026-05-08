@@ -112,7 +112,7 @@ last-used-changer-description = Last Used Changer Description
 
 the-search-string-for-the-wallpapers = The Search String For The Wallpapers
 
- swaybg-mode-description = Swaybg Mode Description
+swaybg-mode-description = The internal identifier for Swaybg mode.
 
 the-hex-color-for-swaybg-background-fill-must-be-six-characters-long = The Hex Color For Swaybg Background Fill Must Be Six characters-long
 
@@ -217,3 +217,51 @@ gslapper-loop-desciption = The boolean flag to loop video wallpapers in gslapper
 gslapper-additional-options-desciption = Custom options for gslapper passed as command line arguments.
 
 sort-by-description = The internal numeric identifier in the changer dropdown used by dconf for the currently selected sorting option. Do not change unless you know what you are doing.
+
+Name = name
+
+Date = date
+
+Options = options
+
+fill-color = Fill Color
+
+awww-transition-fps-description = Transition FPS for AWWW transitions.
+
+awww-scaling-filter = Awww Scaling Filter
+
+awww-transition-type = Awww Transition Type
+
+awww-transition-step = Awww Transition Step
+
+awww-transition-duration = Awww Transition Duration
+
+awww-transition-angle = Awww Transition Angle
+
+awww-transition-position = Awww Transition Position
+
+awww-invert-y = Awww Invert Y
+
+awww-transition-wave-height = Awww Transition Wave Height
+
+awww-transition-wave-width = Awww Transition Wave Width
+
+awww-transition-bezier-p0 = Awww Transition Bezier P0
+
+awww-transition-bezier-p1 = Awww Transition Bezier P1
+
+awww-transition-bezier-p2 = Awww Transition Bezier P2
+
+awww-transition-bezier-p3 = Awww Transition Bezier P3
+
+awww-transition-fps = Awww Transition FPS
+
+awww-restore-defaults = Awww Restore Defaults
+
+awww-advanced-options = Awww Advanced Options
+
+original = Original
+
+panscan = Panscan
+
+gslapper-additional-option = Ajustes adicionales para GStreamer/gslapper (e.g panscan=0.8)
