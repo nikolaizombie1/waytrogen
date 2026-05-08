@@ -1,14 +1,11 @@
 use crate::wallpaper_changers::WallpaperChangers;
 use anyhow::anyhow;
-use gettextrs::{bind_textdomain_codeset, bindtextdomain, getters, gettext, textdomain};
 use image::ImageReader;
 use log::trace;
 use serde::{Deserialize, Serialize};
 use std::{
-    env::current_exe,
     fs,
-    fs::File,
-    io::{BufRead, BufReader, Cursor},
+    io::Cursor,
     os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     process::Command,

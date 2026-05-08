@@ -6,7 +6,6 @@ use crate::{
         AWWWTransitionType, WallpaperChangers,
     },
 };
-use gettextrs::gettext;
 use iced::{
     Alignment::Center,
     Element,

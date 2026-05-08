@@ -76,13 +76,14 @@
             wrapGAppsHook4
             makeWrapper
             glib
-            gettext          # for i18n / po subdir
             sqlite
             bash
             rustc
             gtk4
             dbus
             cargo-udeps
+            xdg-utils
+            xdg-desktop-portal
           ];
 
           buildInputs = with pkgs; [
@@ -91,7 +92,9 @@
             ffmpeg
             sqlite
             openssl
-            gsettings-desktop-schemas
+            dbus
+            xdg-utils
+            xdg-desktop-portal
           ];
 
           mesonFlags = [
@@ -102,12 +105,12 @@
 
           preFixup = ''
             gappsWrapperArgs+=(
-              --suffix WAYTROGEN_DATA_DIR : "$out/share" \
               --suffix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath (with pkgs; [
                 wayland
                 libxkbcommon
                 vulkan-loader
                 libGL
+                dbus
               ])}
             )
           '';
@@ -156,7 +159,6 @@
             meson
             ninja
             desktop-file-utils
-            gettext
             dbus
           ];
           buildInputs = with pkgs; [

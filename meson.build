@@ -16,7 +16,6 @@ dependency('gio-2.0', version: '>= 2.78')
 dependency('glib-2.0', version: '>= 2.78')
 
 subdir('src')
-subdir('po')
 
 
 install_data('waytrogen.desktop', install_dir: get_option('prefix') / get_option('datadir') / 'applications')
