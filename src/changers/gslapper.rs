@@ -1,8 +1,8 @@
 use crate::{
     app_state::{AppState, Messages},
     wallpaper_changers::{GSllapperPauseMode, GSllapperScaleMode, WallpaperChangers},
+    locale::TRANSLATION
 };
-use gettextrs::gettext;
 use iced::{
     Element,
     widget::{pick_list, text_input, toggler},
@@ -105,7 +105,7 @@ pub fn change_gslapper_wallpaper(
         command.arg("-f");
 
         // Add monitor (use '*' for all monitors)
-        let monitor_arg = if monitor == gettext("All") {
+        let monitor_arg = if monitor == TRANSLATION.get_translation("All") {
             "*"
         } else {
             monitor
@@ -138,7 +138,7 @@ pub fn generate_gslapper_changer_bar(app_state: AppState) -> Vec<Element<'static
         toggler(app_state.gslapper_loop).on_toggle(Messages::GSllaperLoopVideoChanged).into();
 
     let additional_options_entry: Element<'_, Messages> = text_input(
-        &gettext("Additional GStreamer/gslapper options (e.g., panscan=0.8)"),
+        &TRANSLATION.get_translation("gslapper-additional-option"),
         &app_state.gslapper_additional_options,
     )
     .on_input(Messages::GSllaperAdditionalOptionsChanged).into();

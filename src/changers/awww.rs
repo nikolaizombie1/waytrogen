@@ -22,6 +22,7 @@ use iced_aw::{
 use log::debug;
 use std::{path::PathBuf, process::Command};
 use strum::VariantArray;
+use crate::locale::TRANSLATION;
 
 pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, monitor: String) {
     if let WallpaperChangers::Awww(settings) = awww_changer {
@@ -34,7 +35,7 @@ pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, mo
             .arg(settings.resize_mode.to_string())
             .arg("--fill-color")
             .arg(&settings.fill_color);
-        if monitor != gettext("All") {
+        if monitor != TRANSLATION.get_translation("All") {
             command.arg("--outputs").arg(monitor);
         }
         command
@@ -76,7 +77,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
     ).into();
 
     let color_picker_button =
-        button(text!["{}", gettext("Fill Color")]).on_press(Messages::ShowAwwwColorPicker);
+        button(text!["{}", TRANSLATION.get_translation("fill-color")]).on_press(Messages::ShowAwwwColorPicker);
     let color_picker_widget: Element<'_, Messages> = color_picker(
         app_state.show_awww_color_picker,
         app_state.awww_fill_color_internal,
@@ -86,13 +87,13 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
     ).into();
 
     let advanced_settings_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
-        button(text!["{}", gettext("Advanced Options")])
+        button(text!["{}", TRANSLATION.get_translation("awww-advanced-options")])
             .on_press(Messages::AwwwAdvancedSettingsButtonClicked),
         Menu::new(
             [
                 Item::new(
                     row![
-                        text!["{}", gettext("Scalling filter")],
+                        text!["{}", TRANSLATION.get_translation("awww-scaling-filter")],
                         pick_list(
                             AWWWScallingFilter::VARIANTS,
                             app_state.awww_scaling_filter.clone(),
@@ -105,7 +106,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition type")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-type")],
                         pick_list(
                             AWWWTransitionType::VARIANTS,
                             app_state.awww_transition_type.clone(),
@@ -118,7 +119,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition step")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-step")],
                         number_input(
                             &app_state.awww_transition_step,
                             0..=u8::MAX,
@@ -130,7 +131,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Trasition duration")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-duration")],
                         number_input(
                             &app_state.awww_transition_duration,
                             0..=u32::MAX,
@@ -143,20 +144,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition duration")],
-                        number_input(
-                            &app_state.awww_transition_duration,
-                            0..=u32::MAX,
-                            Messages::AwwwTransitionDurationChanged
-                        )
-                    ]
-                    .align_y(Center)
-                    .spacing(DEFAULT_MARGIN as f32)
-                    .width(Fill),
-                ),
-                Item::new(
-                    row![
-                        text!["{}", gettext("Transition angle")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-angle")],
                         number_input(
                             &app_state.awww_transition_angle,
                             0..=270,
@@ -169,7 +157,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition position")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-position")],
                         text_input("", &app_state.awww_transition_position).on_input(|m| {
                             Messages::AwwwTransitionPositionChanged(AWWWTransitionPosition {
                                 position: m,
@@ -182,7 +170,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Invert Y")],
+                        text!["{}", TRANSLATION.get_translation("awww-invert-y")],
                         toggler(app_state.awww_invert_y).on_toggle(Messages::AwwwInvertYChanged)
                     ]
                     .spacing(DEFAULT_MARGIN as f32)
@@ -191,7 +179,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition wave height")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-wave-height")],
                         number_input(
                             &app_state.awww_transition_wave_height,
                             0..=u32::MAX,
@@ -204,7 +192,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition wave width")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-wave-width")],
                         number_input(
                             &app_state.awww_transition_wave_width,
                             0..=u32::MAX,
@@ -216,7 +204,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition bezier p0")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-bezier-p0")],
                         number_input(
                             &app_state.awww_transition_bezier_p0,
                             f64::MIN..=f64::MAX,
@@ -229,7 +217,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition bezier p1")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-bezier-p1")],
                         number_input(
                             &app_state.awww_transition_bezier_p1,
                             f64::MIN..=f64::MAX,
@@ -241,7 +229,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition bezier p2")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-bezier-p2")],
                         number_input(
                             &app_state.awww_transition_bezier_p2,
                             f64::MIN..=f64::MAX,
@@ -254,7 +242,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition bezier p3")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-bezier-p3")],
                         number_input(
                             &app_state.awww_transition_bezier_p3,
                             f64::MIN..=f64::MAX,
@@ -267,7 +255,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                 ),
                 Item::new(
                     row![
-                        text!["{}", gettext("Transition FPS")],
+                        text!["{}", TRANSLATION.get_translation("awww-transition-fps")],
                         number_input(
                             &app_state.awww_transition_fps,
                             0..=u32::MAX,
@@ -279,13 +267,13 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                     .width(Fill),
                 ),
                 Item::new(
-                    button(text!["{}", gettext("Restore Defaults")])
+                    button(text!["{}", TRANSLATION.get_translation("awww-restore-defaults")])
                         .on_press(Messages::AwwwRestoreDefaults),
                 ),
             ]
             .into(),
         )
-        .max_width(300.0)
+        .max_width(350.0)
         .spacing(DEFAULT_MARGIN as f32)
         .padding(DEFAULT_MARGIN as f32),
     )])

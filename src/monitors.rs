@@ -1,4 +1,4 @@
-use gettextrs::gettext;
+use crate::locale::TRANSLATION;
 use wayland_client::{
     Connection, Dispatch, QueueHandle,
     protocol::{wl_output, wl_registry},
@@ -53,8 +53,8 @@ impl AvailableMonitors {
         let mut available_monitors = AvailableMonitors::default();
         event_queue.roundtrip(&mut available_monitors)?;
         event_queue.roundtrip(&mut available_monitors)?;
-        available_monitors.available_monitors.push(gettext("All"));
         available_monitors.available_monitors.sort();
-        Ok(available_monitors)
+        available_monitors.available_monitors.insert(0, TRANSLATION.get_translation("All"));
+	Ok(available_monitors)
     }
 }

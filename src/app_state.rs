@@ -14,7 +14,6 @@ use crate::{
     },
 };
 use anyhow::anyhow;
-use gettextrs::gettext;
 use iced::{
     Alignment::Center,
     Color, Element,
@@ -55,8 +54,8 @@ pub enum SortBy {
 impl Display for SortBy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let ret = match self {
-            SortBy::Date => gettext("Date"),
-            SortBy::Name => gettext("Name"),
+            SortBy::Date => TRANSLATION.get_translation("Date"),
+            SortBy::Name => TRANSLATION.get_translation("Name"),
         };
         write!(f, "{ret}")
     }
@@ -160,142 +159,142 @@ impl Default for AppState {
     fn default() -> Self {
         Self {
             executable_script_doc: TRANSLATION.get_translation(
-                "The path to executable script used after a wallpaper is set. The script is sent the monitor identifier, wallpaper path and the serialized saved_wallpapers state.",
+                "executable-script-description",
             ),
             executable_script: String::default(),
-            wallpaper_folder_doc: gettext(
-                "The path to the currently selected wallpaper folder. Note: The path cannot have a trailing forward slash.",
+            wallpaper_folder_doc: TRANSLATION.get_translation(
+                "current-wallpaper-path-description",
             ),
             wallpaper_folder: None,
-            saved_wallpapers_doc: gettext(
-                "The collection of the currently saved wallpapers with their corresponding monitor, path and changer.",
+            saved_wallpapers_doc: TRANSLATION.get_translation(
+                "wallpaper-state-description",
             ),
             saved_wallpapers: vec![Wallpaper::default()],
-            monitor_doc: gettext(
-                "The internal numeric identifier in the monitor dropdown used by dconf for the currently selected monitor. Do not change unless you know what you are doing.",
+            monitor_doc: TRANSLATION.get_translation(
+                "monitor-dropdown-id-description",
             ),
             monitor: Default::default(),
-            sort_by_doc: gettext(
-                "The internal numeric identifier in the changer dropdown used by dconf for the currently selected sorting option. Do not change unless you know what you are doing.",
+            sort_by_doc: TRANSLATION.get_translation(
+                "sort-by-description",
             ),
             sort_by: Default::default(),
-            invert_sort_doc: gettext(
-                "The boolean flag to invert the currently selected sort-by option in the sort dropdown used by dconf.",
+            invert_sort_doc: TRANSLATION.get_translation(
+                "invert-sort-description",
             ),
             invert_sort: bool::default(),
-            changer_doc: gettext(
-                "The internal numeric identifier in the changer dropdown used by dconf for the currently selected changer. Do not change unless you know what you are doing.",
+            changer_doc: TRANSLATION.get_translation(
+                "last-used-changer-description",
             ),
             changer: Default::default(),
-            image_filter_doc: gettext("The search string for the wallpapers."),
+            image_filter_doc: TRANSLATION.get_translation("the-search-string-for-the-wallpapers"),
             image_filter: String::default(),
-            swaybg_mode_doc: gettext(
-                "The internal numeric identifier in the changer dropdown used by dconf for the currently selected swaybg mode. Do not change unless you know what you are doing.",
+            swaybg_mode_doc: TRANSLATION.get_translation(
+                "swaybg-mode-description",
             ),
             swaybg_mode: Default::default(),
-            swaybg_color_doc: gettext(
-                "The hex color for swaybg background fill. Must be six characters long.",
+            swaybg_color_doc: TRANSLATION.get_translation(
+                "the-hex-color-for-swaybg-background-fill-must-be-six-characters-long",
             ),
             swaybg_color: Default::default(),
-            mpvpaper_pause_option_doc: gettext(
-                "The internal numeric identifier in the changer dropdown used by dconf for the currently selected mpvpaper pause option. Do not change unless you know what you are doing.",
+            mpvpaper_pause_option_doc: TRANSLATION.get_translation(
+                "mpvpaper-pause-mode-description",
             ),
             mpvpaper_pause_option: Default::default(),
-            mpvpaper_slideshow_enable_doc: gettext(
-                "The boolean flag to enable/disable slideshows for mpvpaper used by dconf.",
+            mpvpaper_slideshow_enable_doc: TRANSLATION.get_translation(
+                "mpvpaper-slidehow-enable-description",
             ),
             mpvpaper_slideshow_enable: bool::default(),
-            mpvpaper_slideshow_interval_doc: gettext(
-                "The number of seconds of that mpvpaper takes between switching images in slideshow mode. Note: The option must be a positive floating point number.",
+            mpvpaper_slideshow_interval_doc: TRANSLATION.get_translation(
+                "mpvpaper-slideshow-interval-description",
             ),
             mpvpaper_slideshow_interval: Default::default(),
-            mpvpaper_additional_options_doc: gettext(
-                "Custom options for mpvpaper passed as command line arguments.",
+            mpvpaper_additional_options_doc: TRANSLATION.get_translation(
+                "custom-options-for-mpvpaper-passed-as-command-line-arguments",
             ),
             mpvpaper_additional_options: String::default(),
-            selected_monitor_item_doc: gettext(
-                "The currently selected monitor as a string. Note: The name must coincide with the monitor numeric identifier.",
+            selected_monitor_item_doc: TRANSLATION.get_translation(
+                "last-used-monitor-description",
             ),
             selected_monitor_item: String::default(),
-            awww_resize_doc: gettext(
-                "The internal numeric identifier in the changer dropdown used by dconf for the currently selected awww resize option. Do not change unless you know what you are doing.",
+            awww_resize_doc: TRANSLATION.get_translation(
+                "awww-resize-description",
             ),
             awww_resize: Default::default(),
-            awww_fill_color_doc: gettext(
-                "The hex color for awww background fill. Must be six characters long.",
+            awww_fill_color_doc: TRANSLATION.get_translation(
+                "awww-fill-color-description",
             ),
             awww_fill_color: String::from("#000000"),
-            awww_scaling_filter_doc: gettext(
-                "The internal numeric identifier in the changer dropdown used by dconf for the currently selected awww scaling filter option. Do not change unless you know what you are doing.",
+            awww_scaling_filter_doc: TRANSLATION.get_translation(
+                "awww-scaling-filter-description",
             ),
             awww_scaling_filter: Default::default(),
-            awww_transition_type_doc: gettext(
-                "The internal numeric identifier in the changer dropdown used by dconf for the currently selected awww transition type option. Do not change unless you know what you are doing.",
+            awww_transition_type_doc: TRANSLATION.get_translation(
+                "awww-transition-mode-description",
             ),
             awww_transition_type: Default::default(),
-            awww_transition_step_doc: gettext(
-                "How fast the transition approaches the new image used by awww.",
+            awww_transition_step_doc: TRANSLATION.get_translation(
+		"how-fast-the-transition-approaches-the-new-image-used-by-awww",
             ),
             awww_transition_step: 90,
-            awww_transition_duration_doc: gettext(
-                "How long the transition takes to complete in seconds used by awww.",
+            awww_transition_duration_doc: TRANSLATION.get_translation(
+                "how-long-the-transition-takes-to-complete-in-seconds-used-by-awww",
             ),
             awww_transition_duration: 3,
-            awww_transition_angle_doc: gettext(
-                "Used for the 'wipe' and 'wave' transitions used by awww. It controls the angle of the wipe.",
+            awww_transition_angle_doc: TRANSLATION.get_translation(
+                "awww-transition-angle-description",
             ),
             awww_transition_angle: 45,
-            awww_transition_position_doc: gettext(
-                "This is only used for the 'grow','outer' transitions used by awww. It controls the center of circle.",
+            awww_transition_position_doc: TRANSLATION.get_translation(
+                "awww-circle-center-description",
             ),
             awww_transition_position: "center".to_string(),
-            awww_invert_y_doc: gettext(
-                "Inverts the y position sent in 'transition_pos' flag used by awww.",
+            awww_invert_y_doc: TRANSLATION.get_translation(
+                "awww-invert-y-description",
             ),
             awww_invert_y: bool::default(),
-            awww_transition_wave_width_doc: gettext(
-                "Currently only used for 'wave' transition to control the width of each wave used by awww.",
+            awww_transition_wave_width_doc: TRANSLATION.get_translation(
+                "awww-transition-wave-width-description",
             ),
             awww_transition_wave_width: 200,
-            awww_transition_wave_height_doc: gettext(
-                "Currently only used for 'wave' transition to control the height of each wave used by awww.",
+            awww_transition_wave_height_doc: TRANSLATION.get_translation(
+                "awww-transition-wave-height-description",
             ),
             awww_transition_wave_height: 200,
-            awww_transition_bezier_p0_doc: gettext(
-                "Point 0 for the Bezier curve to use for the transition",
+            awww_transition_bezier_p0_doc: TRANSLATION.get_translation(
+                "point-0-for-the-bezier-curve-to-use-for-the-transition",
             ),
             awww_transition_bezier_p0: 0.54,
-            awww_transition_bezier_p1_doc: gettext(
-                "Point 1 for the Bezier curve to use for the transition",
+            awww_transition_bezier_p1_doc: TRANSLATION.get_translation(
+                "point-1-for-the-bezier-curve-to-use-for-the-transition",
             ),
             awww_transition_bezier_p1: 0.0,
-            awww_transition_bezier_p2_doc: gettext(
-                "Point 2 for the Bezier curve to use for the transition",
+            awww_transition_bezier_p2_doc: TRANSLATION.get_translation(
+                "point-2-for-the-bezier-curve-to-use-for-the-transition",
             ),
             awww_transition_bezier_p2: 0.34,
-            awww_transition_bezier_p3_doc: gettext(
-                "Point 3 for the Bezier curve to use for the transition",
+            awww_transition_bezier_p3_doc: TRANSLATION.get_translation(
+                "point-3-for-the-bezier-curve-to-use-for-the-transition",
             ),
             awww_transition_bezier_p3: 0.99,
-            awww_transition_fps_doc: gettext("Frame rate for the transition effect used by awww."),
+            awww_transition_fps_doc: TRANSLATION.get_translation("awww-transition-fps-description"),
             awww_transition_fps: 30,
-            gslapper_scale_mode_doc: gettext(
-                "The internal numeric identifier in the changer dropdown used by dconf for the currently selected gslapper scale mode. Do not change unless you know what you are doing.",
+            gslapper_scale_mode_doc: TRANSLATION.get_translation(
+                "gslapper-scale-mode-desciption",
             ),
             gslapper_scale_mode: Default::default(),
-            gslapper_pause_mode_doc: gettext(
-                "The internal numeric identifier in the changer dropdown used by dconf for the currently selected gslapper pause mode. Do not change unless you know what you are doing.",
+            gslapper_pause_mode_doc: TRANSLATION.get_translation(
+                "gslapper-pause-mode-description",
             ),
             gslapper_pause_mode: Default::default(),
-            gslapper_loop_doc: gettext(
-                "The boolean flag to loop video wallpapers in gslapper used by dconf.",
+            gslapper_loop_doc: TRANSLATION.get_translation(
+                "gslapper-loop-desciption",
             ),
             gslapper_loop: true,
-            gslapper_additional_options_doc: gettext(
-                "Custom options for gslapper passed as command line arguments.",
+            gslapper_additional_options_doc: TRANSLATION.get_translation(
+                "gslapper-additional-options-desciption",
             ),
             gslapper_additional_options: String::default(),
-            hide_changer_options_box_doc: gettext("Hide bottom bar."),
+            hide_changer_options_box_doc: TRANSLATION.get_translation("hide-bottom-bar"),
             hide_changer_options_box: false,
             image_grid_images: Default::default(),
             filtered_images: Default::default(),
@@ -1241,16 +1240,16 @@ impl AppState {
                     Messages::SortByChanged,
                 );
 
-                let search_bar = text_input(&gettext("Find images"), &self.image_filter)
+                let search_bar = text_input(&TRANSLATION.get_translation("find-images"), &self.image_filter)
                     .on_input(Messages::SearchBarInputted)
                     .width(Fill);
 
                 let options_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
-                    button(text!["{}", gettext("Options")]).on_press(Messages::OptionMenuOpened),
+                    button(text!["{}", TRANSLATION.get_translation("Options")]).on_press(Messages::OptionMenuOpened),
                     Menu::new(
                         [Item::new(
                             toggler(self.invert_sort)
-                                .label(gettext("Invert Sort"))
+                                .label(TRANSLATION.get_translation("invert-sort"))
                                 .on_toggle(Messages::InvertSortChanged),
                         )]
                         .into(),
@@ -1268,7 +1267,7 @@ impl AppState {
 		let mut bottom_bar = 
                     row![
                         monitors_dropdown,
-                        button(text!["{}", gettext("Images Folder")])
+                        button(text!["{}", TRANSLATION.get_translation("image-folder")])
                             .on_press(Messages::ChangeWallpaperFolder),
                         sort_dropdown,
                         search_bar,

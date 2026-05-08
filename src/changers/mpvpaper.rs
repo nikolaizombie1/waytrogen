@@ -4,8 +4,8 @@ use crate::{
         MpvPaperPauseModes, WallpaperChanger,
         WallpaperChangers,
     },
+    locale::TRANSLATION
 };
-use gettextrs::gettext;
 use iced::{
     Element, widget::{pick_list, text_input, toggler}
 };
@@ -26,7 +26,7 @@ pub fn change_mpvpaper_wallpaper(
     if let WallpaperChangers::MpvPaper(settings) = mpvpaper_changer {
         log::debug!("{}", image.display());
         let mut command = Command::new("mpvpaper");
-        let socket = if monitor == gettext("All") {
+        let socket = if monitor == TRANSLATION.get_translation("All") {
             String::from(ALL_MONITOR_SOCKET)
         } else {
             format!("/tmp/mpv-socket-{monitor}")
@@ -34,7 +34,7 @@ pub fn change_mpvpaper_wallpaper(
 
         let mpv_options = format!("input-ipc-server={socket} {}", settings.additional_options);
 
-        let monitor = if monitor == gettext("All") {
+        let monitor = if monitor == TRANSLATION.get_translation("All") {
             "*"
         } else {
             monitor
@@ -76,7 +76,7 @@ pub fn change_mpvpaper_wallpaper(
 
         let all_monitor_socket_exists = std::path::Path::new(ALL_MONITOR_SOCKET).exists();
 
-        if all_monitor_socket_exists && monitor != gettext("All") {
+        if all_monitor_socket_exists && monitor != TRANSLATION.get_translation("All") {
             Command::new("bash")
                 .arg("-c")
                 .arg(format!("echo quit | socat - {ALL_MONITOR_SOCKET}"))
@@ -84,7 +84,7 @@ pub fn change_mpvpaper_wallpaper(
                 .unwrap()
                 .wait()
                 .unwrap();
-        } else if all_monitor_socket_exists && monitor == gettext("All") {
+        } else if all_monitor_socket_exists && monitor == TRANSLATION.get_translation("All") {
             mpvpaper_changer.kill();
         }
 
@@ -116,7 +116,7 @@ pub fn generate_mpvpaper_changer_bar(app_state: AppState) -> Vec<Element<'static
     ).into();
 
     let mpv_options: Element<'_, Messages> = text_input(
-        &gettext("Additional MPV Options"),
+        &TRANSLATION.get_translation("additional-mpv-options"),
         &app_state.mpvpaper_additional_options,
     )
     .on_input(Messages::MpvPaperAdditionalOptionsChanged).into();

@@ -1,6 +1,6 @@
 use crate::common::{CACHE_FILE_NAME, CONFIG_APP_NAME, CacheImageFile};
+use crate::locale::TRANSLATION;
 use anyhow::anyhow;
-use gettextrs::gettext;
 use log::{debug, trace, warn};
 use rusqlite::Connection;
 use std::path::{Path, PathBuf};
@@ -70,7 +70,7 @@ impl DatabaseConnection {
             Ok(f) => {
                 trace!(
                     "{}: {}",
-                    gettext("Cache Hit"),
+                    TRANSLATION.get_translation("Cache Hit"),
                     f.path.to_str().unwrap_or_default()
                 );
                 Ok(f)
@@ -78,7 +78,7 @@ impl DatabaseConnection {
             Err(e) => {
                 trace!(
                     "{}: {} {}",
-                    gettext("Cache Miss"),
+                    TRANSLATION.get_translation("Cache Miss"),
                     path.to_str().unwrap(),
                     e
                 );
@@ -86,7 +86,7 @@ impl DatabaseConnection {
                     Ok(g) => {
                         trace!(
                             "{} {}",
-                            gettext("GTK Picture created successfully."),
+                            TRANSLATION.get_translation("GTK Picture created successfully."),
                             g.path.to_str().unwrap_or_default()
                         );
                         conn.insert_image_file(&g)?;
@@ -100,7 +100,7 @@ impl DatabaseConnection {
                     Err(e) => {
                         warn!(
                             "{}: {} {}",
-                            gettext("File could not be converted to a Picture"),
+                            TRANSLATION.get_translation("File could not be converted to a Picture"),
                             path.to_str().unwrap(),
                             e
                         );

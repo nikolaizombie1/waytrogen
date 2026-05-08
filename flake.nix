@@ -11,9 +11,15 @@
       let
         overlays = [ (import rust-overlay) ];
         pkgs = (import nixpkgs) { inherit system overlays; };
+        lib = nixpkgs.lib;
         craneLib = crane.mkLib pkgs;
 
-        src = craneLib.cleanCargoSource ./.;
+        src = lib.cleanSourceWith {
+          src = craneLib.path ./.;
+          filter = path: type:
+            (lib.hasInfix "/locales/" path) ||
+            (craneLib.filterCargoSources path type);
+        };
 
         commonArgs = {
           inherit src;
@@ -53,8 +59,6 @@
         # Layer 2: compile the binary
         waytrogen-bin = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
-          cargoExtraArgs = "--features nixos";
-          preBuild = "export OUT_PATH=$out";
         });
 
         # Layer 3: Meson handles everything else (i18n, schemas, icons, desktop file)

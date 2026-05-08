@@ -1,4 +1,4 @@
-use gettextrs::gettext;
+use crate::locale::TRANSLATION;
 use iced::{
     Element,
     widget::{pick_list},
@@ -73,7 +73,7 @@ pub fn change_hyprpaper_wallpaper(
             .wait()
             .unwrap();
         thread::sleep(Duration::from_millis(200));
-        let monitor = if monitor == gettext("All") {
+        let monitor = if monitor == TRANSLATION.get_translation("All") {
             ""
         } else {
             monitor

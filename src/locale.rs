@@ -3,7 +3,7 @@ use fluent_langneg::{LanguageIdentifier, convert_vec_str_to_langids_lossy, negot
 use fluent_templates::langid;
 use sys_locale::get_locale;
 use std::sync::LazyLock;
-
+use log::error;
 pub struct Translation {
    pub bundle:   FluentBundle<FluentResource>
 }
@@ -48,7 +48,11 @@ pub fn new() -> Self {
 }
     pub fn get_translation(&self, id: &str) -> String {
 	let mut errors = vec![];
-	self.bundle.get_message(id).and_then(|m| m.value()).map(|p| self.bundle.format_pattern(p, None, &mut errors).to_string()).unwrap_or_else(|| id.to_string())
+	self.bundle.get_message(id).and_then(|m| m.value()).map(|p| self.bundle.format_pattern(p, None, &mut errors).to_string()).unwrap_or_else(|| {
+	  let ret = id.to_string();
+	    error!("Failed to find \"{ret}\" in bundle");
+	    ret
+	} )
     }
 }
 

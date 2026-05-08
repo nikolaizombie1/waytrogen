@@ -15,6 +15,7 @@ use std::{
     time::UNIX_EPOCH,
 };
 use uuid::Uuid;
+use crate::locale::TRANSLATION;
 
 use crate::app_state::SortBy;
 
@@ -71,7 +72,7 @@ impl CacheImageFile {
         }
         Err(anyhow::anyhow!(
             "{}: {}",
-            gettext("Failed to create thumbnail for"),
+            TRANSLATION.get_translation("Failed to create thumbnail for"),
             path.as_os_str().to_str().unwrap_or_default()
         ))
     }
@@ -94,7 +95,7 @@ impl CacheImageFile {
             .unwrap_or(255);
         match code {
             0 => Self::try_write_thumbnail_with_image(&output_path),
-            _ => Err(anyhow::anyhow!(gettext(
+            _ => Err(anyhow::anyhow!(TRANSLATION.get_translation(
                 "Thumbnail could not be generated using ffmpg."
             ))),
         }
@@ -181,65 +182,4 @@ pub fn get_config_file_path() -> anyhow::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
     let config_file = xdg_dirs.place_config_file(CONFIG_FILE_NAME)?;
     Ok(config_file)
-}
-
-pub fn start_gettext() -> anyhow::Result<()> {
-    textdomain("waytrogen")?;
-    bind_textdomain_codeset("waytrogen", "UTF-8")?;
-    let os_id = get_os_id()?.unwrap_or_default();
-    let domain_directory = match os_id.as_str() {
-        "nixos" => {
-            #[cfg(feature = "nixos")]
-            // the path is known at compile time when using nix to build waytrogen
-            {
-		let data_dir = std::env::var("WAYTROGEN_DATA_DIR")
-                    .map(PathBuf::from)
-                    .unwrap_or_else(|_| {
-                        // Fallback: try resolving from the real executable path
-                        // /proc/self/exe → actual binary, not the wrapper
-                        std::fs::read_link("/proc/self/exe")
-                            .unwrap()
-                            .parent().unwrap()  // bin/
-                            .parent().unwrap()  // $out/
-                            .join("share")
-                    });
-                data_dir.join("locale")
-
-            }
-
-            #[cfg(not(feature = "nixos"))]
-            {
-                let exe_path = current_exe().unwrap();
-                exe_path
-                    .parent()
-                    .unwrap()
-                    .parent()
-                    .unwrap()
-                    .parent()
-                    .unwrap()
-                    .join("share")
-                    .join("locale")
-            }
-        }
-        _ => getters::domain_directory(GETTEXT_DOMAIN)?,
-    };
-    println!("{}", domain_directory.to_str().unwrap_or_default());
-    bindtextdomain(GETTEXT_DOMAIN, domain_directory)?;
-    Ok(())
-}
-
-/// os id is the ID="nixos" parameter in `/etc/os-release`
-/// If ID parameter is not found this returns None
-fn get_os_id() -> anyhow::Result<Option<String>> {
-    let file = File::open("/etc/os-release")?;
-    let reader = BufReader::new(file);
-
-    for line in reader.lines() {
-        let line = line?;
-        if let Some(s) = line.strip_prefix("ID=") {
-            let id = s.trim_matches('"');
-            return Ok(Some(id.to_string()));
-        }
-    }
-    Ok(None)
 }

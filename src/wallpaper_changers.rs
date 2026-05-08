@@ -1,9 +1,8 @@
-use crate::{app_state::{AppState, Messages}, changers::{
+use crate::{app_state::{AppState, Messages}, locale::TRANSLATION, changers::{
     awww::{change_awww_wallpaper, generate_awww_changer_bar}, gslapper::{change_gslapper_wallpaper, generate_gslapper_changer_bar},
     hyprpaper::{change_hyprpaper_wallpaper, generate_hyprpaper_changer_bar}, mpvpaper::{change_mpvpaper_wallpaper, generate_mpvpaper_changer_bar},
-    swaybg::{change_swaybg_wallpaper, generate_swaybg_changer_bar},
+    swaybg::{change_swaybg_wallpaper, generate_swaybg_changer_bar}, 
 }};
-use gettextrs::gettext;
 use iced::Element;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -103,10 +102,10 @@ pub enum GSllapperScaleMode {
 impl Display for GSllapperScaleMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Fill => write!(f, "fill"),
-            Self::Stretch => write!(f, "stretch"),
-            Self::Original => write!(f, "original"),
-            Self::Panscan => write!(f, "panscan"),
+            Self::Fill => write!(f, "{}", TRANSLATION.get_translation("fill")),
+            Self::Stretch => write!(f,"{}", TRANSLATION.get_translation("stretch")),
+            Self::Original => write!(f, "{}", TRANSLATION.get_translation("original")),
+            Self::Panscan => write!(f,  "{}", TRANSLATION.get_translation("panscan")),
         }
     }
 }
@@ -136,9 +135,9 @@ pub enum GSllapperPauseMode {
 impl Display for GSllapperPauseMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::None => write!(f, "none"),
-            Self::AutoPause => write!(f, "auto-pause"),
-            Self::AutoStop => write!(f, "auto-stop"),
+            Self::None => write!(f, "{}", TRANSLATION.get_translation("none")),
+            Self::AutoPause => write!(f,  "{}", TRANSLATION.get_translation("auto-pause")),
+            Self::AutoStop => write!(f,  "{}", TRANSLATION.get_translation("auto-stop")),
         }
     }
 }
@@ -208,10 +207,10 @@ pub enum HyprpaperFitModes {
 impl Display for HyprpaperFitModes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let ret = match self {
-            HyprpaperFitModes::Contain => gettext("contain"),
-            HyprpaperFitModes::Cover => gettext("cover"),
-            HyprpaperFitModes::Tile => gettext("tile"),
-            HyprpaperFitModes::Fill => gettext("fill"),
+            HyprpaperFitModes::Contain => TRANSLATION.get_translation("contain"),
+            HyprpaperFitModes::Cover => TRANSLATION.get_translation("cover"),
+            HyprpaperFitModes::Tile => TRANSLATION.get_translation("tile"),
+            HyprpaperFitModes::Fill => TRANSLATION.get_translation("fill"),
         };
         write!(f, "{ret}")
     }
@@ -231,12 +230,12 @@ pub enum SwaybgModes {
 impl Display for SwaybgModes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let ret = match self {
-            SwaybgModes::Stretch => gettext("Stretch"),
-            SwaybgModes::Fit => gettext("Fit"),
-            SwaybgModes::Fill => gettext("Fill"),
-            SwaybgModes::Center => gettext("Center"),
-            SwaybgModes::Tile => gettext("Tile"),
-            SwaybgModes::SolidColor => gettext("Solid Color"),
+            SwaybgModes::Stretch => TRANSLATION.get_translation("stretch"),
+            SwaybgModes::Fit => TRANSLATION.get_translation("fit"),
+            SwaybgModes::Fill => TRANSLATION.get_translation("fill"),
+            SwaybgModes::Center => TRANSLATION.get_translation("center"),
+            SwaybgModes::Tile => TRANSLATION.get_translation("tile"),
+            SwaybgModes::SolidColor => TRANSLATION.get_translation("solid-color"),
         };
         write!(f, "{ret}")
     }
@@ -267,9 +266,9 @@ pub enum AWWWResizeMode {
 impl Display for AWWWResizeMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::No => write!(f, "no"),
-            Self::Crop => write!(f, "crop"),
-            Self::Fit => write!(f, "fit"),
+            Self::No => write!(f, "{}", TRANSLATION.get_translation("no")),
+            Self::Crop => write!(f, "{}", TRANSLATION.get_translation("crop")),
+            Self::Fit => write!(f, "{}", TRANSLATION.get_translation("fit")),
         }
     }
 }
@@ -443,9 +442,9 @@ impl FromStr for MpvPaperPauseModes {
 impl Display for MpvPaperPauseModes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            MpvPaperPauseModes::None => write!(f, "none"),
-            MpvPaperPauseModes::AutoPause => write!(f, "auto-pause"),
-            MpvPaperPauseModes::AutoStop => write!(f, "auto-stop"),
+            MpvPaperPauseModes::None => write!(f,  "{}", TRANSLATION.get_translation("none")),
+            MpvPaperPauseModes::AutoPause => write!(f,  "{}", TRANSLATION.get_translation("auto-pause")),
+            MpvPaperPauseModes::AutoStop => write!(f,  "{}", TRANSLATION.get_translation("auto-stop")),
         }
     }
 }
