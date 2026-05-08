@@ -26,11 +26,11 @@ fn main() -> anyhow::Result<()> {
         }
     };
 
-    if args.external_script.is_some() {
-        config_file.executable_script = args.external_script.clone().unwrap();
+    if let Some(e) = args.external_script.as_ref() {
+        config_file.executable_script = e.clone();
     }
-    if args.hide_bottom_bar.is_some() {
-        config_file.hide_changer_options_box = args.hide_bottom_bar.clone().unwrap();
+    if let Some(h) = args.hide_bottom_bar {
+        config_file.hide_changer_options_box = h;
     }
 
     if args.restore {

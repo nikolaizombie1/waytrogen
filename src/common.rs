@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 use crate::app_state::SortBy;
 
-pub const DEFAULT_MARGIN: i32 = 12;
+pub const DEFAULT_MARGIN: f32 = 12.0;
 pub const THUMBNAIL_HEIGHT: i32 = 400;
 pub const THUMBNAIL_WIDTH: i32 = THUMBNAIL_HEIGHT;
 pub const BUTTON_HEIGHT: f32 = 200.0;
@@ -45,7 +45,7 @@ impl CacheImageFile {
         let path = path.to_path_buf();
         let name = path.file_name().unwrap().to_str().unwrap().to_owned();
         let date = std::fs::File::open(path.clone())?.metadata()?.modified()?;
-        let date = date.duration_since(UNIX_EPOCH)?.as_secs() as u32;
+        let date = u32::try_from(date.duration_since(UNIX_EPOCH)?.as_secs())?;
         Ok((path.to_str().unwrap().to_string(), name, date))
     }
 
@@ -106,10 +106,7 @@ impl CacheImageFile {
             .to_rgb8();
         let image_name = format!("{}.png", Uuid::new_v4(),);
         let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
-        let cache_dir = match xdg_dirs.get_cache_home() {
-            Some(c) => c,
-            None => return Err(anyhow!("Failed to get cache directory")),
-        };
+	let Some(cache_dir) = xdg_dirs.get_config_home() else {return Err(anyhow!("Failed to get cache directory"))};
         let image_file = cache_dir.join(Path::new(&image_name));
         let mut buff: Vec<u8> = vec![];
         thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;
@@ -127,7 +124,7 @@ pub struct Wallpaper {
 
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub fn sort_by_sort_dropdown_string(files: &mut [PathBuf], sort_by: SortBy, invert_sort: bool) {
+pub fn sort_by_sort_dropdown_string(files: &mut [PathBuf], sort_by: &SortBy, invert_sort: bool) {
     match sort_by {
         SortBy::Name => {
             files.sort_by(|f1, f2| {

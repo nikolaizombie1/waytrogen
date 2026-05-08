@@ -165,24 +165,24 @@ impl Default for AppState {
             saved_wallpapers_doc: TRANSLATION.get_translation("wallpaper-state-description"),
             saved_wallpapers: vec![Wallpaper::default()],
             monitor_doc: TRANSLATION.get_translation("monitor-dropdown-id-description"),
-            monitor: Default::default(),
+            monitor: Option::default(),
             sort_by_doc: TRANSLATION.get_translation("sort-by-description"),
-            sort_by: Default::default(),
+            sort_by: Option::default(),
             invert_sort_doc: TRANSLATION.get_translation("invert-sort-description"),
             invert_sort: bool::default(),
             changer_doc: TRANSLATION.get_translation("last-used-changer-description"),
-            changer: Default::default(),
+            changer: Option::default(),
             image_filter_doc: TRANSLATION.get_translation("the-search-string-for-the-wallpapers"),
             image_filter: String::default(),
             swaybg_mode_doc: TRANSLATION.get_translation("swaybg-mode-description"),
-            swaybg_mode: Default::default(),
+            swaybg_mode: Option::default(),
             swaybg_color_doc: TRANSLATION.get_translation(
                 "the-hex-color-for-swaybg-background-fill-must-be-six-characters-long",
             ),
-            swaybg_color: Default::default(),
+            swaybg_color: String::default(),
             mpvpaper_pause_option_doc: TRANSLATION
                 .get_translation("mpvpaper-pause-mode-description"),
-            mpvpaper_pause_option: Default::default(),
+            mpvpaper_pause_option: Option::default(),
             mpvpaper_slideshow_enable_doc: TRANSLATION
                 .get_translation("mpvpaper-slidehow-enable-description"),
             mpvpaper_slideshow_enable: bool::default(),
@@ -195,14 +195,14 @@ impl Default for AppState {
             selected_monitor_item_doc: TRANSLATION.get_translation("last-used-monitor-description"),
             selected_monitor_item: String::default(),
             awww_resize_doc: TRANSLATION.get_translation("awww-resize-description"),
-            awww_resize: Default::default(),
+            awww_resize: Option::default(),
             awww_fill_color_doc: TRANSLATION.get_translation("awww-fill-color-description"),
             awww_fill_color: String::from("#000000"),
             awww_scaling_filter_doc: TRANSLATION.get_translation("awww-scaling-filter-description"),
-            awww_scaling_filter: Default::default(),
+            awww_scaling_filter: Option::default(),
             awww_transition_type_doc: TRANSLATION
                 .get_translation("awww-transition-mode-description"),
-            awww_transition_type: Default::default(),
+            awww_transition_type: Option::default(),
             awww_transition_step_doc: TRANSLATION
                 .get_translation("how-fast-the-transition-approaches-the-new-image-used-by-awww"),
             awww_transition_step: 90,
@@ -239,9 +239,9 @@ impl Default for AppState {
             awww_transition_fps_doc: TRANSLATION.get_translation("awww-transition-fps-description"),
             awww_transition_fps: 30,
             gslapper_scale_mode_doc: TRANSLATION.get_translation("gslapper-scale-mode-desciption"),
-            gslapper_scale_mode: Default::default(),
+            gslapper_scale_mode: Option::default(),
             gslapper_pause_mode_doc: TRANSLATION.get_translation("gslapper-pause-mode-description"),
-            gslapper_pause_mode: Default::default(),
+            gslapper_pause_mode: Option::default(),
             gslapper_loop_doc: TRANSLATION.get_translation("gslapper-loop-desciption"),
             gslapper_loop: true,
             gslapper_additional_options_doc: TRANSLATION
@@ -249,14 +249,14 @@ impl Default for AppState {
             gslapper_additional_options: String::default(),
             hide_changer_options_box_doc: TRANSLATION.get_translation("hide-bottom-bar"),
             hide_changer_options_box: false,
-            image_grid_images: Default::default(),
-            filtered_images: Default::default(),
-            available_monitors: Default::default(),
-            available_changers: Default::default(),
-            hyprpaper_fill_mode: Default::default(),
-            sway_bg_color_internal: Default::default(),
+            image_grid_images: Vec::default(),
+            filtered_images: Vec::default(),
+            available_monitors: Vec::default(),
+            available_changers: Vec::default(),
+            hyprpaper_fill_mode: Option::default(),
+            sway_bg_color_internal: Color::default(),
             show_swaybg_color_picker: Default::default(),
-            awww_fill_color_internal: Default::default(),
+            awww_fill_color_internal: Color::default(),
             show_awww_color_picker: Default::default(),
         }
     }
@@ -325,13 +325,13 @@ impl BootFn<AppState, Messages> for AppState {
         instance.available_changers = get_available_wallpaper_changers();
         instance.changer = instance.available_changers.first().cloned();
         if instance.hyprpaper_fill_mode.is_none() {
-            instance.hyprpaper_fill_mode = Some(HyprpaperFitModes::default())
+            instance.hyprpaper_fill_mode = Some(HyprpaperFitModes::default());
         }
         if instance.swaybg_mode.is_none() {
-            instance.swaybg_mode = Some(SwaybgModes::default())
+            instance.swaybg_mode = Some(SwaybgModes::default());
         }
         if instance.mpvpaper_pause_option.is_none() {
-            instance.mpvpaper_pause_option = Some(MpvPaperPauseModes::default())
+            instance.mpvpaper_pause_option = Some(MpvPaperPauseModes::default());
         }
         if instance.awww_resize.is_none() {
             instance.awww_resize = Some(AWWWResizeMode::default());
@@ -342,7 +342,7 @@ impl BootFn<AppState, Messages> for AppState {
         if instance.awww_transition_type.is_none() {
             instance.awww_transition_type = Some(AWWWTransitionType::default());
         }
-        if !instance.swaybg_color.starts_with("#") {
+        if !instance.swaybg_color.starts_with('#') {
             instance.swaybg_color = "#000000".to_string();
         }
         if instance.awww_fill_color.is_empty() {
@@ -367,43 +367,39 @@ pub struct AppStateImages {
 impl AppState {
     pub fn get_config_file() -> anyhow::Result<AppState> {
         let config_file = get_config_file_path()?;
-        let mut config = match config_file.exists() {
-            true => OpenOptions::new()
+        let mut config = if config_file.exists() {
+            OpenOptions::new()
                 .read(true)
                 .write(true)
                 .create(false)
-                .open(&config_file)?,
-            false => {
-                warn!("Config file was not found: Attempting to create a new one.");
-                OpenOptions::new()
-                    .read(true)
-                    .write(true)
-                    .create(true)
-                    .truncate(true)
-                    .open(&config_file)?
-            }
+                .open(&config_file)?
+        } else {
+            warn!("Config file was not found: Attempting to create a new one.");
+            OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(&config_file)?
         };
         let mut config_contents = String::new();
         let _ = config.read_to_string(&mut config_contents)?;
 
-        let config_file_struct = match serde_json::from_str::<AppState>(&config_contents) {
-            Ok(s) => {
-                trace!("{}", "Successfully obtained configuration file");
-                s
-            }
-            Err(_) => {
-                remove_file(&config_file)?;
-                config = OpenOptions::new()
-                    .read(true)
-                    .write(true)
-                    .create(true)
-                    .truncate(true)
-                    .open(&config_file)?;
-                let config_file = AppState::default();
-                let config_string = serde_json::to_string_pretty::<AppState>(&config_file)?;
-                config.write_all(config_string.as_bytes())?;
-                config_file
-            }
+        let config_file_struct = if let Ok(s) = serde_json::from_str::<AppState>(&config_contents) {
+            trace!("{}", "Successfully obtained configuration file");
+            s
+        } else {
+            remove_file(&config_file)?;
+            config = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(&config_file)?;
+            let config_file = AppState::default();
+            let config_string = serde_json::to_string_pretty::<AppState>(&config_file)?;
+            config.write_all(config_string.as_bytes())?;
+            config_file
         };
 
         match parse_executable_script(&config_file_struct.executable_script) {
@@ -414,7 +410,7 @@ impl AppState {
                 error!("Failed to parse executable script: {e}");
                 return Err(anyhow!("Failed to parse executable script: {e}"));
             }
-        };
+        }
         Ok(config_file_struct)
     }
 
@@ -429,43 +425,49 @@ impl AppState {
                     }
                     let accepted_formats = WallpaperChangers::all_accepted_formats();
                     let comparator = match sort_by {
-                        SortBy::Date => match invert_sort {
-                            true => move |x: &DirEntry, y: &DirEntry| {
-                                y.metadata()
-                                    .unwrap()
-                                    .created()
-                                    .unwrap()
-                                    .cmp(&x.metadata().unwrap().created().unwrap())
-                            },
-                            false => move |x: &DirEntry, y: &DirEntry| {
-                                x.metadata()
-                                    .unwrap()
-                                    .created()
-                                    .unwrap()
-                                    .cmp(&y.metadata().unwrap().created().unwrap())
-                            },
-                        },
-                        SortBy::Name => match self.invert_sort {
-                            true => move |x: &DirEntry, y: &DirEntry| {
-                                y.file_name()
-                                    .to_str()
-                                    .unwrap_or_default()
-                                    .cmp(x.file_name().to_str().unwrap_or_default())
-                            },
-                            false => move |x: &DirEntry, y: &DirEntry| {
-                                x.file_name()
-                                    .to_str()
-                                    .unwrap_or_default()
-                                    .cmp(y.file_name().to_str().unwrap_or_default())
-                            },
-                        },
+                        SortBy::Date => {
+                            if invert_sort {
+                                move |x: &DirEntry, y: &DirEntry| {
+                                    y.metadata()
+                                        .unwrap()
+                                        .created()
+                                        .unwrap()
+                                        .cmp(&x.metadata().unwrap().created().unwrap())
+                                }
+                            } else {
+                                move |x: &DirEntry, y: &DirEntry| {
+                                    x.metadata()
+                                        .unwrap()
+                                        .created()
+                                        .unwrap()
+                                        .cmp(&y.metadata().unwrap().created().unwrap())
+                                }
+                            }
+                        }
+                        SortBy::Name => {
+                            if self.invert_sort {
+                                move |x: &DirEntry, y: &DirEntry| {
+                                    y.file_name()
+                                        .to_str()
+                                        .unwrap_or_default()
+                                        .cmp(x.file_name().to_str().unwrap_or_default())
+                                }
+                            } else {
+                                move |x: &DirEntry, y: &DirEntry| {
+                                    x.file_name()
+                                        .to_str()
+                                        .unwrap_or_default()
+                                        .cmp(y.file_name().to_str().unwrap_or_default())
+                                }
+                            }
+                        }
                     };
                     Task::future(async move {
                         let images = WalkDir::new(&wf)
                             .sort_by(comparator)
                             .into_iter()
-                            .filter_map(|d| d.ok())
-                            .map(|d| d.into_path())
+                            .filter_map(std::result::Result::ok)
+                            .map(walkdir::DirEntry::into_path)
                             .filter(|d| d.extension().is_some())
                             .filter(|p| {
                                 accepted_formats.contains(
@@ -497,7 +499,7 @@ impl AppState {
 
         if let Some(changer) = &self.changer {
             for image in all_images {
-                match changer.accepted_formats().contains(
+                if changer.accepted_formats().contains(
                     &image
                         .cached_image_path
                         .extension()
@@ -506,8 +508,9 @@ impl AppState {
                         .unwrap_or_default()
                         .to_string(),
                 ) {
-                    true => supported_images.push(image.clone()),
-                    false => unsupported_images.push(image.clone()),
+                    supported_images.push(image.clone());
+                } else {
+                    unsupported_images.push(image.clone());
                 }
             }
         }
@@ -556,7 +559,7 @@ impl AppState {
         .then(|o| o)
     }
 
-    fn sort_image_grid(&mut self, sort_by: SortBy) {
+    fn sort_image_grid(&mut self, sort_by: &SortBy) {
         let comparator = match sort_by {
             SortBy::Date => match &self.invert_sort {
                 true => |x: &CacheImageFile, y: &CacheImageFile| y.date.cmp(&x.date),
@@ -608,13 +611,11 @@ impl AppState {
     }
 
     fn change_wallpaper(&self, path: PathBuf) -> Task<Messages> {
-        let changer = match self.changer.clone() {
-            Some(c) => c,
-            None => return Task::none(),
-        };
-        let monitor = match self.monitor.clone() {
-            Some(m) => m,
-            None => return Task::none(),
+	let Some(changer) = self.changer.clone() else {
+	    return Task::none()
+	};
+        let Some(monitor) = self.monitor.clone() else {
+            return Task::none();
         };
         Task::future(async move {
             changer.change(path.clone(), monitor);
@@ -643,12 +644,9 @@ impl AppState {
                     return Task::none();
                 }
             };
-            let monitor = match monitor {
-                Some(m) => m,
-                None => {
-                    error!("Failed to get monitors");
-                    return Task::none();
-                }
+            let Some(monitor) = monitor else {
+                error!("Failed to get monitors");
+                return Task::none();
             };
             match Command::new(external_script_path.to_str().unwrap_or_default())
                 .arg(monitor)
@@ -697,18 +695,18 @@ impl AppState {
                 Task::none()
             }
             Messages::SortByChanged(sort_by) => {
-                self.sort_image_grid(sort_by);
+                self.sort_image_grid(&sort_by);
                 Task::none()
             }
             Messages::SearchBarInputted(s) => {
-                self.image_filter = s.clone();
+                self.image_filter.clone_from(&s);
                 self.filter_images(s)
             }
             Messages::ImagesFiltered(app_state_images) => {
                 self.image_grid_images = app_state_images.supported_images;
                 self.filtered_images = app_state_images.unsupported_images;
-                if let Some(s) = &self.sort_by {
-                    self.sort_image_grid(s.clone())
+                if let Some(s) = &self.sort_by.clone() {
+                    self.sort_image_grid(s);
                 }
                 Task::none()
             }
@@ -720,7 +718,9 @@ impl AppState {
                 self.invert_sort = invert_sort;
                 self.filter_images(self.image_filter.clone())
             }
-            Messages::OptionMenuOpened => Task::none(),
+            Messages::OptionMenuOpened
+            | Messages::ExternalScriptExecuted
+            | Messages::AwwwAdvancedSettingsButtonClicked => Task::none(),
             Messages::WallpaperChanged(wallpaper_path) => {
                 if let Some(changer) = &self.changer
                     && let Some(monitor) = &self.monitor
@@ -802,7 +802,6 @@ impl AppState {
                 self.show_swaybg_color_picker = false;
                 Task::none()
             }
-            Messages::ExternalScriptExecuted => Task::none(),
             Messages::MpvPaperPauseModeChanged(mpv_paper_pause_modes) => {
                 self.mpvpaper_pause_option = Some(mpv_paper_pause_modes.clone());
                 if let Some(changer) = &self.changer
@@ -846,7 +845,8 @@ impl AppState {
                 Task::none()
             }
             Messages::MpvPaperAdditionalOptionsChanged(additional_options) => {
-                self.mpvpaper_additional_options = additional_options.clone();
+                self.mpvpaper_additional_options
+                    .clone_from(&additional_options);
                 if let Some(changer) = &self.changer
                     && let WallpaperChangers::MpvPaper(settings) = changer
                 {
@@ -1110,7 +1110,6 @@ impl AppState {
                 }
                 Task::none()
             }
-            Messages::AwwwAdvancedSettingsButtonClicked => Task::none(),
             Messages::AwwwRestoreDefaults => {
                 if let Some(changer) = &self.changer
                     && let WallpaperChangers::Awww(_) = changer
@@ -1170,7 +1169,8 @@ impl AppState {
                 Task::none()
             }
             Messages::GSllaperAdditionalOptionsChanged(additional_options) => {
-                self.gslapper_additional_options = additional_options.clone();
+                self.gslapper_additional_options
+                    .clone_from(&additional_options);
                 if let Some(changer) = &self.changer
                     && let WallpaperChangers::GSlapper(settings) = changer
                 {
@@ -1187,8 +1187,8 @@ impl AppState {
     pub fn view(&self) -> Element<'_, Messages> {
         match &self.changer {
             Some(changer) => {
-                let mut image_grid: Row<_> = row![].spacing(DEFAULT_MARGIN as f32);
-                for cached_image_file in self.image_grid_images.iter() {
+                let mut image_grid: Row<_> = row![].spacing(DEFAULT_MARGIN);
+                for cached_image_file in &self.image_grid_images {
                     image_grid = image_grid.push(lazy(
                         cached_image_file,
                         move |i| -> Element<'_, Messages> {
@@ -1252,8 +1252,8 @@ impl AppState {
                     options_menu,
                     changer_dropdown,
                 ]
-                .padding(DEFAULT_MARGIN as f32)
-                .spacing(DEFAULT_MARGIN as f32)
+                .padding(DEFAULT_MARGIN)
+                .spacing(DEFAULT_MARGIN)
                 .align_y(Center);
 
                 for element in changer.ui_elements(self.clone()) {
@@ -1262,8 +1262,8 @@ impl AppState {
 
                 let mut app_box = column![scrollable(image_grid.wrap()).width(Fill).height(Fill),]
                     .align_x(Center)
-                    .padding(DEFAULT_MARGIN as f32)
-                    .spacing(DEFAULT_MARGIN as f32);
+                    .padding(DEFAULT_MARGIN)
+                    .spacing(DEFAULT_MARGIN);
 
                 if !self.hide_changer_options_box {
                     app_box = app_box.push(bottom_bar);
@@ -1271,10 +1271,20 @@ impl AppState {
 
                 app_box.into()
             }
-            None => column![row![text![
-                "{}",
-                TRANSLATION.get_translation("no-changer-available")
-            ].align_x(Center).width(Fill).height(Fill)].align_y(Center).height(Fill).width(Fill)].align_x(Center).height(Fill).width(Fill)
+            None => column![
+                row![
+                    text!["{}", TRANSLATION.get_translation("no-changer-available")]
+                        .align_x(Center)
+                        .width(Fill)
+                        .height(Fill)
+                ]
+                .align_y(Center)
+                .height(Fill)
+                .width(Fill)
+            ]
+            .align_x(Center)
+            .height(Fill)
+            .width(Fill)
             .into(),
         }
     }

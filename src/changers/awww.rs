@@ -104,7 +104,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwScallingFilterChanged
                         )
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .width(Fill)
                     .align_y(Center),
                 ),
@@ -117,7 +117,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwTransitionTypeChanged
                         )
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .align_y(Center)
                     .width(Fill),
                 ),
@@ -130,7 +130,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwTransitionStepChanged
                         )
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .width(Fill),
                 ),
                 Item::new(
@@ -146,7 +146,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                         )
                     ]
                     .align_y(Center)
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .width(Fill),
                 ),
                 Item::new(
@@ -158,7 +158,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwTransitionAngleChanged
                         )
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .align_y(Center)
                     .width(Fill),
                 ),
@@ -174,7 +174,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             })
                         })
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .align_y(Center)
                     .width(Fill),
                 ),
@@ -183,7 +183,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                         text!["{}", TRANSLATION.get_translation("awww-invert-y")],
                         toggler(app_state.awww_invert_y).on_toggle(Messages::AwwwInvertYChanged)
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .align_y(Center)
                     .width(Fill),
                 ),
@@ -199,7 +199,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwTransitionWaveHeightChanged
                         )
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .align_y(Center)
                     .width(Fill),
                 ),
@@ -215,7 +215,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwTransitionWaveWidthChanged
                         )
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .width(Fill),
                 ),
                 Item::new(
@@ -231,7 +231,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                         )
                     ]
                     .align_y(Center)
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .width(Fill),
                 ),
                 Item::new(
@@ -246,7 +246,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwTransitionBezierP1Changed
                         )
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .width(Fill),
                 ),
                 Item::new(
@@ -261,7 +261,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwTransitionBezierP2Changed
                         )
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .align_y(Center)
                     .width(Fill),
                 ),
@@ -277,7 +277,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwTransitionBezierP3Changed
                         )
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .align_y(Center)
                     .width(Fill),
                 ),
@@ -290,7 +290,7 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
                             Messages::AwwwTransitionFPSChanged
                         ),
                     ]
-                    .spacing(DEFAULT_MARGIN as f32)
+                    .spacing(DEFAULT_MARGIN)
                     .align_y(Center)
                     .width(Fill),
                 ),
@@ -305,8 +305,8 @@ pub fn generate_awww_changer_bar(app_state: AppState) -> Vec<Element<'static, Me
             .into(),
         )
         .max_width(350.0)
-        .spacing(DEFAULT_MARGIN as f32)
-        .padding(DEFAULT_MARGIN as f32),
+        .spacing(DEFAULT_MARGIN)
+        .padding(DEFAULT_MARGIN),
     )])
     .into();
 

@@ -8,7 +8,7 @@ use iced::{
     widget::{pick_list, text_input, toggler},
 };
 use log::debug;
-use std::{path::PathBuf, process::Command};
+use std::{path::Path, process::Command};
 use strum::VariantArray;
 
 const GSLAPPER_SOCKET: &str = "/tmp/gslapper.sock";
@@ -52,7 +52,7 @@ fn kill_existing_gslapper() {
 
 pub fn change_gslapper_wallpaper(
     gslapper_changer: &WallpaperChangers,
-    image: PathBuf,
+    image: &Path,
     monitor: &str,
 ) {
     if let WallpaperChangers::GSlapper(settings) = gslapper_changer {
@@ -113,9 +113,9 @@ pub fn change_gslapper_wallpaper(
         command.arg(monitor_arg);
 
         // Add the wallpaper path
-        command.arg(&image);
+        command.arg(image);
 
-        debug!("gSlapper: Running command: {:?}", command);
+        debug!("gSlapper: Running command: {command:?}");
 
         command.spawn().unwrap().wait().unwrap();
     }

@@ -10,10 +10,9 @@ use crate::{
     locale::TRANSLATION,
 };
 use iced::Element;
-use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, thread};
+use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, thread, sync::LazyLock};
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr};
 use which::which;
@@ -61,10 +60,10 @@ pub struct AwwwSettings {
 impl Default for AwwwSettings {
     fn default() -> Self {
         Self {
-            resize_mode: Default::default(),
+            resize_mode: AWWWResizeMode::default(),
             fill_color: "#000000".to_string(),
-            scalling_filter: Default::default(),
-            transition_type: Default::default(),
+            scalling_filter: AWWWScallingFilter::default(),
+            transition_type: AWWWTransitionType::default(),
             transition_step: 90,
             transition_duration: 3,
             transition_fps: 30,
@@ -73,8 +72,8 @@ impl Default for AwwwSettings {
                 position: "center".to_string(),
             },
             invert_y: false,
-            transition_bezier: Default::default(),
-            transition_wave: Default::default(),
+            transition_bezier: AWWWTransitionBezier::default(),
+            transition_wave: AWWWTransitionWave::default(),
         }
     }
 }
@@ -187,7 +186,8 @@ impl WallpaperChangers {
             }
         });
     }
-    #[must_use]
+    
+    #[must_use] 
     pub fn all_accepted_formats() -> Vec<String> {
         let mut accepted_formats = vec![];
         for changer in WallpaperChangers::iter() {
@@ -352,14 +352,12 @@ impl Display for AWWWTransitionPosition {
     }
 }
 
-lazy_static! {
-    static ref awww_transition_pos_regex: Regex =
-        Regex::new(r"(0.\d\d?,0\.\d\d?)|(\d+,\d+)|(center|top|left|right|bottom|top-left|top-right|bottom-left|bottom-right)").unwrap();
-}
+static AWWW_TRANSITION_POSITION_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(0.\d\d?,0\.\d\d?)|(\d+,\d+)|(center|top|left|right|bottom|top-left|top-right|bottom-left|bottom-right)").unwrap());
 
 impl AWWWTransitionPosition {
     pub fn new(s: &str) -> anyhow::Result<AWWWTransitionPosition> {
-        if awww_transition_pos_regex.is_match(s) {
+        if AWWW_TRANSITION_POSITION_REGEX.is_match(s) {
             Ok(Self {
                 position: s.to_owned(),
             })
@@ -475,7 +473,7 @@ impl WallpaperChanger for WallpaperChangers {
                 change_awww_wallpaper(self, image, monitor);
             }
             Self::GSlapper(_) => {
-                change_gslapper_wallpaper(&self, image, &monitor);
+                change_gslapper_wallpaper(&self, &image, &monitor);
             }
         });
     }
@@ -926,18 +924,13 @@ impl WallpaperChanger for WallpaperChangers {
 
     fn ui_elements(&self, app_state: AppState) -> Vec<Element<'_, Messages>> {
         match self {
-            WallpaperChangers::Hyprpaper(_) => generate_hyprpaper_changer_bar(app_state),
-            WallpaperChangers::Swaybg(_) => generate_swaybg_changer_bar(app_state),
+            WallpaperChangers::Hyprpaper(_) => generate_hyprpaper_changer_bar(&app_state),
+            WallpaperChangers::Swaybg(_) => generate_swaybg_changer_bar(&app_state),
             WallpaperChangers::MpvPaper(_) => generate_mpvpaper_changer_bar(app_state),
             WallpaperChangers::Awww(_) => generate_awww_changer_bar(app_state),
             WallpaperChangers::GSlapper(_) => generate_gslapper_changer_bar(app_state),
         }
     }
-}
-
-lazy_static! {
-    static ref swaybg_regex: Regex =
-        Regex::new(r"swaybg (stretch|fit|fill||center|tile|solid_color) [0-9a-f]{6}").unwrap();
 }
 
 impl Display for WallpaperChangers {
@@ -952,6 +945,8 @@ impl Display for WallpaperChangers {
     }
 }
 
+
+#[must_use] 
 pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
     let mut available_changers = vec![];
     for changer in WallpaperChangers::iter() {
@@ -977,17 +972,11 @@ pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
                     }
                 }
             },
-            WallpaperChangers::Swaybg(_) => {
-                append_changer_if_in_path(&mut available_changers, changer)
-            }
-            WallpaperChangers::MpvPaper(_) => {
-                append_changer_if_in_path(&mut available_changers, changer)
-            }
-            WallpaperChangers::Awww(_) => {
-                append_changer_if_in_path(&mut available_changers, changer)
-            }
-            WallpaperChangers::GSlapper(_) => {
-                append_changer_if_in_path(&mut available_changers, changer)
+            WallpaperChangers::Swaybg(_)
+            | WallpaperChangers::MpvPaper(_)
+            | WallpaperChangers::Awww(_)
+            | WallpaperChangers::GSlapper(_) => {
+                append_changer_if_in_path(&mut available_changers, changer);
             }
         }
     }

@@ -40,7 +40,7 @@ impl DatabaseConnection {
                     path: PathBuf::from(row.get::<usize, String>(3)?),
                 })
             })?
-            .filter_map(|c| c.ok())
+            .filter_map(std::result::Result::ok)
             .collect::<Vec<_>>();
         if pix_buf_bytes.is_empty() {
             return Err(anyhow!("No result could be found"));

@@ -34,21 +34,20 @@ pub fn change_hyprpaper_wallpaper(
                 .wait()
             {
                 Ok(_) => {}
-                Err(_) => match which("hyprpaper") {
-                    Ok(_) => {
+                Err(_) => {
+                    if which("hyprpaper").is_ok() {
                         warn!(
                             "Hyprpaper could not be started using Systemd. Attempting to start using command line interface"
                         );
                         #[allow(clippy::zombie_processes)]
                         Command::new("hyprpaper").spawn().unwrap();
-                    }
-                    Err(_) => {
+                    } else {
                         error!(
                             "Wallpaper could not be changed: Failed to start hyprpaper using Systemd and command line interface."
                         );
                         return;
                     }
-                },
+                }
             }
         }
         thread::sleep(Duration::from_millis(200));
@@ -90,7 +89,7 @@ pub fn change_hyprpaper_wallpaper(
     }
 }
 
-pub fn generate_hyprpaper_changer_bar(app_state: AppState) -> Vec<Element<'static, Messages>> {
+pub fn generate_hyprpaper_changer_bar(app_state: &AppState) -> Vec<Element<'static, Messages>> {
     let dropdown: Element<'_, Messages> = pick_list(
         HyprpaperFitModes::VARIANTS,
         app_state.hyprpaper_fill_mode.clone(),

@@ -22,7 +22,7 @@ pub fn restore_wallpapers(app_state: &AppState) -> anyhow::Result<()> {
     WallpaperChangers::killall_changers();
     let previous_wallpapers = app_state.saved_wallpapers.clone();
     for wallpaper in previous_wallpapers {
-        debug!("Restoring: {:?}", wallpaper);
+        debug!("Restoring: {wallpaper:?}");
         wallpaper.clone().changer.change(
             PathBuf::from(wallpaper.clone().path),
             wallpaper.clone().monitor,
@@ -89,7 +89,7 @@ pub fn set_random_wallpapers(app_state: &mut AppState) -> anyhow::Result<()> {
         w.changer
             .clone()
             .change(files[index].clone(), w.monitor.clone());
-        w.path = files[index].clone().to_str().unwrap_or_default().to_owned();
+        files[index].clone().to_str().unwrap_or_default().clone_into(&mut w.path);
     }
     app_state.saved_wallpapers = previous_wallpapers;
     Ok(())
@@ -105,7 +105,7 @@ pub fn cycle_next_wallpaper(args: &Cli, app_state: &mut AppState) -> anyhow::Res
     let sort_dropdown_string = app_state.sort_by.clone().unwrap_or_default();
     let mut files = get_previous_supported_wallpapers(app_state);
     let invert_sort_state = app_state.invert_sort;
-    sort_by_sort_dropdown_string(&mut files, sort_dropdown_string, invert_sort_state);
+    sort_by_sort_dropdown_string(&mut files, &sort_dropdown_string, invert_sort_state);
     if args.next.clone().unwrap_or_default() == "All" {
         for previous_wallpaper in &mut previous_wallpapers {
             let wallpaper_index = files.iter().position(|p| {
@@ -160,7 +160,7 @@ fn try_set_next_wallpaper(
             .changer
             .clone()
             .change(path.clone(), previous_wallpaper.monitor.clone());
-        previous_wallpaper.path = path.to_str().unwrap_or_default().to_owned();
+        path.to_str().unwrap_or_default().clone_into(&mut previous_wallpaper.path);
     } else {
         warn!(
             "Wallpaper {} could not be found. Using first wallpaper",
@@ -176,7 +176,7 @@ fn try_set_next_wallpaper(
                     .changer
                     .clone()
                     .change(p.clone(), previous_wallpaper.monitor.clone());
-                previous_wallpaper.path = p.to_str().unwrap_or_default().to_owned();
+                p.to_str().unwrap_or_default().clone_into(&mut previous_wallpaper.path);
             }
             None => {
                 error!(
@@ -196,13 +196,10 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
         return Err(anyhow!("{msg}"));
     }
 
-    let cache_home_dir = match xdg_dirs.get_cache_home() {
-        Some(c) => c,
-        None => return Err(anyhow!("Failed to get XDG cache home")),
-    };
+    let Some(cache_home_dir) = xdg_dirs.get_config_home() else { return Err(anyhow!("Failed to get XDG cache home")) };
 
     match remove_dir_all(cache_home_dir) {
-        Ok(_) => Ok(()),
+        Ok(()) => Ok(()),
         Err(e) => {
             let msg = format!("Failed to delete cache {e}");
             error!("{msg}");

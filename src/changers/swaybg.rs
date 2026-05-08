@@ -39,7 +39,7 @@ pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, 
     }
 }
 
-pub fn generate_swaybg_changer_bar(app_state: AppState) -> Vec<Element<'static, Messages>> {
+pub fn generate_swaybg_changer_bar(app_state: &AppState) -> Vec<Element<'static, Messages>> {
     let dropdown: Element<'_, Messages> = pick_list(
         SwaybgModes::VARIANTS,
         app_state.swaybg_mode.clone(),

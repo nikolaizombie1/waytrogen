@@ -14,7 +14,7 @@ impl Dispatch<wl_registry::WlRegistry, ()> for AvailableMonitors {
         _: &mut Self,
         proxy: &wl_registry::WlRegistry,
         event: <wl_registry::WlRegistry as wayland_client::Proxy>::Event,
-        _: &(),
+        (): &(),
         _: &Connection,
         qhandle: &QueueHandle<Self>,
     ) {
@@ -35,7 +35,7 @@ impl Dispatch<wl_output::WlOutput, ()> for AvailableMonitors {
         state: &mut Self,
         _: &wl_output::WlOutput,
         event: <wl_output::WlOutput as wayland_client::Proxy>::Event,
-        _: &(),
+        (): &(),
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
