@@ -186,6 +186,7 @@
             cargo
             dbus
             xdg-utils
+            rustc
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };
