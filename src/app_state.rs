@@ -364,7 +364,7 @@ impl BootFn<AppState, Messages> for AppState {
             instance.gslapper_pause_mode = Some(GSllapperPauseMode::default());
         }
         if instance.internal_theme.is_none() {
-            instance.internal_theme = Some(iced::Theme::Dark);
+            instance.internal_theme = Some(instance.theme.0.clone());
         }
         (instance, Task::done(Messages::PopulateImageGrid))
     }
