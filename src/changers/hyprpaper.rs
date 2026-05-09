@@ -1,4 +1,4 @@
-use crate::locale::TRANSLATION;
+use crate::{locale::TRANSLATION, monitors::AvailableMonitors};
 use iced::{Element, widget::pick_list};
 use log::{debug, error, warn};
 use std::{path::Path, process::Command, thread, time::Duration};
@@ -50,42 +50,44 @@ pub fn change_hyprpaper_wallpaper(
                 }
             }
         }
-        thread::sleep(Duration::from_millis(200));
-        Command::new("hyprctl")
-            .arg("hyprpaper")
-            .arg("unload")
-            .arg("all")
-            .spawn()
-            .unwrap()
-            .wait()
-            .unwrap();
-        thread::sleep(Duration::from_millis(200));
-        Command::new("hyprctl")
-            .arg("hyprpaper")
-            .arg("preload")
-            .arg(image.as_os_str())
-            .spawn()
-            .unwrap()
-            .wait()
-            .unwrap();
-        thread::sleep(Duration::from_millis(200));
-        let monitor = if monitor == TRANSLATION.get_translation("All") {
-            ""
+	let fit_mode = match settings.fit_mode {
+	    HyprpaperFitModes::Contain => "contain",
+	    HyprpaperFitModes::Cover => "cover",
+	    HyprpaperFitModes::Tile => "tile",
+	    HyprpaperFitModes::Fill => "fill",
+	};
+        if monitor == TRANSLATION.get_translation("All") {
+            if let Ok(available_monitors) = AvailableMonitors::get_monitors() {
+                for monitor in available_monitors.available_monitors.into_iter().filter(|m| m != &TRANSLATION.get_translation("All")) {
+                    Command::new("hyprctl")
+                        .arg("hyprpaper")
+                        .arg("wallpaper")
+                        .arg(format!(
+                            "{monitor},{},{}",
+                            image.to_str().unwrap(),
+			    fit_mode
+                        ))
+                        .spawn()
+                        .unwrap()
+                        .wait()
+                        .unwrap();
+		    thread::sleep(Duration::from_millis(200));
+                }
+            }
         } else {
-            monitor
-        };
-        Command::new("hyprctl")
-            .arg("hyprpaper")
-            .arg("wallpaper")
-            .arg(format!(
-                "{monitor},{},{}",
-                image.to_str().unwrap(),
-                settings.fit_mode
-            ))
-            .spawn()
-            .unwrap()
-            .wait()
-            .unwrap();
+            Command::new("hyprctl")
+                .arg("hyprpaper")
+                .arg("wallpaper")
+                .arg(format!(
+                    "{monitor},{},{}",
+                    image.to_str().unwrap(),
+                    fit_mode
+                ))
+                .spawn()
+                .unwrap()
+                .wait()
+                .unwrap();
+        }
     }
 }
 

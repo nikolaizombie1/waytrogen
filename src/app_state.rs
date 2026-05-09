@@ -703,7 +703,7 @@ impl AppState {
                 Task::none()
             }
             Messages::MonitorChanged(m) => {
-                self.monitor = Some(m);
+                self.monitor = Some(m.clone());
                 Task::none()
             }
             Messages::SortByChanged(sort_by) => {
@@ -737,6 +737,18 @@ impl AppState {
                 if let Some(changer) = &self.changer
                     && let Some(monitor) = &self.monitor
                 {
+                    if monitor == &TRANSLATION.get_translation("All") {
+                        self.saved_wallpapers = self
+                            .saved_wallpapers
+                            .extract_if(.., |i| i.monitor != TRANSLATION.get_translation("All"))
+                            .collect::<Vec<_>>();
+                    } else {
+                        self.saved_wallpapers = self
+                            .saved_wallpapers
+                            .extract_if(.., |i| i.monitor == TRANSLATION.get_translation("All"))
+                            .collect::<Vec<_>>();
+			
+		    }
                     match self
                         .saved_wallpapers
                         .iter_mut()
@@ -1249,41 +1261,48 @@ impl AppState {
                                     .label(TRANSLATION.get_translation("invert-sort"))
                                     .on_toggle(Messages::InvertSortChanged),
                             ),
-                            Item::new(row![
-                                text!["{}", TRANSLATION.get_translation("theme")],
-                                pick_list(
-                                    [
-                                        iced::Theme::Light,
-                                        iced::Theme::Dark,
-                                        iced::Theme::Dracula,
-                                        iced::Theme::Nord,
-                                        iced::Theme::SolarizedLight,
-                                        iced::Theme::SolarizedDark,
-                                        iced::Theme::GruvboxLight,
-                                        iced::Theme::GruvboxDark,
-                                        iced::Theme::CatppuccinLatte,
-                                        iced::Theme::CatppuccinFrappe,
-                                        iced::Theme::CatppuccinMacchiato,
-                                        iced::Theme::CatppuccinMocha,
-                                        iced::Theme::TokyoNight,
-                                        iced::Theme::TokyoNightStorm,
-                                        iced::Theme::TokyoNightLight,
-                                        iced::Theme::KanagawaWave,
-                                        iced::Theme::KanagawaDragon,
-                                        iced::Theme::KanagawaLotus,
-                                        iced::Theme::Moonfly,
-                                        iced::Theme::Nightfly,
-                                        iced::Theme::Oxocarbon,
-                                        iced::Theme::Ferra,
-                                    ],
-                                    self.internal_theme.clone(),
-                                    Messages::ThemeChanged,
-                                )
-                            ].spacing(DEFAULT_MARGIN).width(Fill).align_y(Center)),
+                            Item::new(
+                                row![
+                                    text!["{}", TRANSLATION.get_translation("theme")],
+                                    pick_list(
+                                        [
+                                            iced::Theme::Light,
+                                            iced::Theme::Dark,
+                                            iced::Theme::Dracula,
+                                            iced::Theme::Nord,
+                                            iced::Theme::SolarizedLight,
+                                            iced::Theme::SolarizedDark,
+                                            iced::Theme::GruvboxLight,
+                                            iced::Theme::GruvboxDark,
+                                            iced::Theme::CatppuccinLatte,
+                                            iced::Theme::CatppuccinFrappe,
+                                            iced::Theme::CatppuccinMacchiato,
+                                            iced::Theme::CatppuccinMocha,
+                                            iced::Theme::TokyoNight,
+                                            iced::Theme::TokyoNightStorm,
+                                            iced::Theme::TokyoNightLight,
+                                            iced::Theme::KanagawaWave,
+                                            iced::Theme::KanagawaDragon,
+                                            iced::Theme::KanagawaLotus,
+                                            iced::Theme::Moonfly,
+                                            iced::Theme::Nightfly,
+                                            iced::Theme::Oxocarbon,
+                                            iced::Theme::Ferra,
+                                        ],
+                                        self.internal_theme.clone(),
+                                        Messages::ThemeChanged,
+                                    )
+                                ]
+                                .spacing(DEFAULT_MARGIN)
+                                .width(Fill)
+                                .align_y(Center),
+                            ),
                         ]
                         .into(),
                     )
-                    .max_width(300.0).spacing(DEFAULT_MARGIN).padding(DEFAULT_MARGIN),
+                    .max_width(300.0)
+                    .spacing(DEFAULT_MARGIN)
+                    .padding(DEFAULT_MARGIN),
                 )])
                 .into();
 
