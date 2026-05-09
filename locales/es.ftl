@@ -266,3 +266,28 @@ awww-advanced-options = Ajustes Advanzadas
 original = Original
 
 panscan = Panscan
+
+theme = Schema
+
+theme-description = Modifica la aparencia de la applicacion. Puede ser undo de los siguientes opciones:
+          	    Light
+                    Dracula
+                    Nord
+                    SolarizedLight
+                    SolarizedDark
+                    GruvboxLight
+                    GruvboxDark
+                    CatppuccinLatte
+                    CatppuccinFrappe
+                    CatppuccinMacchiato
+                    CatppuccinMocha
+                    TokyoNight
+                    TokyoNightStorm
+                    TokyoNightLight
+                    KanagawaWave
+                    KanagawaDragon
+                    KanagawaLotus
+                    Moonfly
+                    Nightfly
+                    Oxocarbon
+                    Ferra

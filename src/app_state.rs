@@ -6,6 +6,7 @@ use crate::{
     },
     database::DatabaseConnection,
     monitors::AvailableMonitors,
+    theme::WaytrogenTheme,
     wallpaper_changers::{
         AWWWResizeMode, AWWWScallingFilter, AWWWTransitionBezier, AWWWTransitionPosition,
         AWWWTransitionType, AWWWTransitionWave, AwwwSettings, GSllaperSettings, GSllapperPauseMode,
@@ -136,6 +137,8 @@ pub struct AppState {
     pub gslapper_additional_options: String,
     hide_changer_options_box_doc: String,
     pub hide_changer_options_box: bool,
+    theme_doc: String,
+    pub theme: WaytrogenTheme,
     #[serde(skip)]
     image_grid_images: Vec<CacheImageFile>,
     #[serde(skip)]
@@ -153,6 +156,8 @@ pub struct AppState {
     pub awww_fill_color_internal: Color,
     #[serde(skip)]
     pub show_awww_color_picker: bool,
+    #[serde(skip)]
+    pub internal_theme: Option<iced::Theme>,
 }
 
 impl Default for AppState {
@@ -258,6 +263,9 @@ impl Default for AppState {
             show_swaybg_color_picker: Default::default(),
             awww_fill_color_internal: Color::default(),
             show_awww_color_picker: Default::default(),
+            theme_doc: TRANSLATION.get_translation("theme-description"),
+            theme: WaytrogenTheme::default(),
+            internal_theme: Option::default(),
         }
     }
 }
@@ -314,6 +322,7 @@ pub enum Messages {
     GSlapperPauseModeChanged(GSllapperPauseMode),
     GSllaperLoopVideoChanged(bool),
     GSllaperAdditionalOptionsChanged(String),
+    ThemeChanged(iced::Theme),
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -353,6 +362,9 @@ impl BootFn<AppState, Messages> for AppState {
         }
         if instance.gslapper_pause_mode.is_none() {
             instance.gslapper_pause_mode = Some(GSllapperPauseMode::default());
+        }
+        if instance.internal_theme.is_none() {
+            instance.internal_theme = Some(iced::Theme::Dark);
         }
         (instance, Task::done(Messages::PopulateImageGrid))
     }
@@ -611,9 +623,9 @@ impl AppState {
     }
 
     fn change_wallpaper(&self, path: PathBuf) -> Task<Messages> {
-	let Some(changer) = self.changer.clone() else {
-	    return Task::none()
-	};
+        let Some(changer) = self.changer.clone() else {
+            return Task::none();
+        };
         let Some(monitor) = self.monitor.clone() else {
             return Task::none();
         };
@@ -1181,6 +1193,11 @@ impl AppState {
                 }
                 Task::none()
             }
+            Messages::ThemeChanged(waytrogen_theme) => {
+                self.theme = WaytrogenTheme(waytrogen_theme.clone());
+                self.internal_theme = Some(waytrogen_theme);
+                Task::none()
+            }
         }
     }
 
@@ -1226,14 +1243,47 @@ impl AppState {
                     button(text!["{}", TRANSLATION.get_translation("Options")])
                         .on_press(Messages::OptionMenuOpened),
                     Menu::new(
-                        [Item::new(
-                            toggler(self.invert_sort)
-                                .label(TRANSLATION.get_translation("invert-sort"))
-                                .on_toggle(Messages::InvertSortChanged),
-                        )]
+                        [
+                            Item::new(
+                                toggler(self.invert_sort)
+                                    .label(TRANSLATION.get_translation("invert-sort"))
+                                    .on_toggle(Messages::InvertSortChanged),
+                            ),
+                            Item::new(row![
+                                text!["{}", TRANSLATION.get_translation("theme")],
+                                pick_list(
+                                    [
+                                        iced::Theme::Light,
+                                        iced::Theme::Dark,
+                                        iced::Theme::Dracula,
+                                        iced::Theme::Nord,
+                                        iced::Theme::SolarizedLight,
+                                        iced::Theme::SolarizedDark,
+                                        iced::Theme::GruvboxLight,
+                                        iced::Theme::GruvboxDark,
+                                        iced::Theme::CatppuccinLatte,
+                                        iced::Theme::CatppuccinFrappe,
+                                        iced::Theme::CatppuccinMacchiato,
+                                        iced::Theme::CatppuccinMocha,
+                                        iced::Theme::TokyoNight,
+                                        iced::Theme::TokyoNightStorm,
+                                        iced::Theme::TokyoNightLight,
+                                        iced::Theme::KanagawaWave,
+                                        iced::Theme::KanagawaDragon,
+                                        iced::Theme::KanagawaLotus,
+                                        iced::Theme::Moonfly,
+                                        iced::Theme::Nightfly,
+                                        iced::Theme::Oxocarbon,
+                                        iced::Theme::Ferra,
+                                    ],
+                                    self.internal_theme.clone(),
+                                    Messages::ThemeChanged,
+                                )
+                            ].spacing(DEFAULT_MARGIN).width(Fill).align_y(Center)),
+                        ]
                         .into(),
                     )
-                    .max_width(200.0),
+                    .max_width(300.0).spacing(DEFAULT_MARGIN).padding(DEFAULT_MARGIN),
                 )])
                 .into();
 
@@ -1298,11 +1348,20 @@ impl AppState {
         })
     }
 
+    fn theme(&self) -> iced::Theme {
+        if let Some(theme) = &self.internal_theme {
+            theme.clone()
+        } else {
+            iced::Theme::Dark
+        }
+    }
+
     pub fn run_application(instance: Self) -> iced::Result {
         iced::application(instance, Self::update, Self::view)
             .centered()
             .subscription(Self::subscription)
             .exit_on_close_request(false)
+            .theme(Self::theme)
             .run()
     }
 }

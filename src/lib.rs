@@ -7,3 +7,4 @@ pub mod fs;
 pub mod locale;
 pub mod monitors;
 pub mod wallpaper_changers;
+pub mod theme;

@@ -222,7 +222,7 @@ Name = name
 
 Date = date
 
-Options = options
+Options = Options
 
 fill-color = Fill Color
 
@@ -265,3 +265,28 @@ original = Original
 panscan = Panscan
 
 gslapper-additional-option = Ajustes adicionales para GStreamer/gslapper (e.g panscan=0.8)
+
+theme = Theme
+
+theme-description = Modifies the appearance of the application. Can be one of the following options:
+          	    Light
+                    Dracula
+                    Nord
+                    SolarizedLight
+                    SolarizedDark
+                    GruvboxLight
+                    GruvboxDark
+                    CatppuccinLatte
+                    CatppuccinFrappe
+                    CatppuccinMacchiato
+                    CatppuccinMocha
+                    TokyoNight
+                    TokyoNightStorm
+                    TokyoNightLight
+                    KanagawaWave
+                    KanagawaDragon
+                    KanagawaLotus
+                    Moonfly
+                    Nightfly
+                    Oxocarbon
+                    Ferra
