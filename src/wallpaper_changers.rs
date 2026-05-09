@@ -325,20 +325,20 @@ pub enum AWWWTransitionType {
 impl Display for AWWWTransitionType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::None => write!(f, "none"),
-            Self::Simple => write!(f, "simple"),
-            Self::Fade => write!(f, "fade"),
-            Self::Left => write!(f, "left"),
-            Self::Right => write!(f, "right"),
-            Self::Top => write!(f, "top"),
-            Self::Bottom => write!(f, "bottm"),
-            Self::Wipe => write!(f, "wipe"),
-            Self::Wave => write!(f, "wave"),
-            Self::Grow => write!(f, "grow"),
-            Self::Center => write!(f, "center"),
-            Self::Any => write!(f, "any"),
-            Self::Outer => write!(f, "outer"),
-            Self::Random => write!(f, "random"),
+            Self::None => write!(f, "{}", TRANSLATION.get_translation("none")),
+            Self::Simple => write!(f,"{}", TRANSLATION.get_translation("simple")),
+            Self::Fade => write!(f, "{}", TRANSLATION.get_translation("fade")),
+            Self::Left => write!(f, "{}", TRANSLATION.get_translation("left")),
+            Self::Right => write!(f, "{}", TRANSLATION.get_translation("right")),
+            Self::Top => write!(f, "{}", TRANSLATION.get_translation("top")),
+            Self::Bottom => write!(f, "{}", TRANSLATION.get_translation("bottom")),
+            Self::Wipe => write!(f, "{}", TRANSLATION.get_translation("wipe")),
+            Self::Wave => write!(f, "{}", TRANSLATION.get_translation("wave")),
+            Self::Grow => write!(f, "{}", TRANSLATION.get_translation("grow")),
+            Self::Center => write!(f, "{}", TRANSLATION.get_translation("center")),
+            Self::Any => write!(f, "{}", TRANSLATION.get_translation("any")),
+            Self::Outer => write!(f, "{}", TRANSLATION.get_translation("outer")),
+            Self::Random => write!(f, "{}", TRANSLATION.get_translation("random")),
         }
     }
 }

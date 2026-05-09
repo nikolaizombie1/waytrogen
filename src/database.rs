@@ -70,7 +70,7 @@ impl DatabaseConnection {
             Ok(f) => {
                 trace!(
                     "{}: {}",
-                    TRANSLATION.get_translation("Cache Hit"),
+                    TRANSLATION.get_translation("cache-hit"),
                     f.path.to_str().unwrap_or_default()
                 );
                 Ok(f)
@@ -78,7 +78,7 @@ impl DatabaseConnection {
             Err(e) => {
                 trace!(
                     "{}: {} {}",
-                    TRANSLATION.get_translation("Cache Miss"),
+                    TRANSLATION.get_translation("cache-miss"),
                     path.to_str().unwrap(),
                     e
                 );
