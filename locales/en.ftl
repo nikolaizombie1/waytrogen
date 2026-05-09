@@ -218,9 +218,9 @@ gslapper-additional-options-desciption = Custom options for gslapper passed as c
 
 sort-by-description = The internal numeric identifier in the changer dropdown used by dconf for the currently selected sorting option. Do not change unless you know what you are doing.
 
-Name = name
+Name = Name
 
-Date = date
+Date = Date
 
 Options = Options
 
