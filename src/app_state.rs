@@ -332,7 +332,11 @@ impl BootFn<AppState, Messages> for AppState {
             instance.sort_by = Some(SortBy::default());
         }
         instance.available_changers = get_available_wallpaper_changers();
-        instance.changer = instance.available_changers.first().cloned();
+        instance.changer = if self.changer.is_some() {
+            instance.changer
+        } else {
+            instance.available_changers.first().cloned()
+        };
         if instance.hyprpaper_fill_mode.is_none() {
             instance.hyprpaper_fill_mode = Some(HyprpaperFitModes::default());
         }
@@ -366,6 +370,74 @@ impl BootFn<AppState, Messages> for AppState {
         if instance.internal_theme.is_none() {
             instance.internal_theme = Some(instance.theme.0.clone());
         }
+
+        if let Ok(m) = AvailableMonitors::get_monitors() {
+            instance.available_monitors = m.available_monitors;
+            if instance
+                .available_monitors
+                .contains(&instance.selected_monitor_item)
+            {
+                instance.monitor = Some(instance.selected_monitor_item.clone());
+            }
+        }
+
+        let changer = if let Some(changer) = instance.changer.clone() {
+            let c = match changer {
+                WallpaperChangers::Hyprpaper(_) => {
+                    WallpaperChangers::Hyprpaper(HyprpaperSettings {
+                        fit_mode: instance.clone().hyprpaper_fill_mode.unwrap_or_default(),
+                    })
+                }
+                WallpaperChangers::Swaybg(_) => WallpaperChangers::Swaybg(SwaybgSettings {
+                    mode: instance.clone().swaybg_mode.unwrap_or_default(),
+                    fill_color: instance.swaybg_color.clone(),
+                }),
+                WallpaperChangers::MpvPaper(_) => WallpaperChangers::MpvPaper(MpvPaperSettings {
+                    pause_mode: instance.clone().mpvpaper_pause_option.unwrap_or_default(),
+                    slideshow_settings: MpvPaperSlideshowSettings {
+                        enable: instance.clone().mpvpaper_slideshow_enable,
+                        seconds: instance.clone().mpvpaper_slideshow_interval,
+                    },
+                    additional_options: instance.clone().mpvpaper_additional_options,
+                }),
+                WallpaperChangers::Awww(_) => WallpaperChangers::Awww(AwwwSettings {
+                    resize_mode: instance.clone().awww_resize.unwrap_or_default(),
+                    fill_color: instance.clone().awww_fill_color,
+                    scalling_filter: instance.clone().awww_scaling_filter.unwrap_or_default(),
+                    transition_type: instance.clone().awww_transition_type.unwrap_or_default(),
+                    transition_step: instance.clone().awww_transition_step,
+                    transition_duration: instance.clone().awww_transition_duration,
+                    transition_fps: instance.clone().awww_transition_fps,
+                    transition_angle: instance.clone().awww_transition_angle,
+                    transition_position: AWWWTransitionPosition {
+                        position: instance.clone().awww_transition_position,
+                    },
+                    invert_y: instance.clone().awww_invert_y,
+                    transition_bezier: AWWWTransitionBezier {
+                        p0: instance.clone().awww_transition_bezier_p0,
+                        p1: instance.clone().awww_transition_bezier_p1,
+                        p2: instance.clone().awww_transition_bezier_p2,
+                        p3: instance.clone().awww_transition_bezier_p3,
+                    },
+                    transition_wave: AWWWTransitionWave {
+                        width: instance.clone().awww_transition_wave_width,
+                        height: instance.clone().awww_transition_wave_height,
+                    },
+                }),
+                WallpaperChangers::GSlapper(_) => WallpaperChangers::GSlapper(GSllaperSettings {
+                    scale_mode: instance.clone().gslapper_scale_mode.unwrap_or_default(),
+                    pause_mode: instance.clone().gslapper_pause_mode.unwrap_or_default(),
+                    loop_video: instance.clone().gslapper_loop,
+                    additional_options: instance.clone().gslapper_additional_options,
+                }),
+            };
+            Some(c)
+        } else {
+            None
+        };
+
+        instance.changer = changer;
+
         (instance, Task::done(Messages::PopulateImageGrid))
     }
 }
@@ -686,7 +758,7 @@ impl AppState {
                 let images = self.catagorize_images(&i);
                 self.image_grid_images = images.supported_images;
                 self.filtered_images = images.unsupported_images;
-                Task::done(Messages::PopulateMonitorDropdown)
+                self.filter_images(self.image_filter.clone())
             }
             Messages::ChangeWallpaper(p) => self.change_wallpaper(p),
             Messages::ChangeWallpaperFolder => Self::open_wallpaper_folder_file_dialog(),
@@ -696,7 +768,6 @@ impl AppState {
                 self.filtered_images = vec![];
                 Task::done(Messages::PopulateImageGrid)
             }
-            Messages::PopulateMonitorDropdown => Self::get_monitors(),
             Messages::MonitorDropdownPopulated(monitors) => {
                 self.available_monitors = monitors;
                 self.monitor = self.available_monitors.first().cloned();
@@ -732,7 +803,8 @@ impl AppState {
             }
             Messages::OptionMenuOpened
             | Messages::ExternalScriptExecuted
-            | Messages::AwwwAdvancedSettingsButtonClicked => Task::none(),
+            | Messages::AwwwAdvancedSettingsButtonClicked
+            | Messages::PopulateMonitorDropdown => Task::none(),
             Messages::WallpaperChanged(wallpaper_path) => {
                 if let Some(changer) = &self.changer
                     && let Some(monitor) = &self.monitor
@@ -747,8 +819,7 @@ impl AppState {
                             .saved_wallpapers
                             .extract_if(.., |i| i.monitor == TRANSLATION.get_translation("All"))
                             .collect::<Vec<_>>();
-			
-		    }
+                    }
                     match self
                         .saved_wallpapers
                         .iter_mut()

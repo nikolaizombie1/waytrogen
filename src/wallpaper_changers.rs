@@ -887,6 +887,7 @@ impl WallpaperChanger for WallpaperChangers {
             }
             Self::MpvPaper(_) => {
                 let _ = Command::new("pkill")
+                    .arg("-9")
                     .arg("mpvpaper")
                     .spawn()
                     .and_then(|mut c| c.wait());

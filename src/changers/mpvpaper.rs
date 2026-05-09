@@ -1,17 +1,27 @@
 use crate::{
     app_state::{AppState, Messages},
     locale::TRANSLATION,
-    wallpaper_changers::{MpvPaperPauseModes, WallpaperChanger, WallpaperChangers},
+    wallpaper_changers::{MpvPaperPauseModes, MpvPaperSettings, WallpaperChangers},
 };
 use iced::{
     Element,
     widget::{pick_list, text_input, toggler},
 };
 use iced_aw::number_input;
-use std::{path::PathBuf, process::Command};
+use std::default::Default;
+use std::sync::LazyLock;
+use std::{path::PathBuf, process::Command, sync::Mutex};
 use strum::VariantArray;
 
-const ALL_MONITOR_SOCKET: &str = "/tmp/mpv-socket-All";
+static SPAWNED_MPVPAPER_PROCESSES: LazyLock<Mutex<Vec<MpvPaperWallpaper>>> =
+    LazyLock::new(|| Mutex::new(Vec::new()));
+
+#[derive(Default, Debug)]
+struct MpvPaperWallpaper {
+    pub settings: MpvPaperSettings,
+    pub image: PathBuf,
+    pub monitor: String,
+}
 
 pub fn change_mpvpaper_wallpaper(
     mpvpaper_changer: &WallpaperChangers,
@@ -19,78 +29,56 @@ pub fn change_mpvpaper_wallpaper(
     monitor: &str,
 ) {
     if let WallpaperChangers::MpvPaper(settings) = mpvpaper_changer {
-        log::debug!("{}", image.display());
+
+        // Acquire once, hold for all operations
+        let mut previous_wallpapers = SPAWNED_MPVPAPER_PROCESSES.lock().unwrap();
+
+	Command::new("pkill").arg("-9").arg("mpvpaper").spawn().unwrap().wait().unwrap();
+
+        // Kill existing process on this monitor
+	if monitor == TRANSLATION.get_translation("All") {
+	    previous_wallpapers.retain(|_| false);
+	} else {
+	   previous_wallpapers.retain(|m| m.monitor != TRANSLATION.get_translation("All")) 
+	}
+
+	if let Some(w) = previous_wallpapers.iter_mut().find(|m| m.monitor == monitor) {
+	    w.image.clone_from(&image);
+	} else {
+            previous_wallpapers.push(MpvPaperWallpaper { settings: settings.clone(), image: image.clone(), monitor: monitor.to_string() });
+	}
+
+	for wallpaper in previous_wallpapers.iter() {
         let mut command = Command::new("mpvpaper");
-        let socket = if monitor == TRANSLATION.get_translation("All") {
-            String::from(ALL_MONITOR_SOCKET)
-        } else {
-            format!("/tmp/mpv-socket-{monitor}")
-        };
-
-        let mpv_options = format!("input-ipc-server={socket} {}", settings.additional_options);
-
-        let monitor = if monitor == TRANSLATION.get_translation("All") {
+        let mpv_options = format!("{}", wallpaper.settings.additional_options);
+        let monitor = if wallpaper.monitor == TRANSLATION.get_translation("All") {
             "*"
         } else {
-            monitor
+            &wallpaper.monitor
         };
+
         command.arg("-o").arg(mpv_options);
-        match settings.pause_mode {
+        match wallpaper.settings.pause_mode {
             MpvPaperPauseModes::None => {}
-            MpvPaperPauseModes::AutoPause => {
-                command.arg("--auto-pause");
-            }
-            MpvPaperPauseModes::AutoStop => {
-                command.arg("--auto-stop");
-            }
+            MpvPaperPauseModes::AutoPause => { command.arg("--auto-pause"); }
+            MpvPaperPauseModes::AutoStop => { command.arg("--auto-stop"); }
         }
-        if settings.slideshow_settings.enable {
-            command
-                .arg("-n")
-                .arg(settings.slideshow_settings.seconds.to_string());
-        }
-
-        let socket_path = std::path::Path::new(&socket);
-
-        if socket_path.exists() {
-            log::debug!("Attempting to close socket.");
-            Command::new("bash")
-                .arg("-c")
-                .arg(format!("echo quit | socat - {socket}"))
-                .spawn()
-                .unwrap()
-                .wait()
-                .unwrap();
-            Command::new("rm")
-                .arg(socket)
-                .spawn()
-                .unwrap()
-                .wait()
-                .unwrap();
-        }
-
-        let all_monitor_socket_exists = std::path::Path::new(ALL_MONITOR_SOCKET).exists();
-
-        if all_monitor_socket_exists && monitor != TRANSLATION.get_translation("All") {
-            Command::new("bash")
-                .arg("-c")
-                .arg(format!("echo quit | socat - {ALL_MONITOR_SOCKET}"))
-                .spawn()
-                .unwrap()
-                .wait()
-                .unwrap();
-        } else if all_monitor_socket_exists && monitor == TRANSLATION.get_translation("All") {
-            mpvpaper_changer.kill();
+        if wallpaper.settings.slideshow_settings.enable {
+            command.arg("-n").arg(wallpaper.settings.slideshow_settings.seconds.to_string());
         }
 
         command
             .arg(monitor)
-            .arg(image)
+            .arg(wallpaper.image.clone())
             .arg("-f")
             .spawn()
             .unwrap()
-            .wait()
-            .unwrap();
+            .wait().
+	    unwrap();
+	}
+
+
+        // Lock is released here when `processes` drops
     }
 }
 
