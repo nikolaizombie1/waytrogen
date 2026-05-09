@@ -39,7 +39,7 @@ pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, 
             .arg(fill_color)
             .spawn()
             .unwrap()
-            .wait()
+            .wait_with_output()
             .unwrap();
     }
 }

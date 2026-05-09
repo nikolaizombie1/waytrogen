@@ -358,7 +358,7 @@ impl BootFn<AppState, Messages> for AppState {
         if !instance.swaybg_color.starts_with('#') {
             instance.swaybg_color = "#000000".to_string();
         }
-        if instance.awww_fill_color.is_empty() {
+        if instance.awww_fill_color.is_empty() || instance.awww_fill_color.contains("#") {
             instance.awww_fill_color = "000000ff".to_string();
         }
         if instance.gslapper_scale_mode.is_none() {
@@ -973,7 +973,7 @@ impl AppState {
             Messages::AwwwFillColorSubmitted(color) => {
                 self.awww_fill_color_internal = color;
                 self.awww_fill_color =
-                    color.to_string()[0..=color.to_string().len() - 3].to_string();
+                    color.to_string()[1..=color.to_string().len() - 3].to_string();
                 self.show_awww_color_picker = false;
                 if let Some(changer) = &self.changer
                     && let WallpaperChangers::Awww(settings) = changer

@@ -33,7 +33,7 @@ pub fn change_mpvpaper_wallpaper(
         // Acquire once, hold for all operations
         let mut previous_wallpapers = SPAWNED_MPVPAPER_PROCESSES.lock().unwrap();
 
-	Command::new("pkill").arg("-9").arg("mpvpaper").spawn().unwrap().wait().unwrap();
+	Command::new("pkill").arg("-9").arg("mpvpaper").spawn().unwrap().wait_with_output().unwrap();
 
         // Kill existing process on this monitor
 	if monitor == TRANSLATION.get_translation("All") {
@@ -73,7 +73,7 @@ pub fn change_mpvpaper_wallpaper(
             .arg("-f")
             .spawn()
             .unwrap()
-            .wait().
+            .wait_with_output().
 	    unwrap();
 	}
 

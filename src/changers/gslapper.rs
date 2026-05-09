@@ -117,7 +117,7 @@ pub fn change_gslapper_wallpaper(
 
         debug!("gSlapper: Running command: {command:?}");
 
-        command.spawn().unwrap().wait().unwrap();
+        command.spawn().unwrap().wait_with_output().unwrap();
     }
 }
 

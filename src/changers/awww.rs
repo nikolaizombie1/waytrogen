@@ -19,19 +19,62 @@ use iced_aw::{
     menu::{Item, Menu},
     number_input,
 };
-use log::debug;
+use regex::Regex;
+use std::sync::LazyLock;
 use std::{path::PathBuf, process::Command};
 use strum::VariantArray;
 
+static PID_REGEX: LazyLock<Regex> = LazyLock::new(|| {Regex::new(r"\d+").unwrap() });
+
 pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, monitor: String) {
     if let WallpaperChangers::Awww(settings) = awww_changer {
-        debug!("Starting awww daemon");
-        Command::new("awww-daemon").spawn().unwrap().wait().unwrap();
+        let awww_daemon_pid = 
+            Command::new("pidof")
+                .arg("awww-daemon")
+                .spawn()
+                .unwrap()
+                .wait().unwrap();
+        if !awww_daemon_pid.success() {
+            Command::new("awww-daemon").spawn().unwrap().wait_with_output().unwrap();
+        }
         let mut command = Command::new("awww");
+
+        let resize_mode = match settings.resize_mode {
+            AWWWResizeMode::No => "no",
+            AWWWResizeMode::Crop => "crop",
+            AWWWResizeMode::Fit => "fit",
+            AWWWResizeMode::Stretch => "stretch",
+        };
+
+        let scaling_filter = match settings.scalling_filter {
+            AWWWScallingFilter::Nearest => "Nearest",
+            AWWWScallingFilter::Bilinear => "Bilinear",
+            AWWWScallingFilter::CatmullRom => "CattmullRom",
+            AWWWScallingFilter::Mitchell => "Mitchell",
+            AWWWScallingFilter::Lanczos3 => "Lanczos3",
+        };
+
+        let transition_type = match settings.transition_type {
+            AWWWTransitionType::None => "none",
+            AWWWTransitionType::Simple => "simple",
+            AWWWTransitionType::Fade => "fade",
+            AWWWTransitionType::Left => "left",
+            AWWWTransitionType::Right => "right",
+            AWWWTransitionType::Top => "top",
+            AWWWTransitionType::Bottom => "bottom",
+            AWWWTransitionType::Wipe => "wipe",
+            AWWWTransitionType::Wave => "wave",
+            AWWWTransitionType::Grow => "grow",
+            AWWWTransitionType::Center => "center",
+            AWWWTransitionType::Any => "any",
+            AWWWTransitionType::Outer => "outer",
+            AWWWTransitionType::Random => "random",
+        };
+
         command
             .arg("img")
             .arg("--resize")
-            .arg(settings.resize_mode.to_string())
+            .arg(resize_mode)
             .arg("--fill-color")
             .arg(&settings.fill_color);
         if monitor != TRANSLATION.get_translation("All") {
@@ -39,9 +82,9 @@ pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, mo
         }
         command
             .arg("--filter")
-            .arg(settings.scalling_filter.to_string())
+            .arg(scaling_filter)
             .arg("--transition-type")
-            .arg(settings.transition_type.to_string())
+            .arg(transition_type)
             .arg("--transition-step")
             .arg(settings.transition_step.to_string())
             .arg("--transition-duration")
@@ -63,7 +106,7 @@ pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, mo
             .arg(image)
             .spawn()
             .unwrap()
-            .wait()
+            .wait_with_output()
             .unwrap();
     }
 }

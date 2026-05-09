@@ -31,7 +31,7 @@ pub fn change_hyprpaper_wallpaper(
                 .arg("hyprpaper")
                 .spawn()
                 .unwrap()
-                .wait()
+                .wait_with_output()
             {
                 Ok(_) => {}
                 Err(_) => {
@@ -69,7 +69,7 @@ pub fn change_hyprpaper_wallpaper(
                         ))
                         .spawn()
                         .unwrap()
-                        .wait()
+                        .wait_with_output()
                         .unwrap();
 		    thread::sleep(Duration::from_millis(200));
                 }
@@ -85,7 +85,7 @@ pub fn change_hyprpaper_wallpaper(
                 ))
                 .spawn()
                 .unwrap()
-                .wait()
+                .wait_with_output()
                 .unwrap();
         }
     }

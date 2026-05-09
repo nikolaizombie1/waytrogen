@@ -267,6 +267,7 @@ pub enum AWWWResizeMode {
     #[default]
     Crop,
     Fit,
+    Stretch
 }
 
 impl Display for AWWWResizeMode {
@@ -275,6 +276,7 @@ impl Display for AWWWResizeMode {
             Self::No => write!(f, "{}", TRANSLATION.get_translation("no")),
             Self::Crop => write!(f, "{}", TRANSLATION.get_translation("crop")),
             Self::Fit => write!(f, "{}", TRANSLATION.get_translation("fit")),
+            Self::Stretch => write!(f, "{}", TRANSLATION.get_translation("stretch")),
         }
     }
 }
