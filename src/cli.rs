@@ -89,7 +89,11 @@ pub fn set_random_wallpapers(app_state: &mut AppState) -> anyhow::Result<()> {
         w.changer
             .clone()
             .change(files[index].clone(), w.monitor.clone());
-        files[index].clone().to_str().unwrap_or_default().clone_into(&mut w.path);
+        files[index]
+            .clone()
+            .to_str()
+            .unwrap_or_default()
+            .clone_into(&mut w.path);
     }
     app_state.saved_wallpapers = previous_wallpapers;
     Ok(())
@@ -160,7 +164,9 @@ fn try_set_next_wallpaper(
             .changer
             .clone()
             .change(path.clone(), previous_wallpaper.monitor.clone());
-        path.to_str().unwrap_or_default().clone_into(&mut previous_wallpaper.path);
+        path.to_str()
+            .unwrap_or_default()
+            .clone_into(&mut previous_wallpaper.path);
     } else {
         warn!(
             "Wallpaper {} could not be found. Using first wallpaper",
@@ -176,7 +182,9 @@ fn try_set_next_wallpaper(
                     .changer
                     .clone()
                     .change(p.clone(), previous_wallpaper.monitor.clone());
-                p.to_str().unwrap_or_default().clone_into(&mut previous_wallpaper.path);
+                p.to_str()
+                    .unwrap_or_default()
+                    .clone_into(&mut previous_wallpaper.path);
             }
             None => {
                 error!(
@@ -196,7 +204,9 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
         return Err(anyhow!("{msg}"));
     }
 
-    let Some(cache_home_dir) = xdg_dirs.get_config_home() else { return Err(anyhow!("Failed to get XDG cache home")) };
+    let Some(cache_home_dir) = xdg_dirs.get_config_home() else {
+        return Err(anyhow!("Failed to get XDG cache home"));
+    };
 
     match remove_dir_all(cache_home_dir) {
         Ok(()) => Ok(()),

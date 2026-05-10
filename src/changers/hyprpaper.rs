@@ -50,28 +50,32 @@ pub fn change_hyprpaper_wallpaper(
                 }
             }
         }
-	let fit_mode = match settings.fit_mode {
-	    HyprpaperFitModes::Contain => "contain",
-	    HyprpaperFitModes::Cover => "cover",
-	    HyprpaperFitModes::Tile => "tile",
-	    HyprpaperFitModes::Fill => "fill",
-	};
+        let fit_mode = match settings.fit_mode {
+            HyprpaperFitModes::Contain => "contain",
+            HyprpaperFitModes::Cover => "cover",
+            HyprpaperFitModes::Tile => "tile",
+            HyprpaperFitModes::Fill => "fill",
+        };
         if monitor == TRANSLATION.get_translation("All") {
             if let Ok(available_monitors) = AvailableMonitors::get_monitors() {
-                for monitor in available_monitors.available_monitors.into_iter().filter(|m| m != &TRANSLATION.get_translation("All")) {
+                for monitor in available_monitors
+                    .available_monitors
+                    .into_iter()
+                    .filter(|m| m != &TRANSLATION.get_translation("All"))
+                {
                     Command::new("hyprctl")
                         .arg("hyprpaper")
                         .arg("wallpaper")
                         .arg(format!(
                             "{monitor},{},{}",
                             image.to_str().unwrap(),
-			    fit_mode
+                            fit_mode
                         ))
                         .spawn()
                         .unwrap()
                         .wait_with_output()
                         .unwrap();
-		    thread::sleep(Duration::from_millis(200));
+                    thread::sleep(Duration::from_millis(200));
                 }
             }
         } else {

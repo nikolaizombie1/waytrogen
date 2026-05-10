@@ -94,7 +94,7 @@ cache-miss = Cache Miss
 
 gtk-picture-created-successfully = Gtk Picture Created Successfully
 
-file-could-not-be-converted-to-a-gtk-picture = File Could Not Be Converted To A-gtk Picture
+file-could-not-be-converted-to-a-picture = File Could Not Be Converted To A-gtk Picture
 
 executable-script-description = Executable Script Description
 
@@ -290,3 +290,9 @@ theme-description = Modifies the appearance of the application. Can be one of th
                     Nightfly
                     Oxocarbon
                     Ferra
+
+picture-created-successfully = Picture created successfully.
+
+show-favorites-only = Show Favorites Only
+
+favorite-image-only-description = Show favorite images only or all images.

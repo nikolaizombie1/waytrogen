@@ -94,7 +94,7 @@ cache-miss = No fue encontrado en el cache
 
 gtk-picture-created-successfully = Imagen GTK fue creada
 
-file-could-not-be-converted-to-a-gtk-picture = Archivo no se pudo convertir a una imagen GTK
+file-could-not-be-converted-to-a-picture = Archivo no se pudo convertir a una imagen
 
 executable-script-description = El lugar en el disco duro donde se consigue el archivo ejecutable que se ultiliza despues que la imagen de fondo se aplica.El archivo ejecutable recibe los siguentes argumentos: el idenficador del monitor, el lugar en el disco duro de la imageny el contenido de la variable 'saved_wallpapers'.
 
@@ -291,3 +291,9 @@ theme-description = Modifica la aparencia de la applicacion. Puede ser undo de l
                     Nightfly
                     Oxocarbon
                     Ferra
+
+picture-created-successfully = Imagen fue creada.
+
+show-favorites-only = Ver solamente favoritos
+
+favorite-image-only-description = Ver solamente imagenes favoritas o ver todas las imagenes.

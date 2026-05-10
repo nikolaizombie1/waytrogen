@@ -16,6 +16,7 @@ use crate::{
     },
 };
 use anyhow::anyhow;
+use iced::widget::{container, mouse_area};
 use iced::{
     Alignment::Center,
     Color, Element,
@@ -41,7 +42,7 @@ use std::{
     io::{Read, Write},
     path::{Path, PathBuf},
     process::Command,
-    time::SystemTime
+    time::SystemTime,
 };
 use strum::VariantArray;
 use walkdir::WalkDir;
@@ -146,6 +147,8 @@ pub struct AppState {
     pub hide_changer_options_box: bool,
     theme_doc: String,
     pub theme: WaytrogenTheme,
+    favorite_images_only_doc: String,
+    pub favorite_images_only: bool,
     #[serde(skip)]
     image_grid_images: Vec<CacheImageFile>,
     #[serde(skip)]
@@ -273,6 +276,9 @@ impl Default for AppState {
             theme_doc: TRANSLATION.get_translation("theme-description"),
             theme: WaytrogenTheme::default(),
             internal_theme: Option::default(),
+            favorite_images_only_doc: TRANSLATION
+                .get_translation("favorite-image-only-description"),
+            favorite_images_only: false,
         }
     }
 }
@@ -330,6 +336,8 @@ pub enum Messages {
     GSllaperLoopVideoChanged(bool),
     GSllaperAdditionalOptionsChanged(String),
     ThemeChanged(iced::Theme),
+    WallpaperFavoriteToggle(PathBuf),
+    ShowFavoritesToggled(bool),
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -385,7 +393,9 @@ impl BootFn<AppState, Messages> for AppState {
                 .contains(&instance.selected_monitor_item)
             {
                 instance.monitor = Some(instance.selected_monitor_item.clone());
-            }
+            } else {
+		instance.monitor = instance.available_monitors.first().cloned();
+	    }
         }
 
         let changer = if let Some(changer) = instance.changer.clone() {
@@ -504,97 +514,96 @@ impl AppState {
         }
         Ok(config_file_struct)
     }
-fn populate_image_grid(&self) -> iced::Task<Messages> {
-    let invert_sort = self.invert_sort;
-    let changer = self.changer.clone();
+    fn populate_image_grid(&self) -> iced::Task<Messages> {
+        let invert_sort = self.invert_sort;
+        let changer = self.changer.clone();
 
-    let Some(sort_by) = self.sort_by.clone() else {
-        return Task::none();
-    };
-    let Some(wf) = self.wallpaper_folder.clone() else {
-        return Task::done(Messages::ImageGridPopulated(AppStateImages::default()));
-    };
-    if !wf.is_dir() {
-        return Task::none();
-    }
+        let Some(sort_by) = self.sort_by.clone() else {
+            return Task::none();
+        };
+        let Some(wf) = self.wallpaper_folder.clone() else {
+            return Task::done(Messages::ImageGridPopulated(AppStateImages::default()));
+        };
+        if !wf.is_dir() {
+            return Task::none();
+        }
 
-    let accepted_formats = WallpaperChangers::all_accepted_formats();
+        let accepted_formats = WallpaperChangers::all_accepted_formats();
 
-    Task::future(async move {
-        let (tx, rx) = futures::channel::oneshot::channel();
+        Task::future(async move {
+            let (tx, rx) = futures::channel::oneshot::channel();
 
-        rayon::spawn(move || {
-            let mut entries: Vec<(PathBuf, SortKey)> = WalkDir::new(&wf)
-                .into_iter()
-                .filter_map(|e| e.ok())
-                .filter_map(|e| {
-                    let path = e.into_path();
-                    let ext = path.extension()?.to_str()?.to_ascii_lowercase();
-                    if !accepted_formats.contains(&ext) {
-                        return None;
-                    }
-                    let key = match sort_by {
-                        SortBy::Date => {
-                            let ts = std::fs::metadata(&path)
-                                .and_then(|m| m.created())
-                                .unwrap_or(SystemTime::UNIX_EPOCH);
-                            SortKey::Date(ts)
+            rayon::spawn(move || {
+                let mut entries: Vec<(PathBuf, SortKey)> = WalkDir::new(&wf)
+                    .into_iter()
+                    .filter_map(|e| e.ok())
+                    .filter_map(|e| {
+                        let path = e.into_path();
+                        let ext = path.extension()?.to_str()?.to_ascii_lowercase();
+                        if !accepted_formats.contains(&ext) {
+                            return None;
                         }
-                        SortBy::Name => {
-                            let name = path
-                                .file_name()
-                                .map(|n| n.to_string_lossy().into_owned())
-                                .unwrap_or_default();
-                            SortKey::Name(name)
+                        let key = match sort_by {
+                            SortBy::Date => {
+                                let ts = std::fs::metadata(&path)
+                                    .and_then(|m| m.created())
+                                    .unwrap_or(SystemTime::UNIX_EPOCH);
+                                SortKey::Date(ts)
+                            }
+                            SortBy::Name => {
+                                let name = path
+                                    .file_name()
+                                    .map(|n| n.to_string_lossy().into_owned())
+                                    .unwrap_or_default();
+                                SortKey::Name(name)
+                            }
+                        };
+                        Some((path, key))
+                    })
+                    .collect();
+
+                entries.sort_unstable_by(|(_, a), (_, b)| {
+                    let ord = a.cmp(b);
+                    if invert_sort { ord.reverse() } else { ord }
+                });
+
+                let all_images = entries
+                    .into_par_iter()
+                    .filter_map(|(p, _)| DatabaseConnection::check_cache(&p).ok())
+                    .collect::<Vec<_>>();
+
+                // Categorize on the rayon thread instead of blocking update()
+                let (mut supported, mut unsupported) = (vec![], vec![]);
+                if let Some(ref changer) = changer {
+                    let formats = changer.accepted_formats();
+                    for image in all_images {
+                        let ext = image
+                            .cached_image_path
+                            .extension()
+                            .and_then(|e| e.to_str())
+                            .unwrap_or_default()
+                            .to_string();
+                        if formats.contains(&ext) {
+                            supported.push(image);
+                        } else {
+                            unsupported.push(image);
                         }
-                    };
-                    Some((path, key))
-                })
-                .collect();
-
-            entries.sort_unstable_by(|(_, a), (_, b)| {
-                let ord = a.cmp(b);
-                if invert_sort { ord.reverse() } else { ord }
-            });
-
-            let all_images = entries
-                .into_par_iter()
-                .filter_map(|(p, _)| DatabaseConnection::check_cache(&p).ok())
-                .collect::<Vec<_>>();
-
-            // Categorize on the rayon thread instead of blocking update()
-            let (mut supported, mut unsupported) = (vec![], vec![]);
-            if let Some(ref changer) = changer {
-                let formats = changer.accepted_formats();
-                for image in all_images {
-                    let ext = image
-                        .cached_image_path
-                        .extension()
-                        .and_then(|e| e.to_str())
-                        .unwrap_or_default()
-                        .to_string();
-                    if formats.contains(&ext) {
-                        supported.push(image);
-                    } else {
-                        unsupported.push(image);
                     }
                 }
-            }
 
-            let _ = tx.send(AppStateImages {
-                supported_images: supported,
-                unsupported_images: unsupported,
+                let _ = tx.send(AppStateImages {
+                    supported_images: supported,
+                    unsupported_images: unsupported,
+                });
             });
-        });
 
-        rx.await.unwrap_or_else(|_| AppStateImages {
-            supported_images: vec![],
-            unsupported_images: vec![],
+            rx.await.unwrap_or_else(|_| AppStateImages {
+                supported_images: vec![],
+                unsupported_images: vec![],
+            })
         })
-    })
-    .then(|images| Task::done(Messages::ImageGridPopulated(images)))
-}
-
+        .then(|images| Task::done(Messages::ImageGridPopulated(images)))
+    }
 
     pub fn write_to_config_file(&self) -> anyhow::Result<()> {
         let config_file = get_config_file_path()?;
@@ -641,6 +650,7 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
         all_images.append(&mut self.filtered_images.clone());
 
         let accepted_formats = self.changer.as_ref().map(|c| c.accepted_formats());
+        let favorites_only = self.favorite_images_only.clone();
 
         Task::future(async move {
             let (tx, rx) = futures::channel::oneshot::channel();
@@ -656,7 +666,9 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
                             .and_then(|e| e.to_str())
                             .unwrap_or_default();
 
-                        !formats.contains(&ext.to_string()) || !i.name.contains(&query)
+                        !formats.contains(&ext.to_string())
+                            || !i.name.contains(&query)
+                            || (favorites_only && !i.favorite)
                     }));
                 }
 
@@ -730,6 +742,42 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
         .then(|t| t)
     }
 
+    fn toggle_favorite_image(&mut self, image_path: &Path) -> Task<Messages> {
+        let Ok(conn) = DatabaseConnection::new() else {
+            return Task::none();
+        };
+        let Ok(mut image_file) = conn.select_image_file(image_path) else {
+            return Task::none();
+        };
+        debug!("Image favorite Before: {}", image_file.favorite);
+        image_file.favorite = !image_file.favorite;
+        debug!("Image favorite After: {}", image_file.favorite);
+        match conn.insert_image_file(&image_file) {
+            Ok(_) => {
+                self.image_grid_images
+                    .iter_mut()
+                    .filter(|p| p.path == image_path)
+                    .for_each(|p| {
+                        p.favorite = !p.favorite;
+                        debug!("File: {:#?}", p);
+                    });
+                self.filtered_images
+                    .iter_mut()
+                    .filter(|p| p.path == image_path)
+                    .for_each(|p| {
+                        p.favorite = !p.favorite;
+                        debug!("File: {:#?}", p);
+                    });
+                if self.favorite_images_only {
+                    self.filter_images(self.image_filter.clone())
+                } else {
+                    Task::none()
+                }
+            }
+            Err(_) => Task::none(),
+        }
+    }
+
     pub fn update(&mut self, message: Messages) -> Task<Messages> {
         match message {
             Messages::PopulateImageGrid => self.populate_image_grid(),
@@ -788,14 +836,18 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
                     && let Some(monitor) = &self.monitor
                 {
                     if monitor == &TRANSLATION.get_translation("All") {
-                        self.saved_wallpapers = 
-                            self.saved_wallpapers.iter()
-                            .filter(|i| i.monitor == TRANSLATION.get_translation("All")).cloned()
+                        self.saved_wallpapers = self
+                            .saved_wallpapers
+                            .iter()
+                            .filter(|i| i.monitor == TRANSLATION.get_translation("All"))
+                            .cloned()
                             .collect::<Vec<_>>();
                     } else {
-                        self.saved_wallpapers = 
-                            self.saved_wallpapers.iter()
-                            .filter(|i| i.monitor != TRANSLATION.get_translation("All")).cloned()
+                        self.saved_wallpapers = self
+                            .saved_wallpapers
+                            .iter()
+                            .filter(|i| i.monitor != TRANSLATION.get_translation("All"))
+                            .cloned()
                             .collect::<Vec<_>>();
                     }
                     match self
@@ -822,7 +874,6 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
                         }),
                     }
                 }
-		debug!("Saved wallapers: {:#?}", self.saved_wallpapers);
                 self.execute_external_script(&wallpaper_path)
             }
             Messages::CloseRequested => {
@@ -1260,6 +1311,11 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
                 self.internal_theme = Some(waytrogen_theme);
                 Task::none()
             }
+            Messages::WallpaperFavoriteToggle(path) => self.toggle_favorite_image(&path),
+            Messages::ShowFavoritesToggled(t) => {
+                self.favorite_images_only = t;
+                self.filter_images(self.image_filter.clone())
+            }
         }
     }
 
@@ -1272,12 +1328,18 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
                         cached_image_file,
                         move |i| -> Element<'_, Messages> {
                             let path = i.path.clone();
-                            button(image(&i.cached_image_path).content_fit(iced::ContentFit::Cover))
-                                .padding(0)
-                                .width(BUTTON_WIDTH)
-                                .height(BUTTON_HEIGHT)
-                                .on_press_with(move || Messages::ChangeWallpaper(path.clone()))
-                                .into()
+                            container(Into::<Element<'_, Messages>>::into(
+                                mouse_area(
+                                    image(&i.cached_image_path)
+                                        .content_fit(iced::ContentFit::Cover),
+                                )
+                                .on_press(Messages::ChangeWallpaper(path.clone()))
+                                .on_middle_press(Messages::WallpaperFavoriteToggle(path.clone())),
+                            ))
+                            .padding(0)
+                            .width(BUTTON_WIDTH)
+                            .height(BUTTON_HEIGHT)
+                            .into()
                         },
                     ));
                 }
@@ -1307,9 +1369,14 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
                     Menu::new(
                         [
                             Item::new(
-                                toggler(self.invert_sort)
-                                    .label(TRANSLATION.get_translation("invert-sort"))
-                                    .on_toggle(Messages::InvertSortChanged),
+                                row![
+                                    text!["{}", TRANSLATION.get_translation("invert-sort")],
+                                    toggler(self.invert_sort)
+                                        .on_toggle(Messages::InvertSortChanged),
+                                ]
+                                .spacing(DEFAULT_MARGIN)
+                                .width(Fill)
+                                .align_y(Center),
                             ),
                             Item::new(
                                 row![
@@ -1342,6 +1409,16 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
                                         self.internal_theme.clone(),
                                         Messages::ThemeChanged,
                                     )
+                                ]
+                                .spacing(DEFAULT_MARGIN)
+                                .width(Fill)
+                                .align_y(Center),
+                            ),
+                            Item::new(
+                                row![
+                                    text!["{}", TRANSLATION.get_translation("show-favorites-only")],
+                                    toggler(self.favorite_images_only)
+                                        .on_toggle(Messages::ShowFavoritesToggled)
                                 ]
                                 .spacing(DEFAULT_MARGIN)
                                 .width(Fill)

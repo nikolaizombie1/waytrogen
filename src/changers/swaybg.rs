@@ -25,11 +25,11 @@ pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, 
             SwaybgModes::Tile => "tile",
             SwaybgModes::SolidColor => "solid_color",
         };
-	let fill_color = if settings.fill_color.is_empty() {
-	    "#000000".to_string()
-	} else {
-	    settings.fill_color
-	};
+        let fill_color = if settings.fill_color.is_empty() {
+            "#000000".to_string()
+        } else {
+            settings.fill_color
+        };
         command
             .arg("-i")
             .arg(image.to_str().unwrap())

@@ -27,12 +27,13 @@ pub const CONFIG_APP_NAME: &str = "waytrogen";
 pub const CACHE_FILE_NAME: &str = "cache.db";
 pub const CONFIG_FILE_NAME: &str = "config.json";
 
-#[derive(Clone, Default, PartialEq, Hash)]
+#[derive(Debug, Clone, Default, PartialEq, Hash)]
 pub struct CacheImageFile {
     pub cached_image_path: PathBuf,
     pub name: String,
     pub date: u32,
     pub path: PathBuf,
+    pub favorite: bool,
 }
 
 impl CacheImageFile {
@@ -56,6 +57,7 @@ impl CacheImageFile {
             path: PathBuf::from(fields.0),
             name: fields.1,
             date: fields.2,
+            favorite: false,
         };
         Ok(image_file)
     }
@@ -106,7 +108,9 @@ impl CacheImageFile {
             .to_rgb8();
         let image_name = format!("{}.png", Uuid::new_v4(),);
         let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
-	let Some(cache_dir) = xdg_dirs.get_config_home() else {return Err(anyhow!("Failed to get cache directory"))};
+        let Some(cache_dir) = xdg_dirs.get_config_home() else {
+            return Err(anyhow!("Failed to get cache directory"));
+        };
         let image_file = cache_dir.join(Path::new(&image_name));
         let mut buff: Vec<u8> = vec![];
         thumbnail.write_to(&mut Cursor::new(&mut buff), image::ImageFormat::Png)?;

@@ -24,14 +24,18 @@ use strum::VariantArray;
 
 pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, monitor: String) {
     if let WallpaperChangers::Awww(settings) = awww_changer {
-        let awww_daemon_pid = 
-            Command::new("pidof")
-                .arg("awww-daemon")
+        let awww_daemon_pid = Command::new("pidof")
+            .arg("awww-daemon")
+            .spawn()
+            .unwrap()
+            .wait()
+            .unwrap();
+        if !awww_daemon_pid.success() {
+            Command::new("awww-daemon")
                 .spawn()
                 .unwrap()
-                .wait().unwrap();
-        if !awww_daemon_pid.success() {
-            Command::new("awww-daemon").spawn().unwrap().wait_with_output().unwrap();
+                .wait_with_output()
+                .unwrap();
         }
         let mut command = Command::new("awww");
 

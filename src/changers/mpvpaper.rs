@@ -29,54 +29,71 @@ pub fn change_mpvpaper_wallpaper(
     monitor: &str,
 ) {
     if let WallpaperChangers::MpvPaper(settings) = mpvpaper_changer {
-
         // Acquire once, hold for all operations
         let mut previous_wallpapers = SPAWNED_MPVPAPER_PROCESSES.lock().unwrap();
 
-	Command::new("pkill").arg("-9").arg("mpvpaper").spawn().unwrap().wait_with_output().unwrap();
-
-        // Kill existing process on this monitor
-	if monitor == TRANSLATION.get_translation("All") {
-	    previous_wallpapers.retain(|_| false);
-	} else {
-	   previous_wallpapers.retain(|m| m.monitor != TRANSLATION.get_translation("All")) 
-	}
-
-	if let Some(w) = previous_wallpapers.iter_mut().find(|m| m.monitor == monitor) {
-	    w.image.clone_from(&image);
-	} else {
-            previous_wallpapers.push(MpvPaperWallpaper { settings: settings.clone(), image: image.clone(), monitor: monitor.to_string() });
-	}
-
-	for wallpaper in previous_wallpapers.iter() {
-        let mut command = Command::new("mpvpaper");
-        let mpv_options = format!("{}", wallpaper.settings.additional_options);
-        let monitor = if wallpaper.monitor == TRANSLATION.get_translation("All") {
-            "*"
-        } else {
-            &wallpaper.monitor
-        };
-
-        command.arg("-o").arg(mpv_options);
-        match wallpaper.settings.pause_mode {
-            MpvPaperPauseModes::None => {}
-            MpvPaperPauseModes::AutoPause => { command.arg("--auto-pause"); }
-            MpvPaperPauseModes::AutoStop => { command.arg("--auto-stop"); }
-        }
-        if wallpaper.settings.slideshow_settings.enable {
-            command.arg("-n").arg(wallpaper.settings.slideshow_settings.seconds.to_string());
-        }
-
-        command
-            .arg(monitor)
-            .arg(wallpaper.image.clone())
-            .arg("-f")
+        Command::new("pkill")
+            .arg("-9")
+            .arg("mpvpaper")
             .spawn()
             .unwrap()
-            .wait_with_output().
-	    unwrap();
-	}
+            .wait_with_output()
+            .unwrap();
 
+        // Kill existing process on this monitor
+        if monitor == TRANSLATION.get_translation("All") {
+            previous_wallpapers.retain(|_| false);
+        } else {
+            previous_wallpapers.retain(|m| m.monitor != TRANSLATION.get_translation("All"))
+        }
+
+        if let Some(w) = previous_wallpapers
+            .iter_mut()
+            .find(|m| m.monitor == monitor)
+        {
+            w.image.clone_from(&image);
+        } else {
+            previous_wallpapers.push(MpvPaperWallpaper {
+                settings: settings.clone(),
+                image: image.clone(),
+                monitor: monitor.to_string(),
+            });
+        }
+
+        for wallpaper in previous_wallpapers.iter() {
+            let mut command = Command::new("mpvpaper");
+            let mpv_options = format!("{}", wallpaper.settings.additional_options);
+            let monitor = if wallpaper.monitor == TRANSLATION.get_translation("All") {
+                "*"
+            } else {
+                &wallpaper.monitor
+            };
+
+            command.arg("-o").arg(mpv_options);
+            match wallpaper.settings.pause_mode {
+                MpvPaperPauseModes::None => {}
+                MpvPaperPauseModes::AutoPause => {
+                    command.arg("--auto-pause");
+                }
+                MpvPaperPauseModes::AutoStop => {
+                    command.arg("--auto-stop");
+                }
+            }
+            if wallpaper.settings.slideshow_settings.enable {
+                command
+                    .arg("-n")
+                    .arg(wallpaper.settings.slideshow_settings.seconds.to_string());
+            }
+
+            command
+                .arg(monitor)
+                .arg(wallpaper.image.clone())
+                .arg("-f")
+                .spawn()
+                .unwrap()
+                .wait_with_output()
+                .unwrap();
+        }
 
         // Lock is released here when `processes` drops
     }

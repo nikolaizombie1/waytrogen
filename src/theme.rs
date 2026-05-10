@@ -80,6 +80,6 @@ impl From<Theme> for WaytrogenTheme {
 
 impl Default for WaytrogenTheme {
     fn default() -> Self {
-	WaytrogenTheme(Theme::Dark)
+        WaytrogenTheme(Theme::Dark)
     }
 }

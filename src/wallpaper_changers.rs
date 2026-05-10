@@ -12,7 +12,7 @@ use crate::{
 use iced::Element;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, thread, sync::LazyLock};
+use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, sync::LazyLock, thread};
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr};
 use which::which;
@@ -186,8 +186,8 @@ impl WallpaperChangers {
             }
         });
     }
-    
-    #[must_use] 
+
+    #[must_use]
     pub fn all_accepted_formats() -> Vec<String> {
         let mut accepted_formats = vec![];
         for changer in WallpaperChangers::iter() {
@@ -267,7 +267,7 @@ pub enum AWWWResizeMode {
     #[default]
     Crop,
     Fit,
-    Stretch
+    Stretch,
 }
 
 impl Display for AWWWResizeMode {
@@ -326,7 +326,7 @@ impl Display for AWWWTransitionType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::None => write!(f, "{}", TRANSLATION.get_translation("none")),
-            Self::Simple => write!(f,"{}", TRANSLATION.get_translation("simple")),
+            Self::Simple => write!(f, "{}", TRANSLATION.get_translation("simple")),
             Self::Fade => write!(f, "{}", TRANSLATION.get_translation("fade")),
             Self::Left => write!(f, "{}", TRANSLATION.get_translation("left")),
             Self::Right => write!(f, "{}", TRANSLATION.get_translation("right")),
@@ -354,8 +354,9 @@ impl Display for AWWWTransitionPosition {
     }
 }
 
-static AWWW_TRANSITION_POSITION_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(0.\d\d?,0\.\d\d?)|(\d+,\d+)|(center|top|left|right|bottom|top-left|top-right|bottom-left|bottom-right)").unwrap());
+static AWWW_TRANSITION_POSITION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(0.\d\d?,0\.\d\d?)|(\d+,\d+)|(center|top|left|right|bottom|top-left|top-right|bottom-left|bottom-right)").unwrap()
+});
 
 impl AWWWTransitionPosition {
     pub fn new(s: &str) -> anyhow::Result<AWWWTransitionPosition> {
@@ -948,8 +949,7 @@ impl Display for WallpaperChangers {
     }
 }
 
-
-#[must_use] 
+#[must_use]
 pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
     let mut available_changers = vec![];
     for changer in WallpaperChangers::iter() {
