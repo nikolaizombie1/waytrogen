@@ -168,6 +168,8 @@ pub struct AppState {
     pub show_awww_color_picker: bool,
     #[serde(skip)]
     pub internal_theme: Option<iced::Theme>,
+    #[serde(skip)]
+    pub image_grid_loading: bool,
 }
 
 impl Default for AppState {
@@ -279,6 +281,7 @@ impl Default for AppState {
             favorite_images_only_doc: TRANSLATION
                 .get_translation("favorite-image-only-description"),
             favorite_images_only: false,
+            image_grid_loading: false,
         }
     }
 }
@@ -394,8 +397,8 @@ impl BootFn<AppState, Messages> for AppState {
             {
                 instance.monitor = Some(instance.selected_monitor_item.clone());
             } else {
-		instance.monitor = instance.available_monitors.first().cloned();
-	    }
+                instance.monitor = instance.available_monitors.first().cloned();
+            }
         }
 
         let changer = if let Some(changer) = instance.changer.clone() {
@@ -780,7 +783,10 @@ impl AppState {
 
     pub fn update(&mut self, message: Messages) -> Task<Messages> {
         match message {
-            Messages::PopulateImageGrid => self.populate_image_grid(),
+            Messages::PopulateImageGrid => {
+                self.image_grid_loading = true;
+                self.populate_image_grid()
+            }
             Messages::ImageGridPopulated(i) => {
                 self.image_grid_images = i.supported_images;
                 self.filtered_images = i.unsupported_images;
@@ -817,6 +823,7 @@ impl AppState {
                 if let Some(s) = &self.sort_by.clone() {
                     self.sort_image_grid(s);
                 }
+                self.image_grid_loading = false;
                 Task::none()
             }
             Messages::WallpaperChangerChanged(wallpaper_changer) => {
@@ -1322,26 +1329,37 @@ impl AppState {
     pub fn view(&self) -> Element<'_, Messages> {
         match &self.changer {
             Some(changer) => {
-                let mut image_grid: Row<_> = row![].spacing(DEFAULT_MARGIN);
-                for cached_image_file in &self.image_grid_images {
-                    image_grid = image_grid.push(lazy(
-                        cached_image_file,
-                        move |i| -> Element<'_, Messages> {
-                            let path = i.path.clone();
-                            container(Into::<Element<'_, Messages>>::into(
-                                mouse_area(
-                                    image(&i.cached_image_path)
-                                        .content_fit(iced::ContentFit::Cover),
-                                )
-                                .on_press(Messages::ChangeWallpaper(path.clone()))
-                                .on_middle_press(Messages::WallpaperFavoriteToggle(path.clone())),
-                            ))
-                            .padding(0)
-                            .width(BUTTON_WIDTH)
-                            .height(BUTTON_HEIGHT)
-                            .into()
-                        },
-                    ));
+                let mut image_grid: Row<_> = row![].spacing(DEFAULT_MARGIN).align_y(Center).height(Fill).width(Fill);
+                if self.image_grid_loading {
+                    image_grid = image_grid.push(text![
+                        "{}",
+                        TRANSLATION.get_translation("images-are-loading-please-wait")
+                    ].align_x(Center).align_y(Center).width(Fill).height(Fill).align_x(Center));
+                    image_grid = image_grid
+                        .push(container(iced_aw::widget::Spinner::new().width(25).height(25)).align_x(Center).align_y(Center).width(Fill).height(Fill));
+                } else {
+                    for cached_image_file in &self.image_grid_images {
+                        image_grid = image_grid.push(lazy(
+                            cached_image_file,
+                            move |i| -> Element<'_, Messages> {
+                                let path = i.path.clone();
+                                container(Into::<Element<'_, Messages>>::into(
+                                    mouse_area(
+                                        image(&i.cached_image_path)
+                                            .content_fit(iced::ContentFit::Cover),
+                                    )
+                                    .on_press(Messages::ChangeWallpaper(path.clone()))
+                                    .on_middle_press(
+                                        Messages::WallpaperFavoriteToggle(path.clone()),
+                                    ),
+                                ))
+                                .padding(0)
+                                .width(BUTTON_WIDTH)
+                                .height(BUTTON_HEIGHT)
+                                .into()
+                            },
+                        ));
+                    }
                 }
 
                 let monitors_dropdown = pick_list(

@@ -25,7 +25,7 @@ strum_macros = "0.28.0"
 rfd = { version = "0.17.2", features = ["xdg-portal"] }
 rayon = "1.12.0"
 regex_static = "0.1.1"
-iced_aw = { version = "0.13.1", features = ["menu", "color_picker", "number_input"] }
+iced_aw = { version = "0.13.1", features = ["menu", "color_picker", "number_input", "spinner"] }
 wayland-client = "0.31.14"
 fluent-templates = "0.14.0"
 sys-locale = "0.3.2"
