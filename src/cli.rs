@@ -205,13 +205,27 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
     }
 
     let Some(cache_home_dir) = xdg_dirs.get_config_home() else {
+        return Err(anyhow!("Failed to get XDG config home"));
+    };
+
+    let Some(cache_dir) = xdg_dirs.get_cache_home() else {
         return Err(anyhow!("Failed to get XDG cache home"));
     };
+
+
+    match remove_dir_all(cache_dir) {
+        Ok(()) => {},
+        Err(e) => {
+            let msg = format!("Failed to delete cache: {e}");
+            error!("{msg}");
+            return Err(anyhow!("{msg}"));
+        }
+    }
 
     match remove_dir_all(cache_home_dir) {
         Ok(()) => Ok(()),
         Err(e) => {
-            let msg = format!("Failed to delete cache {e}");
+            let msg = format!("Failed to delete config file: {e}");
             error!("{msg}");
             Err(anyhow!("{msg}"))
         }
