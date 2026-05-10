@@ -32,7 +32,7 @@ use iced_aw::{
     MenuBar,
     menu::{Item, Menu},
 };
-use log::{error, trace, warn};
+use log::{debug, error, trace, warn};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -788,14 +788,14 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
                     && let Some(monitor) = &self.monitor
                 {
                     if monitor == &TRANSLATION.get_translation("All") {
-                        self.saved_wallpapers = self
-                            .saved_wallpapers
-                            .extract_if(.., |i| i.monitor != TRANSLATION.get_translation("All"))
+                        self.saved_wallpapers = 
+                            self.saved_wallpapers.iter()
+                            .filter(|i| i.monitor == TRANSLATION.get_translation("All")).cloned()
                             .collect::<Vec<_>>();
                     } else {
-                        self.saved_wallpapers = self
-                            .saved_wallpapers
-                            .extract_if(.., |i| i.monitor == TRANSLATION.get_translation("All"))
+                        self.saved_wallpapers = 
+                            self.saved_wallpapers.iter()
+                            .filter(|i| i.monitor != TRANSLATION.get_translation("All")).cloned()
                             .collect::<Vec<_>>();
                     }
                     match self
@@ -822,6 +822,7 @@ fn populate_image_grid(&self) -> iced::Task<Messages> {
                         }),
                     }
                 }
+		debug!("Saved wallapers: {:#?}", self.saved_wallpapers);
                 self.execute_external_script(&wallpaper_path)
             }
             Messages::CloseRequested => {
