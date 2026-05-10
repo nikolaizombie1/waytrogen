@@ -19,12 +19,8 @@ use iced_aw::{
     menu::{Item, Menu},
     number_input,
 };
-use regex::Regex;
-use std::sync::LazyLock;
 use std::{path::PathBuf, process::Command};
 use strum::VariantArray;
-
-static PID_REGEX: LazyLock<Regex> = LazyLock::new(|| {Regex::new(r"\d+").unwrap() });
 
 pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, monitor: String) {
     if let WallpaperChangers::Awww(settings) = awww_changer {

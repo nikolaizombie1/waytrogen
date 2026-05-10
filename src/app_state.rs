@@ -41,9 +41,16 @@ use std::{
     io::{Read, Write},
     path::{Path, PathBuf},
     process::Command,
+    time::SystemTime
 };
 use strum::VariantArray;
-use walkdir::{DirEntry, WalkDir};
+use walkdir::WalkDir;
+
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+enum SortKey {
+    Date(std::time::SystemTime),
+    Name(String),
+}
 
 #[derive(Clone, Serialize, Deserialize, Default, VariantArray, PartialEq)]
 pub enum SortBy {
@@ -273,7 +280,7 @@ impl Default for AppState {
 #[derive(Clone)]
 pub enum Messages {
     PopulateImageGrid,
-    ImageGridPopulated(Vec<CacheImageFile>),
+    ImageGridPopulated(AppStateImages),
     ChangeWallpaper(PathBuf),
     WallpaperChanged(PathBuf),
     ChangeWallpaperFolder,
@@ -442,7 +449,7 @@ impl BootFn<AppState, Messages> for AppState {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct AppStateImages {
     pub supported_images: Vec<CacheImageFile>,
     pub unsupported_images: Vec<CacheImageFile>,
@@ -497,112 +504,97 @@ impl AppState {
         }
         Ok(config_file_struct)
     }
+fn populate_image_grid(&self) -> iced::Task<Messages> {
+    let invert_sort = self.invert_sort;
+    let changer = self.changer.clone();
 
-    fn populate_image_grid(&self) -> iced::Task<Messages> {
-        let wallpaper_folder = self.wallpaper_folder.clone();
-        let invert_sort = self.invert_sort;
-        match &self.sort_by {
-            Some(sort_by) => match wallpaper_folder {
-                Some(wf) => {
-                    if !wf.is_dir() {
-                        return Task::none();
+    let Some(sort_by) = self.sort_by.clone() else {
+        return Task::none();
+    };
+    let Some(wf) = self.wallpaper_folder.clone() else {
+        return Task::done(Messages::ImageGridPopulated(AppStateImages::default()));
+    };
+    if !wf.is_dir() {
+        return Task::none();
+    }
+
+    let accepted_formats = WallpaperChangers::all_accepted_formats();
+
+    Task::future(async move {
+        let (tx, rx) = futures::channel::oneshot::channel();
+
+        rayon::spawn(move || {
+            let mut entries: Vec<(PathBuf, SortKey)> = WalkDir::new(&wf)
+                .into_iter()
+                .filter_map(|e| e.ok())
+                .filter_map(|e| {
+                    let path = e.into_path();
+                    let ext = path.extension()?.to_str()?.to_ascii_lowercase();
+                    if !accepted_formats.contains(&ext) {
+                        return None;
                     }
-                    let accepted_formats = WallpaperChangers::all_accepted_formats();
-                    let comparator = match sort_by {
+                    let key = match sort_by {
                         SortBy::Date => {
-                            if invert_sort {
-                                move |x: &DirEntry, y: &DirEntry| {
-                                    y.metadata()
-                                        .unwrap()
-                                        .created()
-                                        .unwrap()
-                                        .cmp(&x.metadata().unwrap().created().unwrap())
-                                }
-                            } else {
-                                move |x: &DirEntry, y: &DirEntry| {
-                                    x.metadata()
-                                        .unwrap()
-                                        .created()
-                                        .unwrap()
-                                        .cmp(&y.metadata().unwrap().created().unwrap())
-                                }
-                            }
+                            let ts = std::fs::metadata(&path)
+                                .and_then(|m| m.created())
+                                .unwrap_or(SystemTime::UNIX_EPOCH);
+                            SortKey::Date(ts)
                         }
                         SortBy::Name => {
-                            if self.invert_sort {
-                                move |x: &DirEntry, y: &DirEntry| {
-                                    y.file_name()
-                                        .to_str()
-                                        .unwrap_or_default()
-                                        .cmp(x.file_name().to_str().unwrap_or_default())
-                                }
-                            } else {
-                                move |x: &DirEntry, y: &DirEntry| {
-                                    x.file_name()
-                                        .to_str()
-                                        .unwrap_or_default()
-                                        .cmp(y.file_name().to_str().unwrap_or_default())
-                                }
-                            }
+                            let name = path
+                                .file_name()
+                                .map(|n| n.to_string_lossy().into_owned())
+                                .unwrap_or_default();
+                            SortKey::Name(name)
                         }
                     };
-                    Task::future(async move {
-                        let images = WalkDir::new(&wf)
-                            .sort_by(comparator)
-                            .into_iter()
-                            .filter_map(std::result::Result::ok)
-                            .map(walkdir::DirEntry::into_path)
-                            .filter(|d| d.extension().is_some())
-                            .filter(|p| {
-                                accepted_formats.contains(
-                                    &p.extension()
-                                        .unwrap()
-                                        .to_str()
-                                        .unwrap_or_default()
-                                        .to_string(),
-                                )
-                            })
-                            .collect::<Vec<_>>();
+                    Some((path, key))
+                })
+                .collect();
 
-                        images
-                            .into_par_iter()
-                            .filter_map(|p| DatabaseConnection::check_cache(&p).ok())
-                            .collect::<Vec<_>>()
-                    })
-                    .then(|images| Task::done(Messages::ImageGridPopulated(images)))
-                }
-                None => Task::done(Messages::ImageGridPopulated(vec![])),
-            },
-            None => Task::none(),
-        }
-    }
+            entries.sort_unstable_by(|(_, a), (_, b)| {
+                let ord = a.cmp(b);
+                if invert_sort { ord.reverse() } else { ord }
+            });
 
-    fn catagorize_images(&self, all_images: &[CacheImageFile]) -> AppStateImages {
-        let mut supported_images: Vec<CacheImageFile> = vec![];
-        let mut unsupported_images: Vec<CacheImageFile> = vec![];
+            let all_images = entries
+                .into_par_iter()
+                .filter_map(|(p, _)| DatabaseConnection::check_cache(&p).ok())
+                .collect::<Vec<_>>();
 
-        if let Some(changer) = &self.changer {
-            for image in all_images {
-                if changer.accepted_formats().contains(
-                    &image
+            // Categorize on the rayon thread instead of blocking update()
+            let (mut supported, mut unsupported) = (vec![], vec![]);
+            if let Some(ref changer) = changer {
+                let formats = changer.accepted_formats();
+                for image in all_images {
+                    let ext = image
                         .cached_image_path
                         .extension()
+                        .and_then(|e| e.to_str())
                         .unwrap_or_default()
-                        .to_str()
-                        .unwrap_or_default()
-                        .to_string(),
-                ) {
-                    supported_images.push(image.clone());
-                } else {
-                    unsupported_images.push(image.clone());
+                        .to_string();
+                    if formats.contains(&ext) {
+                        supported.push(image);
+                    } else {
+                        unsupported.push(image);
+                    }
                 }
             }
-        }
-        AppStateImages {
-            supported_images,
-            unsupported_images,
-        }
-    }
+
+            let _ = tx.send(AppStateImages {
+                supported_images: supported,
+                unsupported_images: unsupported,
+            });
+        });
+
+        rx.await.unwrap_or_else(|_| AppStateImages {
+            supported_images: vec![],
+            unsupported_images: vec![],
+        })
+    })
+    .then(|images| Task::done(Messages::ImageGridPopulated(images)))
+}
+
 
     pub fn write_to_config_file(&self) -> anyhow::Result<()> {
         let config_file = get_config_file_path()?;
@@ -630,19 +622,6 @@ impl AppState {
         })
     }
 
-    fn get_monitors() -> iced::Task<Messages> {
-        Task::future(async move {
-            match AvailableMonitors::get_monitors() {
-                Ok(m) => Task::done(Messages::MonitorDropdownPopulated(m.available_monitors)),
-                Err(e) => {
-                    error!("Failed to get monitors: {e}");
-                    Task::none()
-                }
-            }
-        })
-        .then(|o| o)
-    }
-
     fn sort_image_grid(&mut self, sort_by: &SortBy) {
         let comparator = match sort_by {
             SortBy::Date => match &self.invert_sort {
@@ -658,42 +637,42 @@ impl AppState {
     }
 
     fn filter_images(&self, query: String) -> iced::Task<Messages> {
-        let mut images = AppStateImages {
-            supported_images: self.image_grid_images.clone(),
-            unsupported_images: self.filtered_images.clone(),
-        };
+        let mut all_images = self.image_grid_images.clone();
+        all_images.append(&mut self.filtered_images.clone());
 
-        let changer = self.changer.clone();
+        let accepted_formats = self.changer.as_ref().map(|c| c.accepted_formats());
 
         Task::future(async move {
-            let mut all_images = images.supported_images;
-            all_images.append(&mut images.unsupported_images);
+            let (tx, rx) = futures::channel::oneshot::channel();
 
-            let mut unsupported_images = vec![];
+            rayon::spawn(move || {
+                let mut unsupported_images = vec![];
 
-            if let Some(changer) = changer {
-                unsupported_images.extend(all_images.extract_if(.., |i| {
-                    !changer.accepted_formats().contains(
-                        &i.path
+                if let Some(formats) = accepted_formats {
+                    unsupported_images.extend(all_images.extract_if(.., |i| {
+                        let ext = i
+                            .path
                             .extension()
-                            .unwrap_or_default()
-                            .to_str()
-                            .unwrap_or_default()
-                            .to_string(),
-                    )
-                }));
+                            .and_then(|e| e.to_str())
+                            .unwrap_or_default();
 
-                unsupported_images.extend(all_images.extract_if(.., |i| !i.name.contains(&query)));
-            }
+                        !formats.contains(&ext.to_string()) || !i.name.contains(&query)
+                    }));
+                }
 
-            AppStateImages {
-                supported_images: all_images,
-                unsupported_images,
-            }
+                let _ = tx.send(AppStateImages {
+                    supported_images: all_images,
+                    unsupported_images,
+                });
+            });
+
+            rx.await.unwrap_or_else(|_| AppStateImages {
+                supported_images: vec![],
+                unsupported_images: vec![],
+            })
         })
-        .then(|a| Task::done(Messages::ImagesFiltered(a)))
+        .then(|result| Task::done(Messages::ImagesFiltered(result)))
     }
-
     fn change_wallpaper(&self, path: PathBuf) -> Task<Messages> {
         let Some(changer) = self.changer.clone() else {
             return Task::none();
@@ -755,9 +734,8 @@ impl AppState {
         match message {
             Messages::PopulateImageGrid => self.populate_image_grid(),
             Messages::ImageGridPopulated(i) => {
-                let images = self.catagorize_images(&i);
-                self.image_grid_images = images.supported_images;
-                self.filtered_images = images.unsupported_images;
+                self.image_grid_images = i.supported_images;
+                self.filtered_images = i.unsupported_images;
                 self.filter_images(self.image_filter.clone())
             }
             Messages::ChangeWallpaper(p) => self.change_wallpaper(p),

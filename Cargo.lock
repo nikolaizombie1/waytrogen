@@ -4384,6 +4384,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
+name = "tokio"
+version = "1.52.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe"
+dependencies = [
+ "pin-project-lite",
+]
+
+[[package]]
 name = "toml_datetime"
 version = "1.1.1+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4875,8 +4884,10 @@ dependencies = [
  "fluent-bundle",
  "fluent-langneg 0.14.2",
  "fluent-templates",
+ "futures",
  "iced",
  "iced_aw",
+ "iced_runtime",
  "image",
  "lazy_static",
  "log",
@@ -4892,6 +4903,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "sys-locale",
+ "tokio",
  "uuid",
  "walkdir",
  "wayland-client",
