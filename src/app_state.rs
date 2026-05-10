@@ -807,6 +807,7 @@ impl AppState {
             }
             Messages::MonitorChanged(m) => {
                 self.monitor = Some(m.clone());
+		self.selected_monitor_item = m;
                 Task::none()
             }
             Messages::SortByChanged(sort_by) => {
@@ -1329,14 +1330,30 @@ impl AppState {
     pub fn view(&self) -> Element<'_, Messages> {
         match &self.changer {
             Some(changer) => {
-                let mut image_grid: Row<_> = row![].spacing(DEFAULT_MARGIN).align_y(Center).height(Fill).width(Fill);
+                let mut image_grid: Row<_> = row![]
+                    .spacing(DEFAULT_MARGIN)
+                    .align_y(Center)
+                    .height(Fill)
+                    .width(Fill);
                 if self.image_grid_loading {
-                    image_grid = image_grid.push(text![
-                        "{}",
-                        TRANSLATION.get_translation("images-are-loading-please-wait")
-                    ].align_x(Center).align_y(Center).width(Fill).height(Fill).align_x(Center));
-                    image_grid = image_grid
-                        .push(container(iced_aw::widget::Spinner::new().width(25).height(25)).align_x(Center).align_y(Center).width(Fill).height(Fill));
+                    image_grid = image_grid.push(
+                        text![
+                            "{}",
+                            TRANSLATION.get_translation("images-are-loading-please-wait")
+                        ]
+                        .align_x(Center)
+                        .align_y(Center)
+                        .width(Fill)
+                        .height(Fill)
+                        .align_x(Center),
+                    );
+                    image_grid = image_grid.push(
+                        container(iced_aw::widget::Spinner::new().width(25).height(25))
+                            .align_x(Center)
+                            .align_y(Center)
+                            .width(Fill)
+                            .height(Fill),
+                    );
                 } else {
                     for cached_image_file in &self.image_grid_images {
                         image_grid = image_grid.push(lazy(
@@ -1349,7 +1366,10 @@ impl AppState {
                                             .content_fit(iced::ContentFit::Cover),
                                     )
                                     .on_press(Messages::ChangeWallpaper(path.clone()))
-                                    .on_middle_press(
+                                    .on_middle_press(Messages::WallpaperFavoriteToggle(
+                                        path.clone(),
+                                    ))
+                                    .on_right_press(
                                         Messages::WallpaperFavoriteToggle(path.clone()),
                                     ),
                                 ))

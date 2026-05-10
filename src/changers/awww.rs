@@ -76,7 +76,7 @@ pub fn change_awww_wallpaper(awww_changer: WallpaperChangers, image: PathBuf, mo
             .arg("--resize")
             .arg(resize_mode)
             .arg("--fill-color")
-            .arg(&settings.fill_color);
+            .arg(&settings.fill_color.replace("#", ""));
         if monitor != TRANSLATION.get_translation("All") {
             command.arg("--outputs").arg(monitor);
         }
