@@ -212,9 +212,8 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
         return Err(anyhow!("Failed to get XDG cache home"));
     };
 
-
     match remove_dir_all(cache_dir) {
-        Ok(()) => {},
+        Ok(()) => {}
         Err(e) => {
             let msg = format!("Failed to delete cache: {e}");
             error!("{msg}");

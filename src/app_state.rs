@@ -807,7 +807,7 @@ impl AppState {
             }
             Messages::MonitorChanged(m) => {
                 self.monitor = Some(m.clone());
-		self.selected_monitor_item = m;
+                self.selected_monitor_item = m;
                 Task::none()
             }
             Messages::SortByChanged(sort_by) => {

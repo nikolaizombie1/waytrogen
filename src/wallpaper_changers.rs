@@ -961,15 +961,14 @@ pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
             ) {
                 Ok(_) => available_changers.push(changer),
                 Err(_) => {
-                    if Command::new("systemctl")
-                        .arg("--user")
-                        .arg("list-unit-files")
-                        .arg("hyprpaper.service")
-                        .spawn()
-                        .unwrap()
-                        .wait()
-                        .unwrap()
-                        .success()
+                    if let Ok(systemctl) = which("systemctl")
+                        && let Ok(mut child) = Command::new(systemctl)
+                            .arg("--user")
+                            .arg("list-unit-files")
+                            .arg("hyprpaper.service")
+                            .spawn()
+                        && let Ok(exit_code) = child.wait()
+                        && exit_code.success()
                     {
                         available_changers.push(changer);
                     }
