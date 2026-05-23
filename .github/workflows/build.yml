@@ -61,9 +61,22 @@ jobs:
         with:
           name: "${{ env.PACKAGE_NAME }}.deb"
           path: debpkgs/*.deb
-  
+
+  get-vendored-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate vendor tarball
+      - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          cargo vendor vendor/
+          tar -czf waytrogen-${{ github.ref_name }}-vendor.tar.gz vendor
+      - name: Upload vendored dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          files: waytrogen-${{ github.ref_name }}-vendor.tar.gz
+
   create-release:
-    needs: [ build-prefix-usr-binary, package-deb-file ]
+    needs: [ build-prefix-usr-binary, package-deb-file get-vendored-dependencies ]
     runs-on: ubuntu-latest
     steps:
       - name: Get generic build prefix usr binary
