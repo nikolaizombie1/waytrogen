@@ -22,6 +22,9 @@ pub fn restore_wallpapers(app_state: &AppState) -> anyhow::Result<()> {
     WallpaperChangers::killall_changers();
     let previous_wallpapers = app_state.saved_wallpapers.clone();
     for wallpaper in previous_wallpapers {
+	if wallpaper == Wallpaper::default() {
+	    continue;
+	}
         debug!("Restoring: {wallpaper:?}");
         wallpaper.clone().changer.change(
             PathBuf::from(wallpaper.clone().path),

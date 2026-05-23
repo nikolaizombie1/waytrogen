@@ -462,7 +462,7 @@ impl Display for MpvPaperPauseModes {
 impl WallpaperChanger for WallpaperChangers {
     fn change(self, image: PathBuf, monitor: String) {
         Self::kill_all_changers_except(&self);
-        thread::spawn(move || match self {
+        match self {
             Self::Hyprpaper(_) => {
                 change_hyprpaper_wallpaper(self, &image, &monitor);
             }
@@ -478,7 +478,7 @@ impl WallpaperChanger for WallpaperChangers {
             Self::GSlapper(_) => {
                 change_gslapper_wallpaper(&self, &image, &monitor);
             }
-        });
+        };
     }
 
     fn accepted_formats(&self) -> Vec<String> {

@@ -39,8 +39,9 @@ pub fn change_hyprpaper_wallpaper(
                         warn!(
                             "Hyprpaper could not be started using Systemd. Attempting to start using command line interface"
                         );
-                        #[allow(clippy::zombie_processes)]
-                        Command::new("hyprpaper").spawn().unwrap();
+			thread::spawn(|| {
+                            Command::new("hyprpaper").spawn().unwrap().wait_with_output().unwrap();
+			});
                     } else {
                         error!(
                             "Wallpaper could not be changed: Failed to start hyprpaper using Systemd and command line interface."
@@ -50,6 +51,7 @@ pub fn change_hyprpaper_wallpaper(
                 }
             }
         }
+        thread::sleep(Duration::from_millis(200));
         let fit_mode = match settings.fit_mode {
             HyprpaperFitModes::Contain => "contain",
             HyprpaperFitModes::Cover => "cover",

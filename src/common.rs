@@ -119,7 +119,7 @@ impl CacheImageFile {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default, PartialEq)]
 pub struct Wallpaper {
     pub monitor: String,
     pub path: String,
