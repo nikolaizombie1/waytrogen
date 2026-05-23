@@ -7,13 +7,7 @@ project(
     default_options: ['rust_std=2021'],
 )
 
-gnome = import('gnome')
-i18n = import('i18n')
-
-dependency('sqlite3', version: '>= 3.42')
-dependency('gtk4', version: '>= 4.12')
-dependency('gio-2.0', version: '>= 2.78')
-dependency('glib-2.0', version: '>= 2.78')
+dependency('sqlite3', version: '>= 3.39')
 
 subdir('src')
 
