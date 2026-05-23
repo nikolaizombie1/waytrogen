@@ -65,18 +65,21 @@ jobs:
   get-vendored-dependencies:
     runs-on: ubuntu-latest
     steps:
+      - name: Get code
+        uses: actions/checkout@v4
       - name: Generate vendor tarball
-      - uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@stable
       - run: |
           cargo vendor vendor/
           tar -czf waytrogen-${{ github.ref_name }}-vendor.tar.gz vendor
       - name: Upload vendored dependencies
         uses: actions/upload-artifact@v4
         with:
-          files: waytrogen-${{ github.ref_name }}-vendor.tar.gz
+          name: waytrogen-${{ github.ref_name }}-vendor.tar.gz
+          path: waytrogen-${{ github.ref_name }}-vendor.tar.gz
 
   create-release:
-    needs: [ build-prefix-usr-binary, package-deb-file get-vendored-dependencies ]
+    needs: [ build-prefix-usr-binary, package-deb-file, get-vendored-dependencies ]
     runs-on: ubuntu-latest
     steps:
       - name: Get generic build prefix usr binary
@@ -89,15 +92,21 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: waytrogen_${{ github.ref_name }}_amd64.deb
+      - name: Get vendor file
+        uses: actions/download-artifact@v4
+        with:
+          name: waytrogen-${{ github.ref_name }}-vendor.tar.gz
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             waytrogen_${{ github.ref_name }}_amd64
             waytrogen_${{ github.ref_name }}_amd64.deb
+            waytrogen-${{ github.ref_name }}-vendor.tar.gz
           make_latest: 'true'
 
   publish-waytrogen-to-aur:
+    needs: [ create-release ]
     runs-on: ubuntu-latest
     steps:
       - name: Get AUR PKGBUILD
