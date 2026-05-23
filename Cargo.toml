@@ -37,3 +37,6 @@ iced_runtime = "0.14.0"
 
 [features]
 nixos = []
+
+[profile.rpm]
+inherits = "release"
