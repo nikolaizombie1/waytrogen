@@ -56,49 +56,49 @@ pub fn change_swaybg_wallpaper(swaybg_changer: WallpaperChangers, image: &Path, 
 
         let mut command = Command::new("swaybg");
 
-	if monitor == TRANSLATION.get_translation("All") {
-	    build_command(&mut command, &settings, image, monitor);
-	} else {
-	    for wallpaper in previous_wallpapers.iter() {
-		build_command(&mut command, &wallpaper.settings, &wallpaper.image, &wallpaper.monitor);
-	    }
-	}
+        if monitor == TRANSLATION.get_translation("All") {
+            build_command(&mut command, &settings, image, monitor);
+        } else {
+            for wallpaper in previous_wallpapers.iter() {
+                build_command(
+                    &mut command,
+                    &wallpaper.settings,
+                    &wallpaper.image,
+                    &wallpaper.monitor,
+                );
+            }
+        }
 
-
-        command
-            .spawn()
-            .unwrap();
-	
-
+        #[allow(clippy::zombie_processes)]
+        command.spawn().unwrap();
     }
 }
 
 fn build_command(command: &mut Command, settings: &SwaybgSettings, image: &Path, monitor: &str) {
-    
-        if monitor != TRANSLATION.get_translation("All") {
-            command.arg("-o").arg(monitor);
-        }
-        let mode = match settings.mode {
-            SwaybgModes::Stretch => "stretch",
-            SwaybgModes::Fit => "fit",
-            SwaybgModes::Fill => "fill",
-            SwaybgModes::Center => "center",
-            SwaybgModes::Tile => "tile",
-            SwaybgModes::SolidColor => "solid_color",
-        };
-        let fill_color = if !SWAYBG_RGB_REGEX.is_match(&settings.fill_color) {
-            "#000000".to_string()
-        } else {
-            settings.fill_color.clone()
-        };
+    if monitor != TRANSLATION.get_translation("All") {
+        command.arg("-o").arg(monitor);
+    }
+    let mode = match settings.mode {
+        SwaybgModes::Stretch => "stretch",
+        SwaybgModes::Fit => "fit",
+        SwaybgModes::Fill => "fill",
+        SwaybgModes::Center => "center",
+        SwaybgModes::Tile => "tile",
+        SwaybgModes::SolidColor => "solid_color",
+    };
+    let fill_color = if SWAYBG_RGB_REGEX.is_match(&settings.fill_color) {
+        settings.fill_color.clone()
+    } else {
+        "#000000".to_string()
+    };
 
-        command
-            .arg("-i")
-            .arg(image.to_str().unwrap())
-            .arg("-m")
-            .arg(mode)
-            .arg("-c")
-            .arg(fill_color);
+    command
+        .arg("-i")
+        .arg(image.to_str().unwrap())
+        .arg("-m")
+        .arg(mode)
+        .arg("-c")
+        .arg(fill_color);
 }
 
 pub fn generate_swaybg_changer_bar(app_state: &AppState) -> Vec<Element<'static, Messages>> {

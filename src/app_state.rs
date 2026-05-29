@@ -376,7 +376,7 @@ impl BootFn<AppState, Messages> for AppState {
         if !instance.swaybg_color.starts_with('#') {
             instance.swaybg_color = "#000000".to_string();
         }
-        if instance.awww_fill_color.is_empty() || instance.awww_fill_color.contains("#") {
+        if instance.awww_fill_color.is_empty() || instance.awww_fill_color.contains('#') {
             instance.awww_fill_color = "000000ff".to_string();
         }
         if instance.gslapper_scale_mode.is_none() {
@@ -539,7 +539,7 @@ impl AppState {
             rayon::spawn(move || {
                 let mut entries: Vec<(PathBuf, SortKey)> = WalkDir::new(&wf)
                     .into_iter()
-                    .filter_map(|e| e.ok())
+                    .filter_map(std::result::Result::ok)
                     .filter_map(|e| {
                         let path = e.into_path();
                         let ext = path.extension()?.to_str()?.to_ascii_lowercase();
@@ -652,8 +652,11 @@ impl AppState {
         let mut all_images = self.image_grid_images.clone();
         all_images.append(&mut self.filtered_images.clone());
 
-        let accepted_formats = self.changer.as_ref().map(|c| c.accepted_formats());
-        let favorites_only = self.favorite_images_only.clone();
+        let accepted_formats = self
+            .changer
+            .as_ref()
+            .map(super::wallpaper_changers::WallpaperChanger::accepted_formats);
+        let favorites_only = self.favorite_images_only;
 
         Task::future(async move {
             let (tx, rx) = futures::channel::oneshot::channel();
@@ -756,20 +759,20 @@ impl AppState {
         image_file.favorite = !image_file.favorite;
         debug!("Image favorite After: {}", image_file.favorite);
         match conn.insert_image_file(&image_file) {
-            Ok(_) => {
+            Ok(()) => {
                 self.image_grid_images
                     .iter_mut()
                     .filter(|p| p.path == image_path)
                     .for_each(|p| {
                         p.favorite = !p.favorite;
-                        debug!("File: {:#?}", p);
+                        debug!("File: {p:#?}");
                     });
                 self.filtered_images
                     .iter_mut()
                     .filter(|p| p.path == image_path)
                     .for_each(|p| {
                         p.favorite = !p.favorite;
-                        debug!("File: {:#?}", p);
+                        debug!("File: {p:#?}");
                     });
                 if self.favorite_images_only {
                     self.filter_images(self.image_filter.clone())

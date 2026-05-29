@@ -25,7 +25,7 @@ struct MpvPaperWallpaper {
 
 pub fn change_mpvpaper_wallpaper(
     mpvpaper_changer: &WallpaperChangers,
-    image: PathBuf,
+    image: &PathBuf,
     monitor: &str,
 ) {
     if let WallpaperChangers::MpvPaper(settings) = mpvpaper_changer {
@@ -44,14 +44,14 @@ pub fn change_mpvpaper_wallpaper(
         if monitor == TRANSLATION.get_translation("All") {
             previous_wallpapers.retain(|_| false);
         } else {
-            previous_wallpapers.retain(|m| m.monitor != TRANSLATION.get_translation("All"))
+            previous_wallpapers.retain(|m| m.monitor != TRANSLATION.get_translation("All"));
         }
 
         if let Some(w) = previous_wallpapers
             .iter_mut()
             .find(|m| m.monitor == monitor)
         {
-            w.image.clone_from(&image);
+            w.image.clone_from(image);
         } else {
             previous_wallpapers.push(MpvPaperWallpaper {
                 settings: settings.clone(),
@@ -62,7 +62,7 @@ pub fn change_mpvpaper_wallpaper(
 
         for wallpaper in previous_wallpapers.iter() {
             let mut command = Command::new("mpvpaper");
-            let mpv_options = format!("{}", wallpaper.settings.additional_options);
+            let mpv_options = wallpaper.settings.additional_options.clone();
             let monitor = if wallpaper.monitor == TRANSLATION.get_translation("All") {
                 "*"
             } else {

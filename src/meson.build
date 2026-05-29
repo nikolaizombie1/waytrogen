@@ -12,6 +12,17 @@ if precompiled_binary == ''
        cargo_options += ['--features', cargo_features]
     endif
 
+    vendored_sources = get_option('vendored_sources')
+
+    if vendored_sources == true
+      install_data(
+        meson.project_source_root() / '.cargo/config.toml.disabled',
+        rename: 'config.toml',
+        install_dir: meson.project_source_root() / '.cargo'
+      )
+      cargo_options += ['--offline']
+   endif
+
     cargo_release = custom_target(
         'cargo-build',
         build_by_default: true,

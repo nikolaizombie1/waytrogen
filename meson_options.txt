@@ -1,3 +1,4 @@
 option('cargo_features', type: 'string', value: '')
 option('debian_install', type: 'boolean', value: false)
 option('precompiled_binary', type: 'string', value: '')
+option('vendored_sources', type: 'boolean', value: false)

@@ -26,18 +26,12 @@
           strictDeps = true;
           nativeBuildInputs = with pkgs; [
             pkg-config
-            glib
-            wrapGAppsHook4
-            bash
             dbus
           ];
           buildInputs = with pkgs; [
-            glib
-            gtk4
             ffmpeg
             sqlite
             openssl
-            gsettings-desktop-schemas
             libX11
             libXcursor
             libXrandr
@@ -64,7 +58,7 @@
         # Layer 3: Meson handles everything else (i18n, schemas, icons, desktop file)
         waytrogen = pkgs.stdenv.mkDerivation {
           pname = "waytrogen";
-          version = "0.9.6";
+          version = "0.9.8";
           src = ./.;
 
 
@@ -73,33 +67,22 @@
             ninja
             pkg-config
             desktop-file-utils
-            wrapGAppsHook4
-            makeWrapper
-            glib
-            sqlite
-            bash
-            rustc
-            gtk4
             dbus
             cargo-udeps
             xdg-utils
             xdg-desktop-portal
+            rustc
           ];
 
           buildInputs = with pkgs; [
-            glib
-            gtk4
             ffmpeg
             sqlite
-            openssl
             dbus
             xdg-utils
             xdg-desktop-portal
           ];
 
           mesonFlags = [
-            "-Dcargo_features=nixos"
-            # Point meson at the pre-built binary from layer 2
             "-Dprecompiled_binary=${waytrogen-bin}/bin/waytrogen"
           ];
 
@@ -150,11 +133,7 @@
             export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath buildInputs}"
           '';
           nativeBuildInputs = with pkgs; [
-            glibcLocales
             pkg-config
-            glib
-            wrapGAppsHook4
-            bash
             cargo-udeps
             meson
             ninja
@@ -162,18 +141,12 @@
             dbus
           ];
           buildInputs = with pkgs; [
-            glib
-            gtk4
             ffmpeg
-            sqlite
             openssl
-            gsettings-desktop-schemas
             killall
-            socat
             cargo
             clippy
             rust-analyzer
-            sqlite
             pkg-config
             libX11
             libXcursor

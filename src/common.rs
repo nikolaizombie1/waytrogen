@@ -106,7 +106,7 @@ impl CacheImageFile {
             .decode()?
             .thumbnail(THUMBNAIL_WIDTH as u32, THUMBNAIL_HEIGHT as u32)
             .to_rgb8();
-        let image_name = format!("{}.png", Uuid::new_v4(),);
+        let image_name = format!("{}.png", Uuid::new_v4());
         let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
         let Some(cache_dir) = xdg_dirs.get_config_home() else {
             return Err(anyhow!("Failed to get cache directory"));

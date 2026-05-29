@@ -12,7 +12,7 @@ use crate::{
 use iced::Element;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, sync::LazyLock, thread};
+use std::{fmt::Display, path::PathBuf, process::Command, str::FromStr, sync::LazyLock};
 use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, IntoStaticStr};
 use which::which;
@@ -470,7 +470,7 @@ impl WallpaperChanger for WallpaperChangers {
                 change_swaybg_wallpaper(self, &image, &monitor);
             }
             Self::MpvPaper(_) => {
-                change_mpvpaper_wallpaper(&self, image, &monitor);
+                change_mpvpaper_wallpaper(&self, &image, &monitor);
             }
             Self::Awww(_) => {
                 change_awww_wallpaper(self, image, monitor);
@@ -478,7 +478,7 @@ impl WallpaperChanger for WallpaperChangers {
             Self::GSlapper(_) => {
                 change_gslapper_wallpaper(&self, &image, &monitor);
             }
-        };
+        }
     }
 
     fn accepted_formats(&self) -> Vec<String> {

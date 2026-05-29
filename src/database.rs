@@ -57,13 +57,13 @@ impl DatabaseConnection {
                 .filter(|i| i.favorite)
                 .collect::<Vec<_>>()
         );
-        debug!("Image: {:#?}", image);
+        debug!("Image: {image:#?}");
         Ok(image)
     }
 
     pub fn insert_image_file(&self, image_file: &CacheImageFile) -> anyhow::Result<()> {
         let query = "INSERT INTO ImageFile(image, name, date, path, favorite) VALUES (:image, :name, :date, :path, :favorite);";
-        let favorite = if image_file.favorite == true { 1 } else { 0 };
+        let favorite = i32::from(image_file.favorite);
         self.connetion.execute(
             query,
             (
