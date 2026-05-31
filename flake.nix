@@ -24,24 +24,9 @@
         commonArgs = {
           inherit src;
           strictDeps = true;
-          nativeBuildInputs = with pkgs; [
-            pkg-config
-            dbus
-          ];
           buildInputs = with pkgs; [
-            ffmpeg
             sqlite
             openssl
-            libX11
-            libXcursor
-            libXrandr
-            libXi
-            libxcb
-            libxkbcommon
-            vulkan-loader
-            wayland
-            dbus
-            xdg-utils
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };
@@ -67,17 +52,23 @@
             ninja
             pkg-config
             desktop-file-utils
-            dbus
+            wrapGAppsHook4
             cargo-udeps
-            xdg-utils
-            xdg-desktop-portal
             rustc
+            sqlite
           ];
 
           buildInputs = with pkgs; [
             ffmpeg
-            sqlite
             dbus
+            libX11
+            libXcursor
+            libXrandr
+            libXi
+            libxcb
+            libxkbcommon
+            vulkan-loader
+            wayland
             xdg-utils
             xdg-desktop-portal
           ];
@@ -132,33 +123,10 @@
             export RUST_SRC_PATH=${pkgs.rustPlatform.rustLibSrc}
             export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath buildInputs}"
           '';
-          nativeBuildInputs = with pkgs; [
-            pkg-config
-            cargo-udeps
-            meson
-            ninja
-            desktop-file-utils
-            dbus
-          ];
           buildInputs = with pkgs; [
-            ffmpeg
-            openssl
-            killall
-            cargo
             clippy
             rust-analyzer
-            pkg-config
-            libX11
-            libXcursor
-            libXrandr
-            libXi
-            libxcb
-            libxkbcommon
-            vulkan-loader
-            wayland
             cargo
-            dbus
-            xdg-utils
             rustc
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
