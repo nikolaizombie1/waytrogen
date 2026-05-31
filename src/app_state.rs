@@ -1363,10 +1363,17 @@ impl AppState {
                             cached_image_file,
                             move |i| -> Element<'_, Messages> {
                                 let path = i.path.clone();
-                                container(Into::<Element<'_, Messages>>::into(
+                                container(
                                     mouse_area(
-                                        image(&i.cached_image_path)
-                                            .content_fit(iced::ContentFit::Cover),
+                                        container(
+                                            image(&i.cached_image_path)
+                                                .content_fit(iced::ContentFit::Cover)
+                                                .width(Fill)
+                                                .height(Fill),
+                                        )
+                                        .width(BUTTON_WIDTH)
+                                        .height(BUTTON_HEIGHT)
+                                        .clip(true),
                                     )
                                     .on_press(Messages::ChangeWallpaper(path.clone()))
                                     .on_middle_press(Messages::WallpaperFavoriteToggle(
@@ -1375,7 +1382,7 @@ impl AppState {
                                     .on_right_press(
                                         Messages::WallpaperFavoriteToggle(path.clone()),
                                     ),
-                                ))
+                                )
                                 .padding(0)
                                 .width(BUTTON_WIDTH)
                                 .height(BUTTON_HEIGHT)
