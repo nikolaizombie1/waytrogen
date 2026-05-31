@@ -2,26 +2,8 @@ precompiled_binary = get_option('precompiled_binary')
 
 if precompiled_binary == ''
     cargo = find_program('cargo')
-    cargo_env = ['CARGO_HOME=' + meson.project_build_root() / 'cargo-home']
     cargo_options = ['--manifest-path', meson.project_source_root() / 'Cargo.toml']
     cargo_options += ['--target-dir', meson.project_build_root() / 'target']
-
-    cargo_features = get_option('cargo_features')
-
-    if cargo_features != ''
-       cargo_options += ['--features', cargo_features]
-    endif
-
-    vendored_sources = get_option('vendored_sources')
-
-    if vendored_sources == true
-      install_data(
-        meson.project_source_root() / '.cargo/config.toml.disabled',
-        rename: 'config.toml',
-        install_dir: meson.project_source_root() / '.cargo'
-      )
-      cargo_options += ['--offline']
-   endif
 
     cargo_release = custom_target(
         'cargo-build',
