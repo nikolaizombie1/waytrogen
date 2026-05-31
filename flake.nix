@@ -43,7 +43,7 @@
         # Layer 3: Meson handles everything else (i18n, schemas, icons, desktop file)
         waytrogen = pkgs.stdenv.mkDerivation {
           pname = "waytrogen";
-          version = "0.9.8";
+          version = "0.9.9";
           src = ./.;
 
 

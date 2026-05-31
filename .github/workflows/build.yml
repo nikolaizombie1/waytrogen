@@ -146,3 +146,30 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: Update to ${{ github.ref_name }}
+  
+  publish-waytrogen-to-copr:
+    needs: [ create-release ]
+    container: fedora:latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4
+      - name: Install API token for copr-cli
+        env:
+          API_TOKEN_CONTENT: ${{ secrets.COPR_CLI_CONFIG }}
+        run: |
+          mkdir -p "$HOME/.config"
+          echo "$API_TOKEN_CONTENT" > "$HOME/.config/copr"
+      - name: Install build tools
+        run: |
+          dnf -y install @development-tools @rpm-development-tools
+          dnf -y install copr-cli
+      - name: Build SRPM
+        run: |
+          rpmbuild -bs waytrogen.spec
+      - name: Create COPR Project
+        run: |
+          copr-cli create waytrogen --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-aarch64 --chroot fedora-44-x86_64 --chroot fedora-44-aarch64 --chroot fedora-43-x86_64 --chroot fedora-43-aarch64 --chroot fedora-42-x86_64 --chroot fedora-42-aarch64
+      - name: Upload SRPM to COPR
+        run: |
+          copr-cli build waytrogen --srpm ~/rpmbuild/SRPMS/waytrogen-*.src.rpm

@@ -35,7 +35,8 @@ A GUI wallpaper setter for Wayland that is a spiritual successor for the minimal
 2. Install `waytrogen`:
     - Arch Linux: Available on [`AUR`](https://aur.archlinux.org/packages/waytrogen)
     - NixOS: Available on [`Nixpkgs`](https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&type=packages&query=waytrogen)
-	- Debian, Ubuntu,Linux-Mint, etc. - Get the latest `.deb` in our [releases](https://github.com/nikolaizombie1/waytrogen/releases).
+    - Debian, Ubuntu,Linux-Mint, etc. - Get the latest `.deb` in our [releases](https://github.com/nikolaizombie1/waytrogen/releases).
+    - Fedora: Enable COPR Repository `sudo dnf copr enable nikolaizombie1/waytrogen` and install `sudo dnf install waytrogen`
 
 ## Usage
 - Launch via terminal: `waytrogen`

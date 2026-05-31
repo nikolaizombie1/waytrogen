@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 
 Name:           waytrogen
-Version:        0.9.8
+Version:        0.9.9
 Release:        %autorelease
 Summary:        A GUI wallpaper changer for wayland
 
