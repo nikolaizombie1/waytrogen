@@ -164,12 +164,12 @@ jobs:
         run: |
           dnf -y install @development-tools @rpm-development-tools
           dnf -y install copr-cli
+      - name: Get Source Files
+        run: |
+          spectool -g -R waytrogen.spec
       - name: Build SRPM
         run: |
           rpmbuild -bs waytrogen.spec
-      - name: Create COPR Project
-        run: |
-          copr-cli create waytrogen --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-aarch64 --chroot fedora-44-x86_64 --chroot fedora-44-aarch64 --chroot fedora-43-x86_64 --chroot fedora-43-aarch64 --chroot fedora-42-x86_64 --chroot fedora-42-aarch64
       - name: Upload SRPM to COPR
         run: |
-          copr-cli build waytrogen --srpm ~/rpmbuild/SRPMS/waytrogen-*.src.rpm
+          copr-cli build waytrogen ~/rpmbuild/SRPMS/waytrogen-*.src.rpm
