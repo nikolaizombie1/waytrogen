@@ -1,7 +1,7 @@
 project(
     'waytrogen',
     'rust',
-    version: '0.9.9',
+    version: '1.0.0',
     license: 'Unlicence',
     meson_version: '>= 1.2.0',
     default_options: ['rust_std=2021'],

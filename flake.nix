@@ -43,7 +43,7 @@
         # Layer 3: Meson handles everything else (i18n, schemas, icons, desktop file)
         waytrogen = pkgs.stdenv.mkDerivation {
           pname = "waytrogen";
-          version = "0.9.9";
+          version = "1.0.0";
           src = ./.;
 
 
@@ -128,6 +128,7 @@
             rust-analyzer
             cargo
             rustc
+            sqlite
           ];
           env = { OPENSSL_NO_VENDOR = 1; };
         };

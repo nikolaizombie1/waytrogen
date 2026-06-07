@@ -16,7 +16,10 @@ use crate::{
     },
 };
 use anyhow::anyhow;
-use iced::widget::{container, mouse_area};
+use iced::Length::Shrink;
+use iced::alignment::Horizontal::Left;
+use iced::widget::canvas::path::lyon_path::geom::euclid::num::Floor;
+use iced::widget::{container, mouse_area, responsive};
 use iced::{
     Alignment::Center,
     Color, Element,
@@ -24,9 +27,7 @@ use iced::{
     Subscription, Task,
     application::BootFn,
     event,
-    widget::{
-        Row, button, column, image, lazy, pick_list, row, scrollable, text, text_input, toggler,
-    },
+    widget::{button, column, image, lazy, pick_list, row, text, text_input, toggler},
     window,
 };
 use iced_aw::{
@@ -36,6 +37,7 @@ use iced_aw::{
 use log::{debug, error, trace, warn};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::sync::atomic::AtomicUsize;
 use std::{
     fmt::Display,
     fs::{OpenOptions, remove_file},
@@ -46,6 +48,9 @@ use std::{
 };
 use strum::VariantArray;
 use walkdir::WalkDir;
+
+static IMAGE_GRID_COLUMNS: AtomicUsize = AtomicUsize::new(0);
+static IMAGE_GRID_ROWS: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 enum SortKey {
@@ -170,6 +175,8 @@ pub struct AppState {
     pub internal_theme: Option<iced::Theme>,
     #[serde(skip)]
     pub image_grid_loading: bool,
+    #[serde(skip)]
+    row_offset: usize,
 }
 
 impl Default for AppState {
@@ -282,6 +289,7 @@ impl Default for AppState {
                 .get_translation("favorite-image-only-description"),
             favorite_images_only: false,
             image_grid_loading: false,
+            row_offset: usize::default(),
         }
     }
 }
@@ -341,6 +349,9 @@ pub enum Messages {
     ThemeChanged(iced::Theme),
     WallpaperFavoriteToggle(PathBuf),
     ShowFavoritesToggled(bool),
+    ImageGridScrollUp,
+    ImgaeGridScrollDown,
+    ResetRowOffset,
 }
 
 impl BootFn<AppState, Messages> for AppState {
@@ -1327,19 +1338,46 @@ impl AppState {
                 self.favorite_images_only = t;
                 self.filter_images(self.image_filter.clone())
             }
+            Messages::ImageGridScrollUp => {
+                let image_grid_rows = IMAGE_GRID_ROWS.load(std::sync::atomic::Ordering::Relaxed);
+                let image_grid_columns =
+                    IMAGE_GRID_COLUMNS.load(std::sync::atomic::Ordering::Relaxed);
+                if self.row_offset * image_grid_rows + image_grid_rows * image_grid_columns
+                    < self.image_grid_images.len()
+                {
+                    self.row_offset += 1;
+                }
+                Task::none()
+            }
+            Messages::ImgaeGridScrollDown => {
+                if self.row_offset != 0 {
+                    self.row_offset -= 1;
+                }
+                Task::none()
+            }
+            Messages::ResetRowOffset => {
+                let image_grid_rows = IMAGE_GRID_ROWS.load(std::sync::atomic::Ordering::Relaxed);
+                let image_grid_columns =
+                    IMAGE_GRID_COLUMNS.load(std::sync::atomic::Ordering::Relaxed);
+                if self.row_offset * image_grid_rows + image_grid_rows * image_grid_columns
+                    > self.image_grid_images.len()
+                    && !self.image_grid_loading
+                {
+                    self.row_offset = ((self.image_grid_images.len()
+                        - (image_grid_rows * image_grid_columns))
+                        / image_grid_rows)
+                        .floor() as usize;
+                }
+                Task::none()
+            }
         }
     }
 
     pub fn view(&self) -> Element<'_, Messages> {
         match &self.changer {
             Some(changer) => {
-                let mut image_grid: Row<_> = row![]
-                    .spacing(DEFAULT_MARGIN)
-                    .align_y(Center)
-                    .height(Fill)
-                    .width(Fill);
-                if self.image_grid_loading {
-                    image_grid = image_grid.push(
+                let image_grid: Element<'_, Messages> = if self.image_grid_loading {
+                    row![
                         text![
                             "{}",
                             TRANSLATION.get_translation("images-are-loading-please-wait")
@@ -1347,50 +1385,88 @@ impl AppState {
                         .align_x(Center)
                         .align_y(Center)
                         .width(Fill)
-                        .height(Fill)
-                        .align_x(Center),
-                    );
-                    image_grid = image_grid.push(
+                        .height(Fill),
                         container(iced_aw::widget::Spinner::new().width(25).height(25))
                             .align_x(Center)
                             .align_y(Center)
                             .width(Fill)
                             .height(Fill),
-                    );
+                    ]
+                    .align_y(Center)
+                    .spacing(DEFAULT_MARGIN)
+                    .height(Fill)
+                    .width(Fill)
+                    .into()
                 } else {
-                    for cached_image_file in &self.image_grid_images {
-                        image_grid = image_grid.push(lazy(
-                            cached_image_file,
-                            move |i| -> Element<'_, Messages> {
-                                let path = i.path.clone();
-                                container(
-                                    mouse_area(
-                                        container(
-                                            image(&i.cached_image_path)
-                                                .content_fit(iced::ContentFit::Cover)
-                                                .width(Fill)
-                                                .height(Fill),
+                    let responsive_grid = responsive(|size| {
+                        let number_of_columns = (size.width
+                            / ((BUTTON_WIDTH + DEFAULT_MARGIN * 4.0) as f32))
+                            .floor() as usize;
+                        let number_of_rows = (size.height
+                            / ((BUTTON_HEIGHT + DEFAULT_MARGIN * 4.0) as f32))
+                            .floor() as usize;
+                        IMAGE_GRID_COLUMNS
+                            .store(number_of_columns, std::sync::atomic::Ordering::Relaxed);
+                        IMAGE_GRID_ROWS.store(number_of_rows, std::sync::atomic::Ordering::Relaxed);
+			debug!("Rows: {number_of_rows}, Columns: {number_of_columns}");
+                        let max_button_width = size.width / number_of_columns as f32;
+                        let mut image_grid = column![]
+                            .align_x(Center)
+                            .spacing(DEFAULT_MARGIN)
+                            .height(Fill)
+                            .width(Fill);
+                        let mut image_row = row![].width(Shrink).height(Fill).spacing(DEFAULT_MARGIN);
+
+                        for (index, cached_image_file) in self
+                            .image_grid_images
+                            .iter()
+                            .skip(self.row_offset * number_of_rows)
+                            .take(number_of_rows * number_of_columns)
+                            .enumerate()
+                        {
+                            let image_button =
+                                lazy(cached_image_file, move |i| -> Element<'_, Messages> {
+                                    let path = i.path.clone();
+                                    container(
+                                        mouse_area(
+                                            container(
+                                                image(&i.cached_image_path)
+                                                    .content_fit(iced::ContentFit::Cover)
+                                                    .width(Fill)
+                                                    .height(Fill),
+                                            )
+                                            .width(Fill)
+                                            .height(Fill)
+					    .max_width(max_button_width)
+                                            .clip(true),
                                         )
-                                        .width(BUTTON_WIDTH)
-                                        .height(BUTTON_HEIGHT)
-                                        .clip(true),
+                                        .on_press(Messages::ChangeWallpaper(path.clone()))
+                                        .on_middle_press(Messages::WallpaperFavoriteToggle(
+                                            path.clone(),
+                                        ))
+                                        .on_right_press(
+                                            Messages::WallpaperFavoriteToggle(path.clone()),
+                                        ),
                                     )
-                                    .on_press(Messages::ChangeWallpaper(path.clone()))
-                                    .on_middle_press(Messages::WallpaperFavoriteToggle(
-                                        path.clone(),
-                                    ))
-                                    .on_right_press(
-                                        Messages::WallpaperFavoriteToggle(path.clone()),
-                                    ),
-                                )
-                                .padding(0)
-                                .width(BUTTON_WIDTH)
-                                .height(BUTTON_HEIGHT)
-                                .into()
-                            },
-                        ));
-                    }
-                }
+                                    .padding(0)
+                                    .width(Fill)
+                                    .height(Fill)
+                                    .into()
+                                });
+                            // Check if not first element and not at the end of a column
+                            if index == 0 || index % number_of_columns != 0 {
+                                image_row = image_row.push(image_button);
+                            } else {
+                                image_grid = image_grid.push(image_row);
+                                image_row = row![].width(Shrink).height(Fill).spacing(DEFAULT_MARGIN);
+                                image_row = image_row.push(image_button);
+                            }
+                        }
+                        image_grid = image_grid.push(image_row);
+                        image_grid.align_x(Left).into()
+                    });
+                    responsive_grid.into()
+                };
 
                 let monitors_dropdown = pick_list(
                     self.available_monitors.as_slice(),
@@ -1504,7 +1580,7 @@ impl AppState {
                     bottom_bar = bottom_bar.push(element);
                 }
 
-                let mut app_box = column![scrollable(image_grid.wrap()).width(Fill).height(Fill),]
+                let mut app_box = column![image_grid]
                     .align_x(Center)
                     .padding(DEFAULT_MARGIN)
                     .spacing(DEFAULT_MARGIN);
@@ -1538,6 +1614,33 @@ impl AppState {
             iced::Event::Window(iced::window::Event::CloseRequested) => {
                 Some(Messages::CloseRequested)
             }
+            iced::Event::Window(iced::window::Event::Resized(s)) => {
+                IMAGE_GRID_COLUMNS.store(
+                    (s.width / (BUTTON_WIDTH + 4.0 * DEFAULT_MARGIN) as f32).floor() as usize,
+                    std::sync::atomic::Ordering::Relaxed,
+                );
+                IMAGE_GRID_ROWS.store(
+                    (s.height / (BUTTON_HEIGHT + 4.0 * DEFAULT_MARGIN) as f32).floor() as usize,
+                    std::sync::atomic::Ordering::Relaxed,
+                );
+                Some(Messages::ResetRowOffset)
+            }
+            iced::Event::Mouse(iced::mouse::Event::WheelScrolled { delta }) => match delta {
+                iced::mouse::ScrollDelta::Lines { x: _, y } => {
+                    if y < 0.0 {
+                        Some(Messages::ImageGridScrollUp)
+                    } else {
+                        Some(Messages::ImgaeGridScrollDown)
+                    }
+                }
+                iced::mouse::ScrollDelta::Pixels { x: _, y } => {
+                    if y < 0.0 {
+                        Some(Messages::ImageGridScrollUp)
+                    } else {
+                        Some(Messages::ImgaeGridScrollDown)
+                    }
+                }
+            },
             _ => None,
         })
     }
