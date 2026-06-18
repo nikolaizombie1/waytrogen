@@ -1400,22 +1400,30 @@ impl AppState {
                 } else {
                     let responsive_grid = responsive(|size| {
                         let number_of_columns = (size.width
-                            / ((BUTTON_WIDTH + DEFAULT_MARGIN * 4.0) as f32))
+                            / ((BUTTON_WIDTH + DEFAULT_MARGIN * 2.0) as f32))
                             .floor() as usize;
                         let number_of_rows = (size.height
-                            / ((BUTTON_HEIGHT + DEFAULT_MARGIN * 4.0) as f32))
+                            / ((BUTTON_HEIGHT + DEFAULT_MARGIN * 2.0) as f32))
                             .floor() as usize;
                         IMAGE_GRID_COLUMNS
                             .store(number_of_columns, std::sync::atomic::Ordering::Relaxed);
                         IMAGE_GRID_ROWS.store(number_of_rows, std::sync::atomic::Ordering::Relaxed);
-			debug!("Rows: {number_of_rows}, Columns: {number_of_columns}");
-                        let max_button_width = size.width / number_of_columns as f32;
+                        debug!("Rows: {number_of_rows}, Columns: {number_of_columns}");
+                        let total_horizontal_spacing =
+                            DEFAULT_MARGIN * (number_of_columns - 1) as f32;
+                        let max_button_width =
+                            (size.width - total_horizontal_spacing) / number_of_columns as f32;
+
+                        let total_vertical_spacing = DEFAULT_MARGIN * (number_of_rows - 1) as f32;
+                        let max_button_height =
+                            (size.height - total_vertical_spacing) / number_of_rows as f32;
                         let mut image_grid = column![]
                             .align_x(Center)
                             .spacing(DEFAULT_MARGIN)
                             .height(Fill)
                             .width(Fill);
-                        let mut image_row = row![].width(Shrink).height(Fill).spacing(DEFAULT_MARGIN);
+                        let mut image_row =
+                            row![].width(Fill).height(Fill).spacing(DEFAULT_MARGIN);
 
                         for (index, cached_image_file) in self
                             .image_grid_images
@@ -1435,9 +1443,8 @@ impl AppState {
                                                     .width(Fill)
                                                     .height(Fill),
                                             )
-                                            .width(Fill)
-                                            .height(Fill)
-					    .max_width(max_button_width)
+                                            .width(max_button_width)
+                                            .height(max_button_height)
                                             .clip(true),
                                         )
                                         .on_press(Messages::ChangeWallpaper(path.clone()))
@@ -1458,7 +1465,8 @@ impl AppState {
                                 image_row = image_row.push(image_button);
                             } else {
                                 image_grid = image_grid.push(image_row);
-                                image_row = row![].width(Shrink).height(Fill).spacing(DEFAULT_MARGIN);
+                                image_row =
+                                    row![].width(Shrink).height(Fill).spacing(DEFAULT_MARGIN);
                                 image_row = image_row.push(image_button);
                             }
                         }
