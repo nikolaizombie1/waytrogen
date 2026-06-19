@@ -1,3 +1,4 @@
+use crate::common::create_tooltip;
 use crate::locale::TRANSLATION;
 use crate::{
     common::{
@@ -1422,8 +1423,7 @@ impl AppState {
                             .spacing(DEFAULT_MARGIN)
                             .height(Fill)
                             .width(Fill);
-                        let mut image_row =
-                            row![].width(Fill).height(Fill).spacing(DEFAULT_MARGIN);
+                        let mut image_row = row![].width(Fill).height(Fill).spacing(DEFAULT_MARGIN);
 
                         for (index, cached_image_file) in self
                             .image_grid_images
@@ -1435,29 +1435,33 @@ impl AppState {
                             let image_button =
                                 lazy(cached_image_file, move |i| -> Element<'_, Messages> {
                                     let path = i.path.clone();
-                                    container(
-                                        mouse_area(
-                                            container(
-                                                image(&i.cached_image_path)
-                                                    .content_fit(iced::ContentFit::Cover)
-                                                    .width(Fill)
-                                                    .height(Fill),
+                                    create_tooltip(
+                                        container(
+                                            mouse_area(
+                                                container(
+                                                    image(&i.cached_image_path)
+                                                        .content_fit(iced::ContentFit::Cover)
+                                                        .width(Fill)
+                                                        .height(Fill),
+                                                )
+                                                .width(max_button_width)
+                                                .height(max_button_height)
+                                                .clip(true),
                                             )
-                                            .width(max_button_width)
-                                            .height(max_button_height)
-                                            .clip(true),
+                                            .on_press(Messages::ChangeWallpaper(path.clone()))
+                                            .on_middle_press(Messages::WallpaperFavoriteToggle(
+                                                path.clone(),
+                                            ))
+                                            .on_right_press(Messages::WallpaperFavoriteToggle(
+                                                path.clone(),
+                                            )),
                                         )
-                                        .on_press(Messages::ChangeWallpaper(path.clone()))
-                                        .on_middle_press(Messages::WallpaperFavoriteToggle(
-                                            path.clone(),
-                                        ))
-                                        .on_right_press(
-                                            Messages::WallpaperFavoriteToggle(path.clone()),
-                                        ),
+                                        .padding(0)
+                                        .width(Fill)
+                                        .height(Fill)
+                                        .into(),
+                                        text!["{}", i.path.to_string_lossy().to_string()].into(),
                                     )
-                                    .padding(0)
-                                    .width(Fill)
-                                    .height(Fill)
                                     .into()
                                 });
                             // Check if not first element and not at the end of a column
@@ -1476,24 +1480,40 @@ impl AppState {
                     responsive_grid.into()
                 };
 
-                let monitors_dropdown = pick_list(
-                    self.available_monitors.as_slice(),
-                    self.monitor.clone(),
-                    Messages::MonitorChanged,
+                let monitors_dropdown = create_tooltip(
+                    pick_list(
+                        self.available_monitors.as_slice(),
+                        self.monitor.clone(),
+                        Messages::MonitorChanged,
+                    )
+                    .into(),
+                    text![
+                        "{}",
+                        TRANSLATION.get_translation("monitor-dropdown-tooltip")
+                    ]
+                    .into(),
                 );
 
-                let sort_dropdown = pick_list(
-                    SortBy::VARIANTS,
-                    self.sort_by.clone(),
-                    Messages::SortByChanged,
+                let sort_dropdown = create_tooltip(
+                    pick_list(
+                        SortBy::VARIANTS,
+                        self.sort_by.clone(),
+                        Messages::SortByChanged,
+                    )
+                    .into(),
+                    text!["{}", TRANSLATION.get_translation("sort-dropdown-tooltip")].into(),
                 );
 
-                let search_bar = text_input(
-                    &TRANSLATION.get_translation("find-images"),
-                    &self.image_filter,
-                )
-                .on_input(Messages::SearchBarInputted)
-                .width(Fill);
+                let search_bar = create_tooltip(
+                    text_input(
+                        &TRANSLATION.get_translation("find-images"),
+                        &self.image_filter,
+                    )
+                    .on_input(Messages::SearchBarInputted)
+                    .width(Fill)
+                    .into(),
+                    text!["{}", TRANSLATION.get_translation("search-bar-tooltip")].into(),
+                );
 
                 let options_menu: Element<'_, Messages> = MenuBar::new(vec![Item::with_menu(
                     button(text!["{}", TRANSLATION.get_translation("Options")])
@@ -1548,7 +1568,17 @@ impl AppState {
                             ),
                             Item::new(
                                 row![
-                                    text!["{}", TRANSLATION.get_translation("show-favorites-only")],
+                                    create_tooltip(
+                                        text![
+                                            "{}",
+                                            TRANSLATION.get_translation("show-favorites-only")
+                                        ].into(),
+                                        text![
+                                            "{}",
+                                            TRANSLATION
+                                                .get_translation("show-favorite-image-tooltip")
+                                        ].into(),
+                                    ),
                                     toggler(self.favorite_images_only)
                                         .on_toggle(Messages::ShowFavoritesToggled)
                                 ]
@@ -1565,16 +1595,25 @@ impl AppState {
                 )])
                 .into();
 
-                let changer_dropdown = pick_list(
-                    self.available_changers.as_slice(),
-                    self.changer.clone(),
-                    Messages::WallpaperChangerChanged,
+                let changer_dropdown = create_tooltip(
+                    pick_list(
+                        self.available_changers.as_slice(),
+                        self.changer.clone(),
+                        Messages::WallpaperChangerChanged,
+                    ).into(),
+                    text![
+                        "{}",
+                        TRANSLATION.get_translation("changer-dropdown-tooltip")
+                    ].into(),
                 );
 
                 let mut bottom_bar = row![
                     monitors_dropdown,
-                    button(text!["{}", TRANSLATION.get_translation("image-folder")])
-                        .on_press(Messages::ChangeWallpaperFolder),
+                    create_tooltip(
+                        button(text!["{}", TRANSLATION.get_translation("image-folder")])
+                            .on_press(Messages::ChangeWallpaperFolder).into(),
+                        text!["{}", TRANSLATION.get_translation("image-folder-tooltip")].into(),
+                    ),
                     sort_dropdown,
                     search_bar,
                     options_menu,
@@ -1624,11 +1663,11 @@ impl AppState {
             }
             iced::Event::Window(iced::window::Event::Resized(s)) => {
                 IMAGE_GRID_COLUMNS.store(
-                    (s.width / (BUTTON_WIDTH + 4.0 * DEFAULT_MARGIN) as f32).floor() as usize,
+                    (s.width / (BUTTON_WIDTH + 4.0 * DEFAULT_MARGIN)).floor() as usize,
                     std::sync::atomic::Ordering::Relaxed,
                 );
                 IMAGE_GRID_ROWS.store(
-                    (s.height / (BUTTON_HEIGHT + 4.0 * DEFAULT_MARGIN) as f32).floor() as usize,
+                    (s.height / (BUTTON_HEIGHT + 4.0 * DEFAULT_MARGIN)).floor() as usize,
                     std::sync::atomic::Ordering::Relaxed,
                 );
                 Some(Messages::ResetRowOffset)

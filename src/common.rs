@@ -1,6 +1,8 @@
-use crate::locale::TRANSLATION;
 use crate::wallpaper_changers::WallpaperChangers;
+use crate::{app_state::Messages, locale::TRANSLATION};
 use anyhow::anyhow;
+use iced::widget::{Tooltip, container, tooltip};
+use iced::{Element, Renderer, Theme};
 use image::ImageReader;
 use log::trace;
 use serde::{Deserialize, Serialize};
@@ -10,7 +12,7 @@ use std::{
     os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     process::Command,
-    time::UNIX_EPOCH,
+    time::{Duration, UNIX_EPOCH},
 };
 use uuid::Uuid;
 
@@ -26,6 +28,7 @@ pub const GETTEXT_DOMAIN: &str = "waytrogen";
 pub const CONFIG_APP_NAME: &str = "waytrogen";
 pub const CACHE_FILE_NAME: &str = "cache.db";
 pub const CONFIG_FILE_NAME: &str = "config.json";
+pub const DEFAULT_TOOLTIP_DELAY: Duration = Duration::from_millis(500);
 
 #[derive(Debug, Clone, Default, PartialEq, Hash)]
 pub struct CacheImageFile {
@@ -179,4 +182,13 @@ pub fn get_config_file_path() -> anyhow::Result<PathBuf> {
     let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
     let config_file = xdg_dirs.place_config_file(CONFIG_FILE_NAME)?;
     Ok(config_file)
+}
+
+pub fn create_tooltip<'a>(
+    element: Element<'a, Messages>,
+    tooltip_element: Element<'a, Messages>,
+) -> Tooltip<'a, Messages, Theme, Renderer> {
+    tooltip(element, tooltip_element, tooltip::Position::FollowCursor)
+        .delay(DEFAULT_TOOLTIP_DELAY)
+        .style(container::bordered_box)
 }
