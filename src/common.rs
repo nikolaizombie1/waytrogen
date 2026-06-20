@@ -111,7 +111,7 @@ impl CacheImageFile {
             .to_rgb8();
         let image_name = format!("{}.png", Uuid::new_v4());
         let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
-        let Some(cache_dir) = xdg_dirs.get_config_home() else {
+        let Some(cache_dir) = xdg_dirs.get_cache_home() else {
             return Err(anyhow!("Failed to get cache directory"));
         };
         let image_file = cache_dir.join(Path::new(&image_name));
