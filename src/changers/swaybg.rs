@@ -1,3 +1,4 @@
+use crate::common::create_tooltip;
 use crate::locale::TRANSLATION;
 use crate::wallpaper_changers::SwaybgSettings;
 use crate::{
@@ -102,11 +103,11 @@ fn build_command(command: &mut Command, settings: &SwaybgSettings, image: &Path,
 }
 
 pub fn generate_swaybg_changer_bar(app_state: &AppState) -> Vec<Element<'static, Messages>> {
-    let dropdown: Element<'_, Messages> = pick_list(
+    let dropdown: Element<'_, Messages> = create_tooltip(pick_list(
         SwaybgModes::VARIANTS,
         app_state.swaybg_mode.clone(),
         Messages::SwaybgModeChanged,
-    )
+    ).into(), text!["{}", TRANSLATION.get_translation("swaybg-mode-tooltip")].into())
     .into();
     let color_picker_button = button(text!["{}", TRANSLATION.get_translation("fill-color")])
         .on_press(Messages::ShowSwaybgColorPicker);

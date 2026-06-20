@@ -1,5 +1,8 @@
-use crate::{locale::TRANSLATION, monitors::AvailableMonitors};
-use iced::{Element, widget::pick_list};
+use crate::{common::create_tooltip, locale::TRANSLATION, monitors::AvailableMonitors};
+use iced::{
+    Element,
+    widget::{pick_list, text},
+};
 use log::{debug, error, warn};
 use std::{path::Path, process::Command, thread, time::Duration};
 use strum::VariantArray;
@@ -102,10 +105,18 @@ pub fn change_hyprpaper_wallpaper(
 }
 
 pub fn generate_hyprpaper_changer_bar(app_state: &AppState) -> Vec<Element<'static, Messages>> {
-    let dropdown: Element<'_, Messages> = pick_list(
-        HyprpaperFitModes::VARIANTS,
-        app_state.hyprpaper_fill_mode.clone(),
-        Messages::HyprpaperFitModeChanged,
+    let dropdown: Element<'_, Messages> = create_tooltip(
+        pick_list(
+            HyprpaperFitModes::VARIANTS,
+            app_state.hyprpaper_fill_mode.clone(),
+            Messages::HyprpaperFitModeChanged,
+        )
+        .into(),
+        text![
+            "{}",
+            TRANSLATION.get_translation("hyprpaper-fit-mode-tooltip")
+        ]
+        .into(),
     )
     .into();
     vec![dropdown]

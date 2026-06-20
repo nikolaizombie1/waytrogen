@@ -1,11 +1,12 @@
 use crate::{
     app_state::{AppState, Messages},
+    common::create_tooltip,
     locale::TRANSLATION,
     wallpaper_changers::{MpvPaperPauseModes, MpvPaperSettings, WallpaperChangers},
 };
 use iced::{
     Element,
-    widget::{pick_list, text_input, toggler},
+    widget::{pick_list, text, text_input, toggler},
 };
 use iced_aw::number_input;
 use std::default::Default;
@@ -100,30 +101,61 @@ pub fn change_mpvpaper_wallpaper(
 }
 
 pub fn generate_mpvpaper_changer_bar(app_state: AppState) -> Vec<Element<'static, Messages>> {
-    let pause_options_dropdown: Element<'_, Messages> = pick_list(
-        MpvPaperPauseModes::VARIANTS,
-        app_state.mpvpaper_pause_option,
-        Messages::MpvPaperPauseModeChanged,
+    let pause_options_dropdown: Element<'_, Messages> = create_tooltip(
+        pick_list(
+            MpvPaperPauseModes::VARIANTS,
+            app_state.mpvpaper_pause_option,
+            Messages::MpvPaperPauseModeChanged,
+        )
+        .into(),
+        text![
+            "{}",
+            TRANSLATION.get_translation("mpvpaper-pause-modes-tooltip")
+        ]
+        .into(),
     )
     .into();
 
-    let slideshow_enable_switch: Element<'_, Messages> =
+    let slideshow_enable_switch: Element<'_, Messages> = create_tooltip(
         toggler(app_state.mpvpaper_slideshow_enable)
             .on_toggle(Messages::MpvPaperEnableSlideshowChanged)
-            .into();
-
-    let slidehow_interval_input: Element<'_, Messages> = number_input(
-        &app_state.mpvpaper_slideshow_interval,
-        0..,
-        Messages::MpvPaperSlideshowIntervalChanged,
+            .into(),
+        text![
+            "{}",
+            TRANSLATION.get_translation("mpvpaper-slideshow-enable-tooltip")
+        ]
+        .into(),
     )
     .into();
 
-    let mpv_options: Element<'_, Messages> = text_input(
-        &TRANSLATION.get_translation("additional-mpv-options"),
-        &app_state.mpvpaper_additional_options,
+    let slidehow_interval_input: Element<'_, Messages> = create_tooltip(
+        number_input(
+            &app_state.mpvpaper_slideshow_interval,
+            0..,
+            Messages::MpvPaperSlideshowIntervalChanged,
+        )
+        .into(),
+        text![
+            "{}",
+            TRANSLATION.get_translation("mpvpaper-slideshow-interval-tooltip")
+        ]
+        .into(),
     )
-    .on_input(Messages::MpvPaperAdditionalOptionsChanged)
+    .into();
+
+    let mpv_options: Element<'_, Messages> = create_tooltip(
+        text_input(
+            &TRANSLATION.get_translation("additional-mpv-options"),
+            &app_state.mpvpaper_additional_options,
+        )
+        .on_input(Messages::MpvPaperAdditionalOptionsChanged)
+        .into(),
+        text![
+            "{}",
+            TRANSLATION.get_translation("mpvpaper-additional-options-tooltip")
+        ]
+        .into(),
+    )
     .into();
 
     vec![

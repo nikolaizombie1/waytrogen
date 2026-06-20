@@ -293,6 +293,36 @@ theme-description = Modifies the appearance of the application. Can be one of th
 
 picture-created-successfully = Picture created successfully.
 
-show-favorites-only = Show Favorites Only
+show-favorites-only = Show Favorites Only.
 
 favorite-image-only-description = Show favorite images only or all images.
+
+changer-dropdown-tooltip = List of detected wallpaper changer utilities.
+
+gslapper-loop-video-tooltip = Enable/Disable video looping.
+
+gslapper-pause-mode-tooltip = Playback control when wallpaper is hidden.
+
+gslapper-scale-mode-tooltip = Scaling method for the video.
+
+hyprpaper-fit-mode-tooltip = Determines how to display the image.
+
+image-folder-tooltip = Root wallpaper folder.
+
+monitor-dropdown-tooltip = Monitor that the wallpaper will be applied.
+
+mpvpaper-additional-options-tooltip = Options passed to the -o flag to mpvpaper.
+
+mpvpaper-pause-modes-tooltip = Playback control when wallpaper is hidden.
+
+mpvpaper-slideshow-enable-tooltip = Enable/Disable slideshow mode.
+
+mpvpaper-slideshow-interval-tooltip = Time in seconds to switch between images in slideshow mode.
+
+search-bar-tooltip = Sub-string filter for wallpapers.
+
+sort-dropdown-tooltip = Sorting method for images.
+
+swaybg-mode-tooltip = Scaling method for wallpaper.
+
+show-favorite-image-tooltip = Show favorite images only. Favorite image can be toggled with the middle mouse button.

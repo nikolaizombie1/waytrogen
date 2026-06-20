@@ -74,7 +74,7 @@ impl CacheImageFile {
         }
         Err(anyhow::anyhow!(
             "{}: {}",
-            TRANSLATION.get_translation("Failed to create thumbnail for"),
+            TRANSLATION.get_translation("failed-to-create-thumbnail-for"),
             path.as_os_str().to_str().unwrap_or_default()
         ))
     }

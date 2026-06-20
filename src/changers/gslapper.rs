@@ -1,11 +1,12 @@
 use crate::{
     app_state::{AppState, Messages},
+    common::create_tooltip,
     locale::TRANSLATION,
     wallpaper_changers::{GSllapperPauseMode, GSllapperScaleMode, WallpaperChangers},
 };
 use iced::{
     Element,
-    widget::{pick_list, text_input, toggler},
+    widget::{pick_list, text, text_input, toggler},
 };
 use log::debug;
 use std::{path::Path, process::Command};
@@ -122,23 +123,47 @@ pub fn change_gslapper_wallpaper(
 }
 
 pub fn generate_gslapper_changer_bar(app_state: AppState) -> Vec<Element<'static, Messages>> {
-    let scale_mode_dropdown: Element<'_, Messages> = pick_list(
-        GSllapperScaleMode::VARIANTS,
-        app_state.gslapper_scale_mode,
-        Messages::GSllaperScaleModeChanged,
+    let scale_mode_dropdown: Element<'_, Messages> = create_tooltip(
+        pick_list(
+            GSllapperScaleMode::VARIANTS,
+            app_state.gslapper_scale_mode,
+            Messages::GSllaperScaleModeChanged,
+        )
+        .into(),
+        text![
+            "{}",
+            TRANSLATION.get_translation("gslapper-scale-mode-tooltip")
+        ]
+        .into(),
     )
     .into();
 
-    let pause_mode_dropdown: Element<'_, Messages> = pick_list(
-        GSllapperPauseMode::VARIANTS,
-        app_state.gslapper_pause_mode,
-        Messages::GSlapperPauseModeChanged,
+    let pause_mode_dropdown: Element<'_, Messages> = create_tooltip(
+        pick_list(
+            GSllapperPauseMode::VARIANTS,
+            app_state.gslapper_pause_mode,
+            Messages::GSlapperPauseModeChanged,
+        )
+        .into(),
+        text![
+            "{}",
+            TRANSLATION.get_translation("gslapper-pause-mode-tooltip")
+        ]
+        .into(),
     )
     .into();
 
-    let loop_switch: Element<'_, Messages> = toggler(app_state.gslapper_loop)
-        .on_toggle(Messages::GSllaperLoopVideoChanged)
-        .into();
+    let loop_switch: Element<'_, Messages> = create_tooltip(
+        toggler(app_state.gslapper_loop)
+            .on_toggle(Messages::GSllaperLoopVideoChanged)
+            .into(),
+        text![
+            "{}",
+            TRANSLATION.get_translation("gslapper-loop-video-tooltip")
+        ]
+        .into(),
+    )
+    .into();
 
     let additional_options_entry: Element<'_, Messages> = text_input(
         &TRANSLATION.get_translation("gslapper-additional-option"),
