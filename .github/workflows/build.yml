@@ -30,37 +30,17 @@ jobs:
   package-deb-file:
     runs-on: ubuntu-latest
     steps:
-      - name: Get code
-        uses: actions/checkout@v4
-      - name: Get dependencies
-        uses: awalsh128/cache-apt-pkgs-action@latest
+      - uses: actions/checkout@v4
+      - uses: jtdor/build-deb-action@v1
+        env:
+          DEB_BUILD_OPTIONS: noautodbgsym
         with:
-          packages: libgtk-4-1 openssl libsqlite3-0 libsqlite3-dev libglib2.0-dev sqlite3 libgtk-4-dev meson ninja-build cargo gettext desktop-file-utils
-          version: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache Rust Artifacts
-        uses: Swatinem/rust-cache@v2
-        with:
-          cache-directories: "builddir/target"
-      - name: Build waytrogen
-        run: |
-          TAG=${{ github.ref_name }}
-          PACKAGE_NAME="waytrogen_${TAG}_amd64"
-          PREFIX="debpkgs/${PACKAGE_NAME}"
-          echo "PACKAGE_NAME=${PACKAGE_NAME}" >> $GITHUB_ENV
-          sed -i "s/VERSION/${TAG}/" meson.build
-          meson setup builddir --prefix="$(realpath $PREFIX)"
-          meson compile -C builddir
-          meson install -C builddir
-          mkdir -p "$PREFIX/DEBIAN"
-          mv debpkgs/control debpkgs/postinst "$PREFIX/DEBIAN"
-          sed -i "s/VERSION/${TAG}/" "$PREFIX/DEBIAN/control"
-          chmod 755 "$PREFIX/DEBIAN/postinst"
-          dpkg-deb --build "$PREFIX"
+          buildpackage-opts: --build=binary --no-sign
       - name: Upload deb package
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ env.PACKAGE_NAME }}.deb"
-          path: debpkgs/*.deb
+          name: "${{ env.PACKAGE_NAME }}_${{ github.ref_name }}_amd64.deb"
+          path: "debian/artifacts/${{ env.PACKAGE_NAME }}_${{ github.ref_name }}_amd64.deb"
 
   get-vendored-dependencies:
     runs-on: ubuntu-latest

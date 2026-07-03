@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: waytrogen
+Source: https://github.com/nikolaizombie1/waytrogen
+
+Files: *
+Copyright: 2025 Fabio J. Matos Nieves
+License: Unlicense
+
+License: Unlicense
+ This is free and unencumbered software released into the public domain.
+ .
+ (full Unlicense text or reference to /usr/share/common-licenses/Unlicense if present)
