@@ -5,4 +5,4 @@ Type=Application
 Terminal=false
 Exec=waytrogen
 Name=Waytrogen
-Icon=io.github.waytrogen
+Icon=waytrogen

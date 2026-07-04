@@ -12,5 +12,5 @@ dependency('sqlite3', version: '>= 3.39')
 subdir('src')
 
 
-install_data('waytrogen.desktop', rename: 'io.github.waytrogen.desktop', install_dir: get_option('prefix') / get_option('datadir') / 'applications')
-install_data('README-Assets/WaytrogenLogo.svg', rename: 'io.github.waytrogen.svg', install_dir: get_option('prefix') / get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps')
+install_data('waytrogen.desktop', install_dir: get_option('prefix') / get_option('datadir') / 'applications')
+install_data('README-Assets/WaytrogenLogo.svg', rename: 'waytrogen.svg', install_dir: get_option('prefix') / get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps')
