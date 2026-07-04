@@ -20,12 +20,21 @@ jobs:
           cache-directories: "./target"
       - name: Build waytrogen
         run: cargo build --release
-      - name: Upload ccompiled binary
+      - name: Upload compiled binary
         uses: actions/upload-artifact@v4
         id: compiled-meson-project
         with:
           name: waytrogen_${{ github.ref_name }}_amd64
           path: ./target/release/waytrogen
+      - name: Archive Completions
+        run: |
+          tar -czf waytrogen-shell-completions.tar.gz ./target/completions
+      - name: Upload completions
+        uses: actions/upload-artifact@v4
+        id: shell-completions
+        with:
+          path: waytrogen-shell-completions.tar.gz
+        
 
   package-deb-file:
     runs-on: ubuntu-latest
@@ -76,6 +85,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: waytrogen-${{ github.ref_name }}-vendor.tar.gz
+      - name: Get shell completions file
+        uses: actions/download-artifact@v4
+        with:
+          name: waytrogen-shell-completions.tar.gz
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -83,6 +96,7 @@ jobs:
             waytrogen_${{ github.ref_name }}_amd64
             waytrogen_${{ github.ref_name }}_amd64.deb
             waytrogen-${{ github.ref_name }}-vendor.tar.gz
+            waytrogen-shell-completions.tar.gz
           make_latest: 'true'
 
   publish-waytrogen-to-aur:
