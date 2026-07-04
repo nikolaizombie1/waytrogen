@@ -1,0 +1,37 @@
+app-id: io.github.waytrogen
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+- org.freedesktop.Sdk.Extension.rust-stable
+command: waytrogen
+finish-args:
+- "--socket=wayland"
+- "--filesystem=xdg-config/waytrogen"
+- "--filesystem=xdg-cache/waytrogen"
+- "--device=dri"
+- "--filesystem=host:ro"
+build-options:
+  append-path: "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm21/bin"
+  env:
+    CARGO_HOME: "/run/build/waytrogen/cargo-home"
+modules:
+- name: waytrogen
+  buildsystem: meson
+  sources:
+  - type: dir
+    path: "./"
+  - cargo-sources.json
+  - type: shell
+    commands:
+    - sed -E 's~directory = "vendor"~directory = "cargo/vendor"~g' .cargo/config.toml.disabled
+      > .cargo/config.toml
+- name: hyprtoolkit
+  buildsystem: simple
+  build-commands:
+    - cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -S . -B ./build
+    - cmake --build ./build --config Release --target hyprpaper -j`nproc 2>/dev/null || getconf _NPROCESSORS_CONF`
+  sources:
+    - type: git
+      url: https://github.com/hyprwm/hyprtoolkit.git
+      tag: v0.5.4
