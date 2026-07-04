@@ -1,4 +1,5 @@
 precompiled_binary = get_option('precompiled_binary')
+completions = get_option('completions')
 
 if precompiled_binary == ''
     cargo = find_program('cargo')
@@ -57,5 +58,10 @@ if precompiled_binary == ''
 
 else
     install_data(precompiled_binary, rename: 'waytrogen', install_dir: join_paths(get_option('prefix'), get_option('bindir')), install_mode: 'rwxr-xr-x')
+    if completions != ''
+      install_data(completions / '@0@.bash'.format(meson.project_name()), install_dir: get_option('datadir') / 'bash-completion' / 'completions')
+      install_data(completions / '_@0@'.format(meson.project_name()), install_dir: get_option('datadir') / 'zsh' / 'vendor_completions')
+      install_data(completions / '@0@.fish'.format(meson.project_name()), install_dir: get_option('datadir') / 'fish' / 'vendor_completions.d')
+    endif
 endif
 
