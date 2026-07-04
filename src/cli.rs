@@ -1,13 +1,13 @@
 use crate::{
     app_state::AppState,
     common::{
-        APP_VERSION, CACHE_FILE_NAME, CONFIG_APP_NAME, Wallpaper, parse_executable_script,
+        APP_VERSION, CACHE_FILE_NAME, CONFIG_APP_NAME, Wallpaper,
         sort_by_sort_dropdown_string,
     },
     wallpaper_changers::{WallpaperChanger, WallpaperChangers},
+    cli_parser::Cli
 };
 use anyhow::anyhow;
-use clap::Parser;
 use log::debug;
 use std::{
     fs::remove_dir_all,
@@ -234,36 +234,3 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
     }
 }
 
-#[derive(Parser, Clone)]
-pub struct Cli {
-    #[arg(short, long)]
-    /// Restore previously set wallpapers.
-    pub restore: bool,
-    #[arg(long, default_value_t = 0)]
-    /// How many error, warning, info, debug or trace logs will be shown. 0 for error, 1 for warning, 2 for info, 3 for debug, 4 or higher for trace.
-    pub log_level: u8,
-    #[arg(short, long, default_value_t = false)]
-    /// Get the current wallpaper settings in JSON format.
-    pub list_current_wallpapers: bool,
-    #[arg(short, long, value_parser = parse_executable_script)]
-    /// Path to external script.
-    pub external_script: Option<String>,
-    #[arg(long)]
-    /// Set random wallpapers based on last set changer.
-    pub random: bool,
-    #[arg(short, long)]
-    /// Get application version.
-    pub version: bool,
-    #[arg(short, long)]
-    /// Cycle wallaper(s) the next on based on the previously set wallpaper(s) and sort settings on a given monitor. "All" cycles wallpapers on all monitors.
-    pub next: Option<String>,
-    #[arg(short, long, default_value_t = 0)]
-    /// Startup delay to allow monitors to initialize.
-    pub startup_delay: u64,
-    #[arg(short, long)]
-    /// Delete image cache.
-    pub delete_cache: bool,
-    #[arg(short = 'b', long)]
-    /// Hide bottom bar
-    pub hide_bottom_bar: Option<bool>,
-}

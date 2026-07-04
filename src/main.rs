@@ -1,14 +1,15 @@
 use anyhow::anyhow;
-use clap::Parser;
 use log::error;
 use std::{thread::sleep, time::Duration};
 use waytrogen::{
     app_state::AppState,
     cli::{
-        Cli, cycle_next_wallpaper, delete_image_cache, print_app_version, print_wallpaper_state,
+	cycle_next_wallpaper, delete_image_cache, print_app_version, print_wallpaper_state,
         restore_wallpapers, set_random_wallpapers,
     },
+    cli_parser::Cli
 };
+use clap::Parser;
 
 fn main() -> anyhow::Result<()> {
     let args = Cli::parse();
