@@ -25,6 +25,7 @@ A GUI wallpaper setter for Wayland that is a spiritual successor for the minimal
   - `swaybg` (sway - png, jpeg, tiff, tga, gif)
   - `mpvpaper` (any video/image format with mpv config)
   - `awww` (jpeg, png, gif, pnm, tga, tiff, webp, bmp, farbfeld with transitions)
+  - `glsapper` (similar to mpvpaper but with lower memory usage)
 
 ## Installation
 1. Install required wallpaper changer(s) based on your needs:
@@ -32,6 +33,7 @@ A GUI wallpaper setter for Wayland that is a spiritual successor for the minimal
     - `swaybg` for Sway
     - `mpvpaper` for video support
     - `awww` for transition effects
+	- `gslapper` for video support with lower memory usage
 2. Install `waytrogen`:
     - Arch Linux: Available on [`AUR`](https://aur.archlinux.org/packages/waytrogen)
     - NixOS: Available on [`Nixpkgs`](https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&type=packages&query=waytrogen)
@@ -55,20 +57,17 @@ git clone https://github.com/nikolaizombie1/waytrogen.git && cd waytrogen
 For those who would like to build from source on other distributions, the following dependencies are required:
 - sqlite3 version 3.42 or greater
 - openssl version 3.0 or greater
-- gtk4 version 4.12 or greater
-- gio-2.0 version 2.78 or greater
-- glib-2.0 version 2.78 or greater
 - meson version 1.2 or greater
 - ninja version 1.10 or greater
 - cargo version 1.75 or greater
 
 On Arch use the following command to install the required build dependencies:
 ```bash
-sudo pacman -S gtk4 sqlite openssl glib2 rust meson ninja
+sudo pacman -S gtk4 sqlite openssl rust meson ninja
 ```
 On Ubuntu use the following command to install the required build dependencies:
 ```bash
-sudo apt install libgtk-4-1 openssl libsqlite3-0 libsqlite3-dev libglib2.0-dev sqlite3 libgtk-4-dev meson ninja cargo
+sudo apt install openssl sqlite3 meson ninja cargo
 ```
 Then clone the repository using:
 ```bash
@@ -95,40 +94,8 @@ git clone https://github.com/YOUR_USERNAME/waytrogen.git && cd waytrogen
 git switch --create descriptive-branch-name main
 ```
 4. Perform the changes you like to do.
-   - If you want to add a new language to waytrogen, follow these steps:
-	 1. Install `gettext`
-
-	 On Arch Linux use:
-	 ```bash
-	 sudo pacman -S gettext
-	 ```
-	 On Ubuntu use:
-	 ```bash
-	 sudo apt install gettext
-	 ```
-	 On NixOS gettext is already installed.
-
-	 2. Run `cd po`
-	 2. Add the language code you would like to add using a language code from [here](https://www.gnu.org/software/gettext/manual/html_node/index.html) to the `LINGUAS` file. Keep the file ordered alphabetically.
-	 4. Create the skeleton `po` file using the following command:
-	 ```bash
-	 msginit -i waytrogen -o LL.po -l LL_CC.UTF8
-	 ```
-	 Where `LL` is the language code used in the previous step and `CC` is the country code can be obtained [here](https://www.gnu.org/software/gettext/manual/html_node/Country-Codes.html)
-
-	 5. Modify the skeleton `po` the sections where it says `msgstr ""`
    - If you would like to do code changes, follow these steps:
-     1. Install `waytrogen` either from source or from your package manager. This is to install the required schemas. Skip this step if developing on NixOS.
-	 2. Install the required development dependencies:
-
-	 On Arch Linux, use:
-	 ```bash
-	 sudo pacman -S gtk4 sqlite openssl glib2 rust
-	 ```
-	 On Ubuntu, use:
-	 ```bash
-	 sudo apt install sqlite3 openssl libgtk-4-1 libglib2.0-dev cargo
-	 ```
+     1. Install `waytrogen` either from source.
 	 On NixOS, add the following snippet to your `configuration.nix`
 	 ```nix
 	 programs.direnv = {
