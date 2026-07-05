@@ -5,7 +5,7 @@
 </h3>
 
 <div align="center">
-<img src="README-Assets/preview.webp" width="100%"/>
+<img src="README-Assets/preview.webp" width="100%" />
 </div>
 
 ---
