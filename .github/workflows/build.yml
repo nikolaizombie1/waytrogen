@@ -28,12 +28,12 @@ jobs:
           path: ./target/release/waytrogen
       - name: Archive Completions
         run: |
-          tar -czf waytrogen-shell-completions.tar.gz ./target/completions
+          tar -czf waytrogen-${{ github.ref_name }}-shell-completions.tar.gz ./target/completions
       - name: Upload completions
         uses: actions/upload-artifact@v4
         id: shell-completions
         with:
-          path: waytrogen-shell-completions.tar.gz
+          path: waytrogen-${{ github.ref_name }}-shell-completions.tar.gz
         
 
   package-deb-file:
@@ -96,7 +96,7 @@ jobs:
             waytrogen_${{ github.ref_name }}_amd64
             waytrogen_${{ github.ref_name }}_amd64.deb
             waytrogen-${{ github.ref_name }}-vendor.tar.gz
-            waytrogen-shell-completions.tar.gz
+            waytrogen-${{ github.ref_name }}-shell-completions.tar.gz
           make_latest: 'true'
 
   publish-waytrogen-to-aur:

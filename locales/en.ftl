@@ -264,7 +264,7 @@ original = Original
 
 panscan = Panscan
 
-gslapper-additional-option = Ajustes adicionales para GStreamer/gslapper (e.g panscan=0.8)
+gslapper-additional-option = Additional options for GStreamer/gslapper (e.g panscan=0.8)
 
 theme = Theme
 
