@@ -8,20 +8,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Get dependencies
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: libgtk-4-1 openssl libsqlite3-0 libsqlite3-dev libglib2.0-dev sqlite3 libgtk-4-dev meson ninja-build cargo gettext desktop-file-utils
-          version: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache Rust Artifacts
-        uses: Swatinem/rust-cache@v2
-        with:
-          cache-directories: "./target"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssl libsqlite3-dev sqlite3 meson ninja-build desktop-file-utils rustup
+      - name: Set up Rust toolchain
+        run: |
+          rustup toolchain install stable
+          rustup default stable
+      - name: Add rustup cargo bin to PATH
+        run: echo "${HOME}/.cargo/bin" >> $GITHUB_PATH
       - name: Build waytrogen
         run: cargo build --release
       - name: Upload compiled binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         id: compiled-meson-project
         with:
           name: waytrogen_${{ github.ref_name }}_amd64
@@ -30,39 +31,50 @@ jobs:
         run: |
           tar -czf waytrogen-${{ github.ref_name }}-shell-completions.tar.gz ./target/completions
       - name: Upload completions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         id: shell-completions
         with:
+          name: waytrogen-${{ github.ref_name }}-shell-completions.tar.gz
           path: waytrogen-${{ github.ref_name }}-shell-completions.tar.gz
         
 
   package-deb-file:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: jtdor/build-deb-action@v1
-        env:
-          DEB_BUILD_OPTIONS: noautodbgsym
-        with:
-          buildpackage-opts: --build=binary --no-sign
+      - name: Get code
+        uses: actions/checkout@v7
+      - name: Get dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssl libsqlite3-dev sqlite3 meson ninja-build desktop-file-utils devscripts build-essential debhelper-compat cargo rustc
+          [ -d "$HOME/.cargo" ] && rm -rf "$HOME/.cargo" || echo "$HOME/.cargo does not exist, skipping"
+          [ -d "$HOME/.rustup" ] && rm -rf "$HOME/.rustup" || echo "$HOME/.rustup does not exist, skipping"
+      - uses: actions/checkout@v7
+      - name: Create deb package
+        run: |
+          dpkg-buildpackage -us -uc -b
+      - name: Move deb package
+        run : mv ../waytrogen_${{ github.ref_name }}-1_amd64.deb .
       - name: Upload deb package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: "${{ env.PACKAGE_NAME }}_${{ github.ref_name }}_amd64.deb"
-          path: "debian/artifacts/${{ env.PACKAGE_NAME }}_${{ github.ref_name }}_amd64.deb"
+          name: "waytrogen_${{ github.ref_name }}-1_amd64.deb"
+          path: "waytrogen_${{ github.ref_name }}-1_amd64.deb"
 
   get-vendored-dependencies:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+      - name: Set up Rust toolchain
+        run: |
+          rustup default stable
       - name: Generate vendor tarball
-        uses: dtolnay/rust-toolchain@stable
-      - run: |
+        run: |
           cargo vendor vendor/
           tar -czf waytrogen-${{ github.ref_name }}-vendor.tar.gz vendor
       - name: Upload vendored dependencies
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: waytrogen-${{ github.ref_name }}-vendor.tar.gz
           path: waytrogen-${{ github.ref_name }}-vendor.tar.gz
@@ -72,29 +84,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get generic build prefix usr binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: waytrogen_${{ github.ref_name }}_amd64
       - name: Rename precompiled binary
         run: mv waytrogen waytrogen_${{ github.ref_name }}_amd64
       - name: Get deb file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: waytrogen_${{ github.ref_name }}_amd64.deb
+          name: waytrogen_${{ github.ref_name }}-1_amd64.deb
       - name: Get vendor file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: waytrogen-${{ github.ref_name }}-vendor.tar.gz
       - name: Get shell completions file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: waytrogen-shell-completions.tar.gz
+          name: waytrogen-${{ github.ref_name }}-shell-completions.tar.gz
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             waytrogen_${{ github.ref_name }}_amd64
-            waytrogen_${{ github.ref_name }}_amd64.deb
+            waytrogen_${{ github.ref_name }}-1_amd64.deb
             waytrogen-${{ github.ref_name }}-vendor.tar.gz
             waytrogen-${{ github.ref_name }}-shell-completions.tar.gz
           make_latest: 'true'
@@ -147,7 +159,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Install API token for copr-cli
         env:
           API_TOKEN_CONTENT: ${{ secrets.COPR_CLI_CONFIG }}
