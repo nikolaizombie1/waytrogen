@@ -1423,7 +1423,7 @@ impl AppState {
                             .spacing(DEFAULT_MARGIN)
                             .height(Fill)
                             .width(Fill);
-                        let mut image_row = row![].width(Fill).height(Fill).spacing(DEFAULT_MARGIN);
+                        let mut image_row = row![].width(Shrink).height(Fill).spacing(DEFAULT_MARGIN);
 
                         for (index, cached_image_file) in self
                             .image_grid_images
