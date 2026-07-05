@@ -1,8 +1,10 @@
 [Desktop Entry]
-Encoding=UTF-8
 Version=1.0
 Type=Application
 Terminal=false
 Exec=waytrogen
 Name=Waytrogen
+Comment=A wallpaper manager for Wayland
 Icon=waytrogen
+Categories=Utility
+StartupNotify=true
