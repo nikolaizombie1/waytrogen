@@ -42,7 +42,7 @@ License:        %{shrink:
     Zlib OR Apache-2.0 OR MIT
 }
 
-URL:            https://github.com/nikolaizombie1/waytrogen
+URL:            https://github.com/nikolaizombie1/%{name}
 Source:         %{url}/archive/refs/tags/%{version}.tar.gz
 Source1:        %{url}/releases/download/%{version}/%{name}-%{version}-vendor.tar.gz
 
@@ -75,6 +75,9 @@ A GUI wallpaper changer for wayland.
 %{_bindir}/%{name}
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/*/apps/%{name}.svg
+%{_datadir}/bash-completion/completions/%{name}.bash
+%{_datadir}/zsh/vendor_completions/_%{name}
+%{_datadir}/fish/vendor_completions.d/%{name}.fish
 
 
 %changelog
