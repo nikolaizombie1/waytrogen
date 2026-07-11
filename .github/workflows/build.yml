@@ -25,6 +25,7 @@ jobs:
         uses: actions/upload-artifact@v7
         id: compiled-meson-project
         with:
+          if-no-files-found: error
           name: waytrogen_${{ github.ref_name }}_amd64
           path: ./target/release/waytrogen
       - name: Archive Completions
@@ -34,32 +35,43 @@ jobs:
         uses: actions/upload-artifact@v7
         id: shell-completions
         with:
+          if-no-files-found: error
           name: waytrogen-${{ github.ref_name }}-shell-completions.tar.gz
           path: waytrogen-${{ github.ref_name }}-shell-completions.tar.gz
         
 
   package-deb-file:
+    needs: [ get-vendored-dependencies ]
     runs-on: ubuntu-26.04
     steps:
       - name: Get code
         uses: actions/checkout@v7
-      - name: Get dependencies
+      - name: Enable Vendor Build
         run: |
-          sudo apt-get update
-          sudo apt-get install -y openssl libsqlite3-dev sqlite3 meson ninja-build desktop-file-utils devscripts build-essential debhelper-compat cargo rustc
-          [ -d "$HOME/.cargo" ] && rm -rf "$HOME/.cargo" || echo "$HOME/.cargo does not exist, skipping"
-          [ -d "$HOME/.rustup" ] && rm -rf "$HOME/.rustup" || echo "$HOME/.rustup does not exist, skipping"
-      - uses: actions/checkout@v7
-      - name: Create deb package
+          mv .cargo/config.toml.disabled .cargo/config.toml
+      - name: Get vendored dependencies
+        uses: actions/download-artifact@v8
+        with:
+          name: waytrogen-${{ github.ref_name }}-vendor.tar.gz
+      - name: Extract vendored dependencies
         run: |
-          dpkg-buildpackage -us -uc -b
-      - name: Move deb package
-        run : mv ../waytrogen_${{ github.ref_name }}-1_amd64.deb .
+          tar -xzf waytrogen-${{ github.ref_name }}-vendor.tar.gz
+      - uses: jtdor/build-deb-action@v1
+        env:
+          DEB_BUILD_OPTIONS: noautodbgsym
+        with:
+          buildpackage-opts: --build=binary --no-sign
+          before-build-hook: ls -la vendor/anyhow && realpath vendor/anyhow/Cargo.toml.orig
+          docker-image: debian:unstable
+      - name: Debug artifacts
+        run: |
+          ls debian/artifacts
       - name: Upload deb package
         uses: actions/upload-artifact@v7
         with:
+          if-no-files-found: error
           name: "waytrogen_${{ github.ref_name }}-1_amd64.deb"
-          path: "waytrogen_${{ github.ref_name }}-1_amd64.deb"
+          path: "debian/artifacts/waytrogen_${{ github.ref_name }}-1_amd64.deb"
 
   get-vendored-dependencies:
     runs-on: ubuntu-latest
@@ -76,6 +88,7 @@ jobs:
       - name: Upload vendored dependencies
         uses: actions/upload-artifact@v7
         with:
+          if-no-files-found: error
           name: waytrogen-${{ github.ref_name }}-vendor.tar.gz
           path: waytrogen-${{ github.ref_name }}-vendor.tar.gz
 

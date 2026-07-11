@@ -2,7 +2,7 @@ Source: waytrogen
 Priority: Optional
 Section: utilities
 Maintainer: nikolaizombie1 <fabio.matos999@gmail.com>
-Build-Depends: debhelper-compat (= 13), openssl, libsqlite3-0, libsqlite3-dev, pkg-config, ninja-build, meson
+Build-Depends: debhelper-compat (= 13), openssl, libsqlite3-0, libsqlite3-dev, pkg-config, ninja-build, meson, cargo, rustc
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
 Description: Lightning fast wallpaper setter for Wayland Compositors
