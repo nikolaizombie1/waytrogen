@@ -306,6 +306,41 @@ gslapper-pause-mode-tooltip = Opción de reproducción cuando el video esta ocul
 
 gslapper-scale-mode-tooltip = Método de escalamiento para el video.
 
+gslapper-settings = Ajustes de gSlapper
+gslapper-settings-tooltip = Configura gSlapper para la salida seleccionada.
+gslapper-settings-description = Los ajustes de inicio reinician gSlapper para esta salida. Los controles de reproducción y caché se aplican ahora.
+gslapper-output = Salida
+gslapper-status = Estado
+gslapper-not-running = No hay un proceso de gSlapper administrado por Waytrogen para esta salida.
+gslapper-playing = Reproduciendo
+gslapper-paused = En pausa
+gslapper-pause = Pausar
+gslapper-resume = Reanudar
+gslapper-wallpaper-behavior = Comportamiento del fondo
+gslapper-scale-mode = Modo de escala
+gslapper-loop-video = Repetir video
+gslapper-hidden-playback = Al ocultarse
+gslapper-transitions = Transiciones
+gslapper-enable-transition = Fundido entre fondos
+gslapper-transition-duration = Duración en segundos
+gslapper-show-advanced = Mostrar ajustes avanzados
+gslapper-hide-advanced = Ocultar ajustes avanzados
+gslapper-fps-cap = Límite de FPS
+gslapper-cache-size = Tamaño de caché (MB)
+gslapper-cache-status = Caché
+gslapper-cache-unavailable = No está en ejecución
+gslapper-cache-refresh = Actualizar
+gslapper-cache-clear-unused = Borrar sin usar
+gslapper-cache-clear-all = Borrar todo
+gslapper-raw-options = Opciones de GStreamer
+gslapper-raw-options-help = Se pasan a gSlapper sin cambios. Las opciones no válidas pueden impedir el inicio.
+gslapper-cancel = Cancelar
+gslapper-save = Guardar
+gslapper-fps-description = Frecuencia máxima de reproducción. Valores admitidos: 30, 60 o 100.
+gslapper-transition-description = Fundido entre cambios de fondo.
+gslapper-transition-duration-description = Duración del fundido en segundos, de 0,1 a 5.
+gslapper-cache-size-description = Tamaño máximo de caché de gSlapper en MB.
+
 hyprpaper-fit-mode-tooltip = Determina como la imagen esta desplegada.
 
 image-folder-tooltip = Carpeta superior de imágenes de fondo.

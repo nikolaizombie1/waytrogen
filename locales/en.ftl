@@ -305,6 +305,41 @@ gslapper-pause-mode-tooltip = Playback control when wallpaper is hidden.
 
 gslapper-scale-mode-tooltip = Scaling method for the video.
 
+gslapper-settings = gSlapper settings
+gslapper-settings-tooltip = Configure gSlapper for the selected output.
+gslapper-settings-description = Launch settings restart gSlapper for this output. Playback and cache actions apply now.
+gslapper-output = Output
+gslapper-status = Status
+gslapper-not-running = No Waytrogen-managed gSlapper process is running for this output.
+gslapper-playing = Playing
+gslapper-paused = Paused
+gslapper-pause = Pause
+gslapper-resume = Resume
+gslapper-wallpaper-behavior = Wallpaper behavior
+gslapper-scale-mode = Scale mode
+gslapper-loop-video = Loop video
+gslapper-hidden-playback = When hidden
+gslapper-transitions = Transitions
+gslapper-enable-transition = Fade between wallpapers
+gslapper-transition-duration = Duration in seconds
+gslapper-show-advanced = Show advanced settings
+gslapper-hide-advanced = Hide advanced settings
+gslapper-fps-cap = FPS cap
+gslapper-cache-size = Cache size (MB)
+gslapper-cache-status = Cache
+gslapper-cache-unavailable = Not running
+gslapper-cache-refresh = Refresh
+gslapper-cache-clear-unused = Clear unused
+gslapper-cache-clear-all = Clear all
+gslapper-raw-options = GStreamer options
+gslapper-raw-options-help = Passed to gSlapper unchanged. Invalid options can prevent startup.
+gslapper-cancel = Cancel
+gslapper-save = Save
+gslapper-fps-description = Maximum playback frame rate. Supported values: 30, 60, or 100.
+gslapper-transition-description = Fade between wallpaper changes.
+gslapper-transition-duration-description = Fade duration in seconds, from 0.1 to 5.
+gslapper-cache-size-description = Maximum gSlapper cache size in MB.
+
 hyprpaper-fit-mode-tooltip = Determines how to display the image.
 
 image-folder-tooltip = Root wallpaper folder.
