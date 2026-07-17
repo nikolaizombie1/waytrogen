@@ -2,7 +2,10 @@ use crate::{
     app_state::{AppState, Messages},
     changers::{
         awww::{change_awww_wallpaper, generate_awww_changer_bar},
-        gslapper::{change_gslapper_wallpaper, generate_gslapper_changer_bar},
+        gslapper::{
+            change_gslapper_wallpaper, generate_gslapper_changer_bar, gslapper_is_supported,
+            stop_all_managed_gslappers, stop_gslapper,
+        },
         hyprpaper::{change_hyprpaper_wallpaper, generate_hyprpaper_changer_bar},
         mpvpaper::{change_mpvpaper_wallpaper, generate_mpvpaper_changer_bar},
         swaybg::{change_swaybg_wallpaper, generate_swaybg_changer_bar},
@@ -18,9 +21,9 @@ use strum_macros::{EnumIter, IntoStaticStr};
 use which::which;
 
 pub trait WallpaperChanger {
-    fn change(self, image: PathBuf, monitor: String);
+    fn change(self, image: PathBuf, monitor: String) -> anyhow::Result<()>;
     fn accepted_formats(&self) -> Vec<String>;
-    fn kill(&self);
+    fn kill(&self, monitor: Option<&str>);
     fn ui_elements(&self, app_state: AppState) -> Vec<Element<'_, Messages>>;
 }
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
@@ -78,12 +81,59 @@ impl Default for AwwwSettings {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[serde(default)]
 pub struct GSllaperSettings {
     pub scale_mode: GSllapperScaleMode,
     pub pause_mode: GSllapperPauseMode,
     pub loop_video: bool,
     pub additional_options: String,
+    pub fps_cap: u16,
+    pub transition_enabled: bool,
+    pub transition_duration: f64,
+    pub cache_size_mb: u32,
+}
+
+impl Default for GSllaperSettings {
+    fn default() -> Self {
+        Self {
+            scale_mode: GSllapperScaleMode::default(),
+            pause_mode: GSllapperPauseMode::default(),
+            loop_video: true,
+            additional_options: String::new(),
+            fps_cap: 30,
+            transition_enabled: false,
+            transition_duration: 0.5,
+            cache_size_mb: 256,
+        }
+    }
+}
+
+impl GSllaperSettings {
+    pub fn validate(&self) -> Result<(), String> {
+        if !matches!(self.fps_cap, 30 | 60 | 100) {
+            return Err("gSlapper FPS cap must be 30, 60, or 100".to_owned());
+        }
+        if !(self.transition_duration > 0.0 && self.transition_duration <= 5.0) {
+            return Err(
+                "gSlapper transition duration must be above 0 and at most 5 seconds".to_owned(),
+            );
+        }
+        if self.cache_size_mb > i32::MAX as u32 {
+            return Err("gSlapper cache size exceeds the supported integer range".to_owned());
+        }
+        Ok(())
+    }
+
+    #[must_use]
+    pub fn launch_settings_changed(&self, other: &Self) -> bool {
+        self.scale_mode != other.scale_mode
+            || self.pause_mode != other.pause_mode
+            || self.loop_video != other.loop_video
+            || self.additional_options != other.additional_options
+            || self.fps_cap != other.fps_cap
+            || self.cache_size_mb != other.cache_size_mb
+    }
 }
 
 #[derive(Debug, EnumIter, Clone, Serialize, Deserialize, PartialEq)]
@@ -102,6 +152,18 @@ pub enum GSllapperScaleMode {
     Stretch,
     Original,
     Panscan,
+}
+
+impl GSllapperScaleMode {
+    #[must_use]
+    pub const fn as_arg(&self) -> &'static str {
+        match self {
+            Self::Fill => "fill",
+            Self::Stretch => "stretch",
+            Self::Original => "original",
+            Self::Panscan => "panscan",
+        }
+    }
 }
 
 impl Display for GSllapperScaleMode {
@@ -137,6 +199,17 @@ pub enum GSllapperPauseMode {
     AutoStop,
 }
 
+impl GSllapperPauseMode {
+    #[must_use]
+    pub const fn as_arg(&self) -> Option<&'static str> {
+        match self {
+            Self::None => None,
+            Self::AutoPause => Some("-p"),
+            Self::AutoStop => Some("-s"),
+        }
+    }
+}
+
 impl Display for GSllapperPauseMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -169,10 +242,10 @@ impl Default for WallpaperChangers {
 impl WallpaperChangers {
     pub fn killall_changers() {
         for changer in WallpaperChangers::iter() {
-            changer.kill();
+            changer.kill(None);
         }
     }
-    fn kill_all_changers_except(changer: &WallpaperChangers) {
+    fn kill_all_changers_except(changer: &WallpaperChangers, monitor: &str) {
         let varient = match changer {
             Self::Hyprpaper(_) => Self::Hyprpaper(HyprpaperSettings::default()),
             Self::Swaybg(_) => Self::Swaybg(SwaybgSettings::default()),
@@ -182,7 +255,7 @@ impl WallpaperChangers {
         };
         WallpaperChangers::iter().for_each(|w| {
             if w != varient {
-                w.kill();
+                w.kill(Some(monitor));
             }
         });
     }
@@ -460,24 +533,26 @@ impl Display for MpvPaperPauseModes {
 }
 
 impl WallpaperChanger for WallpaperChangers {
-    fn change(self, image: PathBuf, monitor: String) {
-        Self::kill_all_changers_except(&self);
+    fn change(self, image: PathBuf, monitor: String) -> anyhow::Result<()> {
+        Self::kill_all_changers_except(&self, &monitor);
         match self {
             Self::Hyprpaper(_) => {
                 change_hyprpaper_wallpaper(self, &image, &monitor);
+                Ok(())
             }
             Self::Swaybg(_) => {
                 change_swaybg_wallpaper(self, &image, &monitor);
+                Ok(())
             }
             Self::MpvPaper(_) => {
                 change_mpvpaper_wallpaper(&self, &image, &monitor);
+                Ok(())
             }
             Self::Awww(_) => {
                 change_awww_wallpaper(self, image, monitor);
+                Ok(())
             }
-            Self::GSlapper(_) => {
-                change_gslapper_wallpaper(&self, &image, &monitor);
-            }
+            Self::GSlapper(_) => change_gslapper_wallpaper(&self, &image, &monitor),
         }
     }
 
@@ -845,10 +920,6 @@ impl WallpaperChanger for WallpaperChangers {
                     "jpeg".to_owned(),
                     "png".to_owned(),
                     "webp".to_owned(),
-                    "gif".to_owned(),
-                    "bmp".to_owned(),
-                    "tiff".to_owned(),
-                    "tif".to_owned(),
                     // Videos (common formats supported by GStreamer)
                     "mp4".to_owned(),
                     "mkv".to_owned(),
@@ -872,7 +943,7 @@ impl WallpaperChanger for WallpaperChangers {
             }
         }
     }
-    fn kill(&self) {
+    fn kill(&self, monitor: Option<&str>) {
         match self {
             Self::Hyprpaper(_) => {
                 let _ = Command::new("pkill")
@@ -903,25 +974,13 @@ impl WallpaperChanger for WallpaperChangers {
                     .and_then(|mut c| c.wait());
             }
             Self::GSlapper(_) => {
-                // Try graceful quit via IPC first (using socat or nc)
-                let socket_path = "/tmp/gslapper.sock";
-                if std::path::Path::new(socket_path).exists() {
-                    let _ = Command::new("bash")
-                        .arg("-c")
-                        .arg(format!("echo quit | socat - UNIX-CONNECT:{socket_path} 2>/dev/null || echo quit | nc -U {socket_path} 2>/dev/null"))
-                        .spawn()
-                        .and_then(|mut c| c.wait());
-                    // Give it a moment to quit gracefully
-                    std::thread::sleep(std::time::Duration::from_millis(200));
+                let result = match monitor {
+                    Some(monitor) => stop_gslapper(monitor),
+                    None => stop_all_managed_gslappers(),
+                };
+                if let Err(error) = result {
+                    log::warn!("Failed to stop managed gSlapper: {error}");
                 }
-                // Always pkill to ensure process is dead
-                let _ = Command::new("pkill")
-                    .arg("-9")
-                    .arg("gslapper")
-                    .spawn()
-                    .and_then(|mut c| c.wait());
-                // Clean up socket
-                let _ = std::fs::remove_file(socket_path);
             }
         }
     }
@@ -974,10 +1033,16 @@ pub fn get_available_wallpaper_changers() -> Vec<WallpaperChangers> {
                     }
                 }
             },
+            WallpaperChangers::GSlapper(_) => {
+                if let Ok(executable) = which(changer.to_string().to_lowercase())
+                    && gslapper_is_supported(&executable)
+                {
+                    available_changers.push(changer);
+                }
+            }
             WallpaperChangers::Swaybg(_)
             | WallpaperChangers::MpvPaper(_)
-            | WallpaperChangers::Awww(_)
-            | WallpaperChangers::GSlapper(_) => {
+            | WallpaperChangers::Awww(_) => {
                 append_changer_if_in_path(&mut available_changers, changer);
             }
         }
@@ -991,5 +1056,64 @@ fn append_changer_if_in_path(
 ) {
     if which(changer.to_string().to_lowercase()).is_ok() {
         available_changers.push(changer);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gslapper_settings_use_protocol_tokens() {
+        assert_eq!(GSllapperScaleMode::Fill.as_arg(), "fill");
+        assert_eq!(GSllapperScaleMode::Panscan.as_arg(), "panscan");
+        assert_eq!(GSllapperPauseMode::AutoPause.as_arg(), Some("-p"));
+        assert_eq!(GSllapperPauseMode::AutoStop.as_arg(), Some("-s"));
+        assert_eq!(GSllapperPauseMode::None.as_arg(), None);
+    }
+
+    #[test]
+    fn gslapper_settings_validate_gslapper_limits() {
+        let mut settings = GSllaperSettings::default();
+        assert!(settings.validate().is_ok());
+        settings.fps_cap = 59;
+        assert!(settings.validate().is_err());
+        settings.fps_cap = 60;
+        settings.transition_duration = 5.1;
+        assert!(settings.validate().is_err());
+    }
+
+    #[test]
+    fn gslapper_image_formats_match_version_1_5() {
+        let formats = WallpaperChangers::GSlapper(GSllaperSettings::default()).accepted_formats();
+        for extension in ["jpg", "jpeg", "png", "webp"] {
+            assert!(formats.contains(&extension.to_owned()));
+        }
+        for extension in ["gif", "bmp", "tif", "tiff"] {
+            assert!(!formats.contains(&extension.to_owned()));
+        }
+    }
+
+    #[test]
+    fn old_gslapper_settings_receive_new_defaults() {
+        let settings: GSllaperSettings = serde_json::from_str(
+            r#"{"scale_mode":"Fill","pause_mode":"None","loop_video":true,"additional_options":""}"#,
+        )
+        .unwrap();
+        assert_eq!(settings.fps_cap, 30);
+        assert_eq!(settings.cache_size_mb, 256);
+        assert_eq!(settings.transition_duration, 0.5);
+    }
+
+    #[test]
+    fn runtime_transition_changes_do_not_require_restart() {
+        let current = GSllaperSettings::default();
+        let mut changed = current.clone();
+        changed.transition_enabled = true;
+        changed.transition_duration = 1.25;
+        assert!(!current.launch_settings_changed(&changed));
+
+        changed.fps_cap = 60;
+        assert!(current.launch_settings_changed(&changed));
     }
 }

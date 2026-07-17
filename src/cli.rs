@@ -29,7 +29,7 @@ pub fn restore_wallpapers(app_state: &AppState) -> anyhow::Result<()> {
         wallpaper.clone().changer.change(
             PathBuf::from(wallpaper.clone().path),
             wallpaper.clone().monitor,
-        );
+        )?;
         match wallpaper.clone().changer {
             WallpaperChangers::Hyprpaper(_) => {
                 thread::sleep(Duration::from_secs(1));
@@ -91,7 +91,7 @@ pub fn set_random_wallpapers(app_state: &mut AppState) -> anyhow::Result<()> {
         log::debug!("{index}");
         w.changer
             .clone()
-            .change(files[index].clone(), w.monitor.clone());
+            .change(files[index].clone(), w.monitor.clone())?;
         files[index]
             .clone()
             .to_str()
@@ -122,7 +122,7 @@ pub fn cycle_next_wallpaper(args: &Cli, app_state: &mut AppState) -> anyhow::Res
                         .parse::<PathBuf>()
                         .unwrap_or_default()
             });
-            try_set_next_wallpaper(&files, wallpaper_index, previous_wallpaper);
+            try_set_next_wallpaper(&files, wallpaper_index, previous_wallpaper)?;
         }
     } else {
         let previous_wallpaper = previous_wallpapers
@@ -145,7 +145,7 @@ pub fn cycle_next_wallpaper(args: &Cli, app_state: &mut AppState) -> anyhow::Res
                     .unwrap_or_default()
             }),
             &mut previous_wallpaper,
-        );
+        )?;
         let index = previous_wallpapers
             .iter()
             .position(|w| w.monitor == previous_wallpaper.monitor)
@@ -160,13 +160,13 @@ fn try_set_next_wallpaper(
     files: &[PathBuf],
     position: Option<usize>,
     previous_wallpaper: &mut Wallpaper,
-) {
+) -> anyhow::Result<()> {
     if let Some(i) = position {
         let path = &files[(i + 1) % files.len()];
         previous_wallpaper
             .changer
             .clone()
-            .change(path.clone(), previous_wallpaper.monitor.clone());
+            .change(path.clone(), previous_wallpaper.monitor.clone())?;
         path.to_str()
             .unwrap_or_default()
             .clone_into(&mut previous_wallpaper.path);
@@ -184,7 +184,7 @@ fn try_set_next_wallpaper(
                 previous_wallpaper
                     .changer
                     .clone()
-                    .change(p.clone(), previous_wallpaper.monitor.clone());
+                    .change(p.clone(), previous_wallpaper.monitor.clone())?;
                 p.to_str()
                     .unwrap_or_default()
                     .clone_into(&mut previous_wallpaper.path);
@@ -196,6 +196,7 @@ fn try_set_next_wallpaper(
             }
         }
     }
+    Ok(())
 }
 
 pub fn delete_image_cache() -> anyhow::Result<()> {
@@ -233,4 +234,3 @@ pub fn delete_image_cache() -> anyhow::Result<()> {
         }
     }
 }
-

@@ -1,6 +1,10 @@
 use crate::common::create_tooltip;
 use crate::locale::TRANSLATION;
 use crate::{
+    changers::gslapper::{
+        GSlapperControl, GSlapperRuntime, GSlapperStatus, apply_gslapper_settings,
+        control_gslapper, generate_gslapper_settings_dialog, load_gslapper_runtime,
+    },
     common::{
         BUTTON_HEIGHT, BUTTON_WIDTH, CacheImageFile, DEFAULT_MARGIN, Wallpaper,
         get_config_file_path, parse_executable_script,
@@ -28,7 +32,7 @@ use iced::{
     Subscription, Task,
     application::BootFn,
     event,
-    widget::{button, column, image, lazy, pick_list, row, text, text_input, toggler},
+    widget::{button, column, image, lazy, pick_list, row, stack, text, text_input, toggler},
     window,
 };
 use iced_aw::{
@@ -149,6 +153,14 @@ pub struct AppState {
     pub gslapper_loop: bool,
     gslapper_additional_options_doc: String,
     pub gslapper_additional_options: String,
+    gslapper_fps_cap_doc: String,
+    pub gslapper_fps_cap: u16,
+    gslapper_transition_enabled_doc: String,
+    pub gslapper_transition_enabled: bool,
+    gslapper_transition_duration_doc: String,
+    pub gslapper_transition_duration: f64,
+    gslapper_cache_size_doc: String,
+    pub gslapper_cache_size: u32,
     hide_changer_options_box_doc: String,
     pub hide_changer_options_box: bool,
     theme_doc: String,
@@ -176,6 +188,18 @@ pub struct AppState {
     pub internal_theme: Option<iced::Theme>,
     #[serde(skip)]
     pub image_grid_loading: bool,
+    #[serde(skip)]
+    pub gslapper_error: Option<String>,
+    #[serde(skip)]
+    pub show_gslapper_settings: bool,
+    #[serde(skip)]
+    pub show_gslapper_advanced: bool,
+    #[serde(skip)]
+    pub gslapper_settings_draft: Option<GSllaperSettings>,
+    #[serde(skip)]
+    pub gslapper_status: Option<GSlapperStatus>,
+    #[serde(skip)]
+    pub gslapper_cache_status: Option<String>,
     #[serde(skip)]
     row_offset: usize,
 }
@@ -272,6 +296,16 @@ impl Default for AppState {
             gslapper_additional_options_doc: TRANSLATION
                 .get_translation("gslapper-additional-options-desciption"),
             gslapper_additional_options: String::default(),
+            gslapper_fps_cap_doc: TRANSLATION.get_translation("gslapper-fps-description"),
+            gslapper_fps_cap: 30,
+            gslapper_transition_enabled_doc: TRANSLATION
+                .get_translation("gslapper-transition-description"),
+            gslapper_transition_enabled: false,
+            gslapper_transition_duration_doc: TRANSLATION
+                .get_translation("gslapper-transition-duration-description"),
+            gslapper_transition_duration: 0.5,
+            gslapper_cache_size_doc: TRANSLATION.get_translation("gslapper-cache-size-description"),
+            gslapper_cache_size: 256,
             hide_changer_options_box_doc: TRANSLATION.get_translation("hide-bottom-bar"),
             hide_changer_options_box: false,
             image_grid_images: Vec::default(),
@@ -290,6 +324,12 @@ impl Default for AppState {
                 .get_translation("favorite-image-only-description"),
             favorite_images_only: false,
             image_grid_loading: false,
+            gslapper_error: None,
+            show_gslapper_settings: false,
+            show_gslapper_advanced: false,
+            gslapper_settings_draft: None,
+            gslapper_status: None,
+            gslapper_cache_status: None,
             row_offset: usize::default(),
         }
     }
@@ -300,7 +340,7 @@ pub enum Messages {
     PopulateImageGrid,
     ImageGridPopulated(AppStateImages),
     ChangeWallpaper(PathBuf),
-    WallpaperChanged(PathBuf),
+    WallpaperChangeFinished(PathBuf, Result<(), String>),
     ChangeWallpaperFolder,
     PopulateMonitorDropdown,
     MonitorDropdownPopulated(Vec<String>),
@@ -347,6 +387,18 @@ pub enum Messages {
     GSlapperPauseModeChanged(GSllapperPauseMode),
     GSllaperLoopVideoChanged(bool),
     GSllaperAdditionalOptionsChanged(String),
+    GSlapperFpsChanged(u16),
+    GSlapperTransitionEnabledChanged(bool),
+    GSlapperTransitionDurationChanged(f64),
+    GSlapperCacheSizeChanged(u32),
+    OpenGSlapperSettings,
+    CloseGSlapperSettings,
+    ToggleGSlapperAdvanced,
+    SaveGSlapperSettings,
+    GSlapperRuntimeLoaded(Result<GSlapperRuntime, String>),
+    GSlapperSettingsApplied(GSllaperSettings, Result<GSlapperRuntime, String>),
+    GSlapperControlRequested(GSlapperControl),
+    GSlapperDialogPressed,
     ThemeChanged(iced::Theme),
     WallpaperFavoriteToggle(PathBuf),
     ShowFavoritesToggled(bool),
@@ -461,6 +513,10 @@ impl BootFn<AppState, Messages> for AppState {
                     pause_mode: instance.clone().gslapper_pause_mode.unwrap_or_default(),
                     loop_video: instance.clone().gslapper_loop,
                     additional_options: instance.clone().gslapper_additional_options,
+                    fps_cap: instance.gslapper_fps_cap,
+                    transition_enabled: instance.gslapper_transition_enabled,
+                    transition_duration: instance.gslapper_transition_duration,
+                    cache_size_mb: instance.gslapper_cache_size,
                 }),
             };
             Some(c)
@@ -711,10 +767,28 @@ impl AppState {
             return Task::none();
         };
         Task::future(async move {
-            changer.change(path.clone(), monitor);
-            path
+            let result = changer
+                .change(path.clone(), monitor)
+                .map_err(|error| error.to_string());
+            (path, result)
         })
-        .then(|p| Task::done(Messages::WallpaperChanged(p)))
+        .then(|(path, result)| Task::done(Messages::WallpaperChangeFinished(path, result)))
+    }
+
+    fn load_gslapper_runtime(&self) -> Task<Messages> {
+        let Some(monitor) = self.monitor.clone() else {
+            return Task::none();
+        };
+        Task::future(async move { load_gslapper_runtime(&monitor).map_err(|e| e.to_string()) })
+            .then(|result| Task::done(Messages::GSlapperRuntimeLoaded(result)))
+    }
+
+    fn control_gslapper(&self, control: GSlapperControl) -> Task<Messages> {
+        let Some(monitor) = self.monitor.clone() else {
+            return Task::none();
+        };
+        Task::future(async move { control_gslapper(&monitor, control).map_err(|e| e.to_string()) })
+            .then(|result| Task::done(Messages::GSlapperRuntimeLoaded(result)))
     }
 
     fn execute_external_script(&self, wallpaper_path: &Path) -> Task<Messages> {
@@ -854,7 +928,12 @@ impl AppState {
             | Messages::ExternalScriptExecuted
             | Messages::AwwwAdvancedSettingsButtonClicked
             | Messages::PopulateMonitorDropdown => Task::none(),
-            Messages::WallpaperChanged(wallpaper_path) => {
+            Messages::WallpaperChangeFinished(_, Err(error)) => {
+                self.gslapper_error = Some(error);
+                Task::none()
+            }
+            Messages::WallpaperChangeFinished(wallpaper_path, Ok(())) => {
+                self.gslapper_error = None;
                 if let Some(changer) = &self.changer
                     && let Some(monitor) = &self.monitor
                 {
@@ -1280,52 +1359,132 @@ impl AppState {
                 }
                 Task::none()
             }
+            Messages::OpenGSlapperSettings => {
+                if let Some(WallpaperChangers::GSlapper(settings)) = &self.changer {
+                    self.gslapper_settings_draft = Some(settings.clone());
+                    self.show_gslapper_settings = true;
+                    self.gslapper_error = None;
+                    return self.load_gslapper_runtime();
+                }
+                Task::none()
+            }
+            Messages::CloseGSlapperSettings => {
+                self.show_gslapper_settings = false;
+                self.gslapper_settings_draft = None;
+                Task::none()
+            }
+            Messages::ToggleGSlapperAdvanced => {
+                self.show_gslapper_advanced = !self.show_gslapper_advanced;
+                Task::none()
+            }
+            Messages::GSlapperRuntimeLoaded(Ok(runtime)) => {
+                self.gslapper_status = runtime.status;
+                self.gslapper_cache_status = runtime.cache_status;
+                self.gslapper_error = None;
+                Task::none()
+            }
+            Messages::GSlapperRuntimeLoaded(Err(error)) => {
+                self.gslapper_status = None;
+                self.gslapper_cache_status = None;
+                self.gslapper_error = Some(error);
+                Task::none()
+            }
+            Messages::GSlapperControlRequested(control) => self.control_gslapper(control),
+            Messages::GSlapperDialogPressed => Task::none(),
+            Messages::GSlapperSettingsApplied(settings, Ok(runtime)) => {
+                self.gslapper_scale_mode = Some(settings.scale_mode.clone());
+                self.gslapper_pause_mode = Some(settings.pause_mode.clone());
+                self.gslapper_loop = settings.loop_video;
+                self.gslapper_additional_options
+                    .clone_from(&settings.additional_options);
+                self.gslapper_fps_cap = settings.fps_cap;
+                self.gslapper_transition_enabled = settings.transition_enabled;
+                self.gslapper_transition_duration = settings.transition_duration;
+                self.gslapper_cache_size = settings.cache_size_mb;
+                self.changer = Some(WallpaperChangers::GSlapper(settings));
+                self.gslapper_status = runtime.status;
+                self.gslapper_cache_status = runtime.cache_status;
+                self.gslapper_error = None;
+                Task::none()
+            }
+            Messages::GSlapperSettingsApplied(_, Err(error)) => {
+                self.gslapper_status = None;
+                self.gslapper_cache_status = None;
+                self.gslapper_error = Some(error);
+                Task::none()
+            }
+            Messages::SaveGSlapperSettings => {
+                let Some(settings) = self.gslapper_settings_draft.clone() else {
+                    return Task::none();
+                };
+                if let Err(error) = settings.validate() {
+                    self.gslapper_error = Some(error);
+                    return Task::none();
+                }
+                let current = match &self.changer {
+                    Some(WallpaperChangers::GSlapper(current)) => current.clone(),
+                    _ => return Task::none(),
+                };
+                let Some(monitor) = self.monitor.clone() else {
+                    return Task::none();
+                };
+                let applied_settings = settings.clone();
+                Task::future(async move {
+                    apply_gslapper_settings(&current, &settings, &monitor)
+                        .map_err(|e| e.to_string())
+                })
+                .then(move |result| {
+                    Task::done(Messages::GSlapperSettingsApplied(
+                        applied_settings.clone(),
+                        result,
+                    ))
+                })
+            }
             Messages::GSllaperScaleModeChanged(gsllapper_scale_mode) => {
-                self.gslapper_scale_mode = Some(gsllapper_scale_mode.clone());
-                if let Some(changer) = &self.changer
-                    && let WallpaperChangers::GSlapper(settings) = changer
-                {
-                    self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
-                        scale_mode: gsllapper_scale_mode,
-                        ..settings.clone()
-                    }));
+                if let Some(settings) = &mut self.gslapper_settings_draft {
+                    settings.scale_mode = gsllapper_scale_mode;
                 }
                 Task::none()
             }
             Messages::GSlapperPauseModeChanged(gsllapper_pause_mode) => {
-                self.gslapper_pause_mode = Some(gsllapper_pause_mode.clone());
-                if let Some(changer) = &self.changer
-                    && let WallpaperChangers::GSlapper(settings) = changer
-                {
-                    self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
-                        pause_mode: gsllapper_pause_mode,
-                        ..settings.clone()
-                    }));
+                if let Some(settings) = &mut self.gslapper_settings_draft {
+                    settings.pause_mode = gsllapper_pause_mode;
                 }
                 Task::none()
             }
             Messages::GSllaperLoopVideoChanged(b) => {
-                self.gslapper_loop = b;
-                if let Some(changer) = &self.changer
-                    && let WallpaperChangers::GSlapper(settings) = changer
-                {
-                    self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
-                        loop_video: b,
-                        ..settings.clone()
-                    }));
+                if let Some(settings) = &mut self.gslapper_settings_draft {
+                    settings.loop_video = b;
                 }
                 Task::none()
             }
             Messages::GSllaperAdditionalOptionsChanged(additional_options) => {
-                self.gslapper_additional_options
-                    .clone_from(&additional_options);
-                if let Some(changer) = &self.changer
-                    && let WallpaperChangers::GSlapper(settings) = changer
-                {
-                    self.changer = Some(WallpaperChangers::GSlapper(GSllaperSettings {
-                        additional_options,
-                        ..settings.clone()
-                    }));
+                if let Some(settings) = &mut self.gslapper_settings_draft {
+                    settings.additional_options = additional_options;
+                }
+                Task::none()
+            }
+            Messages::GSlapperFpsChanged(fps) => {
+                if let Some(settings) = &mut self.gslapper_settings_draft {
+                    settings.fps_cap = fps;
+                }
+                Task::none()
+            }
+            Messages::GSlapperTransitionEnabledChanged(enabled) => {
+                if let Some(settings) = &mut self.gslapper_settings_draft {
+                    settings.transition_enabled = enabled;
+                }
+                Task::none()
+            }
+            Messages::GSlapperTransitionDurationChanged(duration) => {
+                if let Some(settings) = &mut self.gslapper_settings_draft {
+                    settings.transition_duration = duration;
+                }
+                Task::none()
+            }
+            Messages::GSlapperCacheSizeChanged(size) => {
+                if let Some(settings) = &mut self.gslapper_settings_draft {
+                    settings.cache_size_mb = size;
                 }
                 Task::none()
             }
@@ -1375,7 +1534,7 @@ impl AppState {
     }
 
     pub fn view(&self) -> Element<'_, Messages> {
-        match &self.changer {
+        let content = match &self.changer {
             Some(changer) => {
                 let image_grid: Element<'_, Messages> = if self.image_grid_loading {
                     row![
@@ -1653,43 +1812,79 @@ impl AppState {
             .height(Fill)
             .width(Fill)
             .into(),
+        };
+
+        if self.show_gslapper_settings {
+            stack![
+                content,
+                mouse_area(
+                    container(text(""))
+                        .style(|_| {
+                            container::Style::default()
+                                .background(Color::from_rgba(0.0, 0.0, 0.0, 0.55))
+                        })
+                        .width(Fill)
+                        .height(Fill),
+                )
+                .on_press(Messages::CloseGSlapperSettings),
+                container(
+                    mouse_area(generate_gslapper_settings_dialog(self))
+                        .on_press(Messages::GSlapperDialogPressed),
+                )
+                .align_x(Center)
+                .align_y(Center)
+                .width(Fill)
+                .height(Fill),
+            ]
+            .width(Fill)
+            .height(Fill)
+            .into()
+        } else {
+            content
         }
     }
 
     fn subscription(&self) -> Subscription<Messages> {
-        Subscription::filter_map(event::listen(), |event| match event {
-            iced::Event::Window(iced::window::Event::CloseRequested) => {
-                Some(Messages::CloseRequested)
-            }
-            iced::Event::Window(iced::window::Event::Resized(s)) => {
-                IMAGE_GRID_COLUMNS.store(
-                    (s.width / (BUTTON_WIDTH + 4.0 * DEFAULT_MARGIN)).floor() as usize,
-                    std::sync::atomic::Ordering::Relaxed,
-                );
-                IMAGE_GRID_ROWS.store(
-                    (s.height / (BUTTON_HEIGHT + 4.0 * DEFAULT_MARGIN)).floor() as usize,
-                    std::sync::atomic::Ordering::Relaxed,
-                );
-                Some(Messages::ResetRowOffset)
-            }
-            iced::Event::Mouse(iced::mouse::Event::WheelScrolled { delta }) => match delta {
-                iced::mouse::ScrollDelta::Lines { x: _, y } => {
-                    if y < 0.0 {
-                        Some(Messages::ImageGridScrollUp)
-                    } else {
-                        Some(Messages::ImgaeGridScrollDown)
-                    }
+        Subscription::filter_map(
+            event::listen().with(self.show_gslapper_settings),
+            |(settings_open, event)| match event {
+                iced::Event::Window(iced::window::Event::CloseRequested) => {
+                    Some(Messages::CloseRequested)
                 }
-                iced::mouse::ScrollDelta::Pixels { x: _, y } => {
-                    if y < 0.0 {
-                        Some(Messages::ImageGridScrollUp)
-                    } else {
-                        Some(Messages::ImgaeGridScrollDown)
-                    }
+                iced::Event::Window(iced::window::Event::Resized(s)) => {
+                    IMAGE_GRID_COLUMNS.store(
+                        (s.width / (BUTTON_WIDTH + 4.0 * DEFAULT_MARGIN)).floor() as usize,
+                        std::sync::atomic::Ordering::Relaxed,
+                    );
+                    IMAGE_GRID_ROWS.store(
+                        (s.height / (BUTTON_HEIGHT + 4.0 * DEFAULT_MARGIN)).floor() as usize,
+                        std::sync::atomic::Ordering::Relaxed,
+                    );
+                    Some(Messages::ResetRowOffset)
                 }
+                iced::Event::Keyboard(iced::keyboard::Event::KeyPressed {
+                    key: iced::keyboard::Key::Named(iced::keyboard::key::Named::Escape),
+                    ..
+                }) if settings_open => Some(Messages::CloseGSlapperSettings),
+                iced::Event::Mouse(iced::mouse::Event::WheelScrolled { delta }) => match delta {
+                    iced::mouse::ScrollDelta::Lines { x: _, y } => {
+                        if y < 0.0 {
+                            Some(Messages::ImageGridScrollUp)
+                        } else {
+                            Some(Messages::ImgaeGridScrollDown)
+                        }
+                    }
+                    iced::mouse::ScrollDelta::Pixels { x: _, y } => {
+                        if y < 0.0 {
+                            Some(Messages::ImageGridScrollUp)
+                        } else {
+                            Some(Messages::ImgaeGridScrollDown)
+                        }
+                    }
+                },
+                _ => None,
             },
-            _ => None,
-        })
+        )
     }
 
     fn theme(&self) -> iced::Theme {
@@ -1707,5 +1902,91 @@ impl AppState {
             .exit_on_close_request(false)
             .theme(Self::theme)
             .run()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn failed_wallpaper_change_is_not_saved() {
+        let mut app = AppState {
+            changer: Some(WallpaperChangers::GSlapper(GSllaperSettings::default())),
+            monitor: Some("DP-1".to_owned()),
+            saved_wallpapers: Vec::new(),
+            ..AppState::default()
+        };
+        let path = PathBuf::from("/tmp/missing.png");
+
+        let _ = app.update(Messages::WallpaperChangeFinished(
+            path,
+            Err("gSlapper failed".to_owned()),
+        ));
+
+        assert!(app.saved_wallpapers.is_empty());
+        assert_eq!(app.gslapper_error.as_deref(), Some("gSlapper failed"));
+    }
+
+    #[test]
+    fn opening_gslapper_settings_copies_current_settings() {
+        let settings = GSllaperSettings {
+            fps_cap: 60,
+            ..GSllaperSettings::default()
+        };
+        let mut app = AppState {
+            changer: Some(WallpaperChangers::GSlapper(settings.clone())),
+            monitor: Some("DP-1".to_owned()),
+            ..AppState::default()
+        };
+
+        let _ = app.update(Messages::OpenGSlapperSettings);
+
+        assert!(app.show_gslapper_settings);
+        assert_eq!(app.gslapper_settings_draft, Some(settings));
+    }
+
+    #[test]
+    fn failed_settings_apply_keeps_last_working_settings() {
+        let current = GSllaperSettings::default();
+        let mut requested = current.clone();
+        requested.fps_cap = 60;
+        let mut app = AppState {
+            changer: Some(WallpaperChangers::GSlapper(current.clone())),
+            gslapper_settings_draft: Some(requested.clone()),
+            ..AppState::default()
+        };
+
+        let _ = app.update(Messages::GSlapperSettingsApplied(
+            requested,
+            Err("restart failed".to_owned()),
+        ));
+
+        assert_eq!(app.changer, Some(WallpaperChangers::GSlapper(current)));
+        assert_eq!(app.gslapper_error.as_deref(), Some("restart failed"));
+    }
+
+    #[test]
+    fn old_app_state_keeps_user_settings_and_defaults_new_gslapper_fields() {
+        let app = AppState {
+            image_filter: "keep me".to_owned(),
+            ..AppState::default()
+        };
+        let mut value = serde_json::to_value(app).unwrap();
+        let object = value.as_object_mut().unwrap();
+        for field in [
+            "gslapper_fps_cap",
+            "gslapper_transition_enabled",
+            "gslapper_transition_duration",
+            "gslapper_cache_size",
+        ] {
+            object.remove(field);
+        }
+
+        let restored: AppState = serde_json::from_value(value).unwrap();
+
+        assert_eq!(restored.image_filter, "keep me");
+        assert_eq!(restored.gslapper_fps_cap, 30);
+        assert_eq!(restored.gslapper_cache_size, 256);
     }
 }
