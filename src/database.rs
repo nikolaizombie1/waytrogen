@@ -14,17 +14,22 @@ impl DatabaseConnection {
         let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
         let cache_path = xdg_dirs.place_cache_file(CACHE_FILE_NAME)?;
         let conn = Connection::open(cache_path.to_string_lossy().as_ref())?;
-        let query = "
-      CREATE TABLE IF NOT EXISTS imagefile
-        (
-           image TEXT NOT NULL,
-           name TEXT NOT NULL,
-           date INTEGER NOT NULL,
-           path TEXT NOT NULL,
-           favorite INTEGER NOT NULL
-        );
-     ";
-        conn.execute(query, ())?;
+        // WAL mode + a busy timeout make concurrent thumbnail cache writes from
+        // the rayon thread pool much less likely to fail with "database is locked".
+        conn.execute_batch(
+            "
+            PRAGMA journal_mode = WAL;
+            PRAGMA busy_timeout = 5000;
+            CREATE TABLE IF NOT EXISTS imagefile
+              (
+                 image TEXT NOT NULL,
+                 name TEXT NOT NULL,
+                 date INTEGER NOT NULL,
+                 path TEXT NOT NULL,
+                 favorite INTEGER NOT NULL
+              );
+            ",
+        )?;
         Ok(DatabaseConnection { connetion: conn })
     }
 
