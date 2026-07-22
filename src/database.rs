@@ -13,7 +13,7 @@ impl DatabaseConnection {
     pub fn new() -> anyhow::Result<DatabaseConnection> {
         let xdg_dirs = xdg::BaseDirectories::with_prefix(CONFIG_APP_NAME);
         let cache_path = xdg_dirs.place_cache_file(CACHE_FILE_NAME)?;
-        let conn = Connection::open(cache_path.to_str().unwrap())?;
+        let conn = Connection::open(cache_path.to_string_lossy().as_ref())?;
         let query = "
       CREATE TABLE IF NOT EXISTS imagefile
         (
@@ -33,7 +33,7 @@ impl DatabaseConnection {
         let mut statement = self.connetion.prepare(query)?;
 
         let mut pix_buf_bytes = statement
-            .query_map([path.to_str().unwrap_or_default()], |row| {
+            .query_map([&path.to_string_lossy()], |row| {
                 let favorite = row.get::<usize, i32>(4)?;
                 let favorite = favorite > 0;
                 Ok(CacheImageFile {
@@ -67,10 +67,10 @@ impl DatabaseConnection {
         self.connetion.execute(
             query,
             (
-                &image_file.cached_image_path.to_str().unwrap(),
+                &image_file.cached_image_path.to_string_lossy(),
                 &image_file.name,
                 &image_file.date,
-                &image_file.path.to_str().unwrap_or_default(),
+                &image_file.path.to_string_lossy(),
                 &favorite,
             ),
         )?;
@@ -81,7 +81,11 @@ impl DatabaseConnection {
     pub fn check_cache(path: &Path) -> anyhow::Result<CacheImageFile> {
         let conn = DatabaseConnection::new()?;
         match conn.select_image_file(path) {
-            Ok(f) => {
+            Ok(mut f) => {
+                // The database stores a lossy representation of the path only as a
+                // cache key. Always keep the real filesystem path from the caller so
+                // subsequent file operations (e.g. applying the wallpaper) work.
+                f.path = path.to_path_buf();
                 trace!("{}: {:#?}", TRANSLATION.get_translation("cache-hit"), f);
                 Ok(f)
             }
@@ -89,7 +93,7 @@ impl DatabaseConnection {
                 trace!(
                     "{}: {} {}",
                     TRANSLATION.get_translation("cache-miss"),
-                    path.to_str().unwrap(),
+                    path.to_string_lossy(),
                     e
                 );
                 match CacheImageFile::from_file(path) {
@@ -97,13 +101,13 @@ impl DatabaseConnection {
                         trace!(
                             "{} {}",
                             TRANSLATION.get_translation("picture-created-successfully"),
-                            g.path.to_str().unwrap_or_default()
+                            g.path.to_string_lossy()
                         );
                         conn.insert_image_file(&g)?;
                         debug!(
                             "{} {}",
                             "Picture inserted into database.",
-                            &g.path.to_str().unwrap_or_default()
+                            &g.path.to_string_lossy()
                         );
                         Ok(g)
                     }
@@ -111,7 +115,7 @@ impl DatabaseConnection {
                         warn!(
                             "{}: {} {}",
                             TRANSLATION.get_translation("file-could-not-be-converted-to-a-picture"),
-                            path.to_str().unwrap(),
+                            path.to_string_lossy(),
                             e
                         );
                         Err(e)

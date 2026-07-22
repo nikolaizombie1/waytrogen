@@ -45,21 +45,23 @@ impl CacheImageFile {
         Self::create_gtk_image(path, &image)
     }
 
-    fn get_metadata(path: &Path) -> anyhow::Result<(String, String, u32)> {
-        let path = path.to_path_buf();
-        let name = path.file_name().unwrap().to_str().unwrap().to_owned();
-        let date = std::fs::File::open(path.clone())?.metadata()?.modified()?;
+    fn get_metadata(path: &Path) -> anyhow::Result<(String, u32)> {
+        let name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let date = std::fs::File::open(path)?.metadata()?.modified()?;
         let date = u32::try_from(date.duration_since(UNIX_EPOCH)?.as_secs())?;
-        Ok((path.to_str().unwrap().to_string(), name, date))
+        Ok((name, date))
     }
 
     fn create_gtk_image(path: &Path, image: &Path) -> anyhow::Result<CacheImageFile> {
         let fields = Self::get_metadata(path)?;
         let image_file = CacheImageFile {
             cached_image_path: image.to_path_buf(),
-            path: PathBuf::from(fields.0),
-            name: fields.1,
-            date: fields.2,
+            path: path.to_path_buf(),
+            name: fields.0,
+            date: fields.1,
             favorite: false,
         };
         Ok(image_file)
@@ -75,13 +77,13 @@ impl CacheImageFile {
         Err(anyhow::anyhow!(
             "{}: {}",
             TRANSLATION.get_translation("failed-to-create-thumbnail-for"),
-            path.as_os_str().to_str().unwrap_or_default()
+            path.to_string_lossy()
         ))
     }
     fn try_write_thumbnail_with_ffmpeg(path: &Path) -> anyhow::Result<PathBuf> {
         let temp_dir = String::from_utf8(Command::new("mktemp").arg("-d").output()?.stdout)?;
         let output_path = PathBuf::from(temp_dir.trim()).join("temp.png");
-        trace!("ffmpeg Output Path: {}", output_path.to_str().unwrap());
+        trace!("ffmpeg Output Path: {}", output_path.to_string_lossy());
         let code = Command::new("ffmpeg")
             .arg("-i")
             .arg(path)
