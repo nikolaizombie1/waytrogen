@@ -77,7 +77,7 @@ pub fn change_hyprpaper_wallpaper(
                         .arg("wallpaper")
                         .arg(format!(
                             "{monitor},{},{}",
-                            image.to_str().unwrap(),
+                            image.to_string_lossy(),
                             fit_mode
                         ))
                         .spawn()
@@ -93,7 +93,7 @@ pub fn change_hyprpaper_wallpaper(
                 .arg("wallpaper")
                 .arg(format!(
                     "{monitor},{},{}",
-                    image.to_str().unwrap(),
+                    image.to_string_lossy(),
                     fit_mode
                 ))
                 .spawn()

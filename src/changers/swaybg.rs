@@ -95,7 +95,7 @@ fn build_command(command: &mut Command, settings: &SwaybgSettings, image: &Path,
 
     command
         .arg("-i")
-        .arg(image.to_str().unwrap())
+        .arg(image.as_os_str())
         .arg("-m")
         .arg(mode)
         .arg("-c")
