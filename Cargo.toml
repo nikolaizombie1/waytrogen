@@ -2,39 +2,43 @@
 name = "waytrogen"
 version = "1.0.1"
 edition = "2024"
+description = "A lightning fast wallpaper changer for Wayland written in Rust."
 build = "build.rs"
+exclude = ["README-Assets/preview.mp4", "README-Assets/preview.webp", "README-Assets/WaytrogenLogo.png"]
+license-file = "LICENSE"
+homepage = "https://github.com/nikolaizombie1/waytrogen"
+repository = "https://github.com/nikolaizombie1/waytrogen"
+readme = "README.md"
 
 [dependencies]
-clap = { version = "*", features = ["derive"] }
-iced = { version = "0.14.0", features = ["lazy", "image"] }
-log = "0.4.29"
-serde = "1.0.228"
-serde_json = "1.0.149"
-stderrlog = "0.6.0"
-anyhow = "1.0.102"
-rand = "0.10.1"
-image = "0.25.10"
-lazy_static = "1.5.0"
-regex = "1.12.3"
-xdg = "3.0.0"
-uuid = { version = "1.23.1", features = ["v4"] }
-walkdir = "2.5.0"
-rusqlite =  { version = ">= 0.29.0" }
-which = "8.0.2"
-strum = { version = "0.28.0", features = ["derive"] }
-strum_macros = "0.28.0"
-rfd = { version = "0.17.2", features = ["xdg-portal"] }
-rayon = "1.12.0"
-regex_static = "0.1.1"
-iced_aw = { version = "0.13.1", features = ["menu", "color_picker", "number_input", "spinner"] }
-wayland-client = "0.31.14"
-sys-locale = "0.3.2"
-fluent-bundle = "^0.16.0"
-fluent-langneg = "^0.14.2"
-tokio = { version = "1.52.3", features = ["rt"] }
-futures = "0.3.32"
-iced_runtime = "0.14.0"
-fluent-templates = "0.14.0"
+clap = { version = "4.6.4", features = ["derive"] }
+iced = { version = "0.14.0", features = ["lazy", "image", "wayland", "wgpu", "crisp", "tokio", "linux-theme-detection"], default-features = false }
+log = { version = "0.4.29", default-features = false }
+serde = { version = "1.0.228", default-features = false }
+serde_json = { version = "1.0.149", default-features = false, features = ["std"] }
+stderrlog = { version = "0.6.0", default-features = false }
+anyhow = { version = "1.0.102", default-features = false }
+rand = { version = "0.10.1", default-features = false, features = ["thread_rng"] }
+image = { version = "0.25.10", default-features = false, features = ["default-formats"] }
+regex = { version = "1.12.3", default-features = false, features = ["perf", "unicode", "std"] }
+xdg = { version = "3.0.0", default-features = false }
+uuid = { version = "1.23.1", features = ["v4"], default-features = false }
+walkdir = { version = "2.5.0", default-features = false }
+rusqlite =  { version = ">= 0.29.0", default-features = false }
+which = { version = "8.0.2", default-features = false, features = ["real-sys"] }
+strum = { version = "0.28.0", features = ["derive"], default-features = false }
+strum_macros = { version = "0.28.0", default-features = false }
+rfd = { version = "0.17.2", features = ["xdg-portal"], default-features = false }
+rayon = { version = "1.12.0", default-features = false }
+regex_static = { version = "0.1.1", default-features = false }
+iced_aw = { version = "0.13.1", features = ["menu", "color_picker", "number_input", "spinner"], default-features = false }
+wayland-client = { version = "0.31.14", default-features = false }
+sys-locale = { version = "0.3.2", default-features = false }
+fluent-bundle = { version = "^0.16.0", default-features = false }
+fluent-langneg = { version = "^0.14.2", default-features = false }
+tokio = { version = "1.52.3", default-features = false }
+futures = { version = "0.3.32", default-features = false }
+fluent-templates = { version = "0.14.0", default-features = false, features = ["macros", "ignore"] }
 
 [features]
 nixos = []
@@ -43,6 +47,6 @@ nixos = []
 inherits = "release"
 
 [build-dependencies]
-clap = { version = "*", features = ["derive"] }
-clap_complete = "*"
+clap = { version = "4.6.2", features = ["derive"] }
+clap_complete = "4.6.2"
 anyhow = "1.0.102"

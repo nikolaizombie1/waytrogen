@@ -1,7 +1,0 @@
-#!/usr/bin/make -f
-
-%:
-	dh $@
-
-override_dh_clean:
-	dh_clean -Xvendor -Xobj-x86_64-linux-gnu

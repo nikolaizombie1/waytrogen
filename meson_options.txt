@@ -1,2 +1,0 @@
-option('precompiled_binary', type: 'string', value: '')
-option('completions', type: 'string', value: '')
